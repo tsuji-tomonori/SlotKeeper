@@ -1,0 +1,154 @@
+---
+import Layout from "../layouts/Layout.astro";
+import fs from "node:fs";
+type PerfRun = {
+  index: number;
+  metrics: Record<
+    string,
+    { count: number; p50: number; p95: number; p99: number }
+  >;
+};
+const evidence = JSON.parse(
+  fs.readFileSync("artifacts/public/evidence.json", "utf8"),
+);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const counts: Record<string, number> = {};
+for (const item of evidence.tests)
+  counts[item.status] = (counts[item.status] ?? 0) + 1;
+---
+
+<Layout title="実行結果"
+  ><p class="eyebrow">QUALITY / EVIDENCE</p><h1>
+    設計をたどる。品質を確かめる。
+  </h1><p>対象revision：<code>{evidence.revision}</code></p><p>
+    run：{evidence.runId} · {evidence.scope} · {evidence.generatedAt}
+  </p><div class="metrics">
+    {
+      ["passed", "failed", "skipped", "not-run", "flaky", "missing"].map(
+        (s) => (
+          <div>
+            <>
+              <strong>{counts[s] ?? 0}</strong>
+              <span>{s}</span>
+            </>
+          </div>
+        ),
+      )
+    }
+  </div><p>
+    構成適合・設計drift・テスト実行は別の判定です。部分検証を全件合格とは表示しません。
+  </p><section>
+    <h2>静的解析・検証コマンド</h2><div class="scroll">
+      <table>
+        <thead><tr><th>検査</th><th>状態</th><th>コマンド</th></tr></thead
+        ><tbody
+          >{
+            evidence.checks.map(
+              (c: { name: string; status: string; command: string }) => (
+                <tr>
+                  <>
+                    <td>{c.name}</td>
+                    <td data-status={c.status}>{c.status}</td>
+                    <td>
+                      <code>{c.command}</code>
+                    </td>
+                  </>
+                </tr>
+              ),
+            )
+          }</tbody>
+      </table>
+    </div>
+  </section><section>
+    <h2>カバレッジ</h2><p>
+      Pythonは行・分岐を区別します。未計測を100%にしません。
+    </p>{
+      evidence.coverage.map(
+        (c: {
+          name: string;
+          status: string;
+          covered?: number;
+          total?: number;
+        }) => (
+          <p>
+            {c.name}：{c.status}{" "}
+            {c.total
+              ? `${c.covered} / ${c.total} (${(((c.covered ?? 0) / c.total) * 100).toFixed(1)}%)`
+              : "未計測・分母なし"}
+          </p>
+        ),
+      )
+    }
+  </section><section>
+    <h2>実テスト一覧</h2>{
+      evidence.tests.map(
+        (c: {
+          id: string;
+          status: string;
+          narrative?: string;
+          duration?: number;
+          steps?: { phase: string; text: string; image: string }[];
+        }) => (
+          <details>
+            <p>
+              実測：{c.status} · {c.duration ?? 0}秒
+            </p>
+            {c.steps?.map((s) => (
+              <figure>
+                <figcaption>
+                  {s.phase}：{s.text}
+                </figcaption>
+                <img
+                  class="evidence-image"
+                  src={base + "/" + s.image}
+                  alt={s.text}
+                  loading="lazy"
+                />
+              </figure>
+            ))}
+          </details>
+        ),
+      )
+    }
+  </section><section>
+    <h2>性能</h2><p>
+      {evidence.performance.status}：{evidence.performance.reason}
+    </p>{
+      evidence.performance.runs?.map((run: PerfRun) => (
+        <div>
+          <>
+            <h3>測定 {run.index}</h3>
+            <table>
+              <>
+                <thead>
+                  <tr>
+                    <>
+                      <th>API</th>
+                      <th>件数</th>
+                      <th>p50</th>
+                      <th>p95</th>
+                      <th>p99</th>
+                    </>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(run.metrics).map(([name, m]) => (
+                    <tr>
+                      <td>{name}</td>
+                      <td>{m.count}</td>
+                      <td>{m.p50}ms</td>
+                      <td>{m.p95}ms</td>
+                      <td>{m.p99}ms</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </>
+            </table>
+          </>
+        </div>
+      ))
+    }
+  </section><section>
+    <h2>AWS実環境</h2><p>{evidence.cloud.status}：{evidence.cloud.reason}</p>
+  </section></Layout
+>

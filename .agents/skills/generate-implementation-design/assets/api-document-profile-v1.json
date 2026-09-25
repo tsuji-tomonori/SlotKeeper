@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "id": "api-six-documents",
+  "version": "1.0.0",
+  "reference": {
+    "repository": "https://github.com/tsuji-tomonori/lazunex",
+    "revision": "096e1e580ab1c0670c57e4febad2bd9fdd4698ee"
+  },
+  "layout": "{group}/{api}/{kind}.md",
+  "headings": {
+    "detail-design": [
+      {
+        "level": 2,
+        "title": "1. 正常系入力"
+      },
+      {
+        "level": 2,
+        "title": "2. 正常系前提"
+      },
+      {
+        "level": 2,
+        "title": "3. 正常系リソース変更"
+      },
+      {
+        "level": 2,
+        "title": "4. 正常系レスポンス"
+      }
+    ],
+    "interface": [
+      {
+        "level": 2,
+        "title": "Headers"
+      },
+      {
+        "level": 2,
+        "title": "Path Parameters"
+      },
+      {
+        "level": 2,
+        "title": "Query Parameters"
+      },
+      {
+        "level": 2,
+        "title": "Data"
+      },
+      {
+        "level": 2,
+        "title": "Responses"
+      },
+      {
+        "repeat": "responses",
+        "level": 5,
+        "children": [],
+        "min": 1
+      },
+      {
+        "level": 2,
+        "title": "Samples"
+      },
+      {
+        "repeat": "samples",
+        "level": 3,
+        "children": [
+          {
+            "level": 4,
+            "title": "Request"
+          },
+          {
+            "level": 4,
+            "title": "Response"
+          }
+        ],
+        "min": 1
+      }
+    ],
+    "messages": [
+      {
+        "level": 2,
+        "title": "API"
+      },
+      {
+        "level": 2,
+        "title": "生成・検証方針"
+      },
+      {
+        "level": 2,
+        "title": "メッセージ一覧"
+      },
+      {
+        "level": 2,
+        "title": "ログ詳細"
+      },
+      {
+        "repeat": "messages",
+        "level": 3,
+        "children": [
+          {
+            "level": 4,
+            "title": "出力項目"
+          }
+        ],
+        "min": 0,
+        "empty": "該当なし（理由: {reason}）"
+      },
+      {
+        "level": 2,
+        "title": "strict検証で要求する項目"
+      }
+    ],
+    "query": [
+      {
+        "repeat": "queries",
+        "level": 2,
+        "children": [
+          {
+            "level": 3,
+            "title": "SQL種別"
+          },
+          {
+            "level": 3,
+            "title": "SQLの概要"
+          },
+          {
+            "level": 3,
+            "title": "利用するテーブル"
+          },
+          {
+            "level": 3,
+            "title": "引数"
+          },
+          {
+            "level": 3,
+            "title": "戻り値"
+          },
+          {
+            "level": 3,
+            "title": "条件"
+          }
+        ],
+        "min": 0,
+        "empty": "該当なし（理由: {reason}）"
+      }
+    ],
+    "sequence": [],
+    "unit-test": [
+      {
+        "level": 2,
+        "title": "0. endpoint層の暗黙処理"
+      },
+      {
+        "level": 2,
+        "title": "1. 要因ごとの要素"
+      },
+      {
+        "repeat": "factors",
+        "level": 3,
+        "children": [],
+        "min": 1
+      },
+      {
+        "level": 2,
+        "title": "2. 組合せたテストケース一覧"
+      },
+      {
+        "level": 2,
+        "title": "3. テスト詳細"
+      },
+      {
+        "repeat": "cases",
+        "level": 3,
+        "children": [],
+        "min": 1
+      }
+    ]
+  },
+  "non_applicable": "該当なし（理由: {reason}）",
+  "notes": "lazunexの章順を比較した言語非依存profile。Routerをendpointへ、直積を実際の組合せへ表記適応。SQL非採用はquery帳票内に理由を残す。別profileは版と実装差分を導入先で明示する。"
+}

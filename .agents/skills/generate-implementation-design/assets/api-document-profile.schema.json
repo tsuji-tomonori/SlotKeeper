@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "reference",
+    "layout",
+    "headings",
+    "non_applicable"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reference": {
+      "type": "object",
+      "required": [
+        "repository",
+        "revision"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "layout": {
+      "type": "string",
+      "minLength": 1
+    },
+    "headings": {
+      "type": "object",
+      "required": [
+        "detail-design",
+        "interface",
+        "messages",
+        "query",
+        "sequence",
+        "unit-test"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "detail-design": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fixed"
+              },
+              {
+                "$ref": "#/$defs/repeat"
+              }
+            ]
+          }
+        },
+        "interface": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fixed"
+              },
+              {
+                "$ref": "#/$defs/repeat"
+              }
+            ]
+          }
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fixed"
+              },
+              {
+                "$ref": "#/$defs/repeat"
+              }
+            ]
+          }
+        },
+        "query": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fixed"
+              },
+              {
+                "$ref": "#/$defs/repeat"
+              }
+            ]
+          }
+        },
+        "sequence": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fixed"
+              },
+              {
+                "$ref": "#/$defs/repeat"
+              }
+            ]
+          }
+        },
+        "unit-test": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fixed"
+              },
+              {
+                "$ref": "#/$defs/repeat"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "non_applicable": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "fixed": {
+      "type": "object",
+      "required": [
+        "level",
+        "title"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "integer",
+          "enum": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "repeat": {
+      "type": "object",
+      "required": [
+        "repeat",
+        "level",
+        "children",
+        "min"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "repeat": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "type": "integer",
+          "enum": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fixed"
+          },
+          "uniqueItems": true
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "empty": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

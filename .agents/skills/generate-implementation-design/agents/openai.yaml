@@ -1,0 +1,4 @@
+interface:
+  display_name: "実装由来設計のadapter契約検査"
+  short_description: "導入先adapterの言語非依存契約・構成・生成driftを検査する"
+  default_prompt: "Use $generate-implementation-design to inventory all pinned reference tools, implement language-specific analyzers in the target repository, connect its adapter manifest and requirement mappings, validate owned outputs and document profiles, compare two generations and --check, and keep unsupported surfaces incomplete."

@@ -1,0 +1,946 @@
+{
+  "Outputs": {
+    "ApiUrl": {
+      "Value": {
+        "Fn::GetAtt": [
+          "HttpApiF5A9A8A7",
+          "ApiEndpoint"
+        ]
+      }
+    },
+    "ApplicationRole": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ApiServiceRole1BD550DA",
+          "Arn"
+        ]
+      }
+    },
+    "ClientId": {
+      "Value": {
+        "Ref": "UsersBrowser427D6876"
+      }
+    },
+    "DistributionId": {
+      "Value": {
+        "Ref": "Distribution830FAC52"
+      }
+    },
+    "DsqlEndpoint": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Database",
+          "Endpoint"
+        ]
+      }
+    },
+    "Issuer": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Users0A0EEA89",
+          "ProviderURL"
+        ]
+      }
+    },
+    "LoginUrl": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "UsersLogin5F5F2B8C"
+            },
+            ".auth.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".amazoncognito.com"
+          ]
+        ]
+      }
+    },
+    "UserPoolId": {
+      "Value": {
+        "Ref": "Users0A0EEA89"
+      }
+    },
+    "WebBucket": {
+      "Value": {
+        "Ref": "Web3C8945DB"
+      }
+    },
+    "WebUrl": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "Distribution830FAC52",
+                "DomainName"
+              ]
+            }
+          ]
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>"
+    }
+  },
+  "Resources": {
+    "Administrators": {
+      "Properties": {
+        "GroupName": "admin",
+        "UserPoolId": {
+          "Ref": "Users0A0EEA89"
+        }
+      },
+      "Type": "AWS::Cognito::UserPoolGroup"
+    },
+    "ApiF70053CD": {
+      "DependsOn": [
+        "ApiServiceRoleDefaultPolicyB24862FE",
+        "ApiServiceRole1BD550DA"
+      ],
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-IAM4",
+              "is_reason_encoded": true,
+              "reason": "TGFtYmRh5Z+65pys44Ot44Kw5Ye65Yqb44GuQVdT566h55CGcG9saWN544CCRFNRTOOBr+WvvuixoWNsdXN0ZXLjga5EYkNvbm5lY3TjgaDjgZHjgavpmZDlrprjgZnjgovjgII="
+            },
+            {
+              "id": "AwsSolutions-L1",
+              "is_reason_encoded": true,
+              "reason": "6YWN5biDWklQ44GoUHl0aG9uIDMuMTLjgpLkuIDoh7TjgZXjgZvjgovlm7rlrppydW50aW1l44CC5LqS5o+b5oCn44KS56K66KqN44GX44Gm5pu05paw44GZ44KL44CC"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "Architectures": [
+          "x86_64"
+        ],
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+          },
+          "S3Key": "458d184564d77aabef0aac7367be4fa146fdbf8774bb104d0dc682e6f19a238a.zip"
+        },
+        "Environment": {
+          "Variables": {
+            "SLOT_AUTH_MODE": "cognito",
+            "SLOT_CLIENT_ID": {
+              "Ref": "UsersBrowser427D6876"
+            },
+            "SLOT_CORS_ORIGIN": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "Distribution830FAC52",
+                      "DomainName"
+                    ]
+                  }
+                ]
+              ]
+            },
+            "SLOT_DATABASE_MODE": "dsql",
+            "SLOT_DATABASE_USER": "slotkeeper_app",
+            "SLOT_DSQL_HOST": {
+              "Fn::GetAtt": [
+                "Database",
+                "Endpoint"
+              ]
+            },
+            "SLOT_ENVIRONMENT": "aws",
+            "SLOT_ISSUER": {
+              "Fn::GetAtt": [
+                "Users0A0EEA89",
+                "ProviderURL"
+              ]
+            },
+            "SLOT_JWKS_URL": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Fn::GetAtt": [
+                      "Users0A0EEA89",
+                      "ProviderURL"
+                    ]
+                  },
+                  "/.well-known/jwks.json"
+                ]
+              ]
+            },
+            "SLOT_REGION": {
+              "Ref": "AWS::Region"
+            }
+          }
+        },
+        "Handler": "slotkeeper.app.handler",
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "ApiLogs3D05D88B"
+          }
+        },
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "ApiServiceRole1BD550DA",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.12",
+        "Timeout": 28
+      },
+      "Type": "AWS::Lambda::Function"
+    },
+    "ApiLogs3D05D88B": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "RetentionInDays": 30
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "ApiServiceRole1BD550DA": {
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-IAM4",
+              "is_reason_encoded": true,
+              "reason": "TGFtYmRh5Z+65pys44Ot44Kw5Ye65Yqb44GuQVdT566h55CGcG9saWN544CCRFNRTOOBr+WvvuixoWNsdXN0ZXLjga5EYkNvbm5lY3TjgaDjgZHjgavpmZDlrprjgZnjgovjgII="
+            },
+            {
+              "id": "AwsSolutions-L1",
+              "is_reason_encoded": true,
+              "reason": "6YWN5biDWklQ44GoUHl0aG9uIDMuMTLjgpLkuIDoh7TjgZXjgZvjgovlm7rlrppydW50aW1l44CC5LqS5o+b5oCn44KS56K66KqN44GX44Gm5pu05paw44GZ44KL44CC"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Role"
+    },
+    "ApiServiceRoleDefaultPolicyB24862FE": {
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-IAM4",
+              "is_reason_encoded": true,
+              "reason": "TGFtYmRh5Z+65pys44Ot44Kw5Ye65Yqb44GuQVdT566h55CGcG9saWN544CCRFNRTOOBr+WvvuixoWNsdXN0ZXLjga5EYkNvbm5lY3TjgaDjgZHjgavpmZDlrprjgZnjgovjgII="
+            },
+            {
+              "id": "AwsSolutions-L1",
+              "is_reason_encoded": true,
+              "reason": "6YWN5biDWklQ44GoUHl0aG9uIDMuMTLjgpLkuIDoh7TjgZXjgZvjgovlm7rlrppydW50aW1l44CC5LqS5o+b5oCn44KS56K66KqN44GX44Gm5pu05paw44GZ44KL44CC"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "dsql:DbConnect",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "Database",
+                  "ResourceArn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "ApiServiceRoleDefaultPolicyB24862FE",
+        "Roles": [
+          {
+            "Ref": "ApiServiceRole1BD550DA"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Policy"
+    },
+    "Database": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "DeletionProtectionEnabled": true
+      },
+      "Type": "AWS::DSQL::Cluster",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "Distribution830FAC52": {
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-CFR1",
+              "is_reason_encoded": true,
+              "reason": "5Y2Y5LiA5oug54K544Gg44GM6Zay6Kan5YWD44Gu5Zyw55CG5Yi26ZmQ44Gv6KaB5Lu244Gr44Gq44GE44CCQ29nbml0b+OBp+iqjeWPr+OBmeOCi+OAgg=="
+            },
+            {
+              "id": "AwsSolutions-CFR2",
+              "is_reason_encoded": true,
+              "reason": "5Yid5Zue44Gu6Z2Z55qE6YWN5L+h44CCV0FG44Gv5b+F6KaB44Gq6ISF5aiB44Go6LK755So44KS6YGL55So5pmC44Gr5Yik5pat44GZ44KL44CC"
+            },
+            {
+              "id": "AwsSolutions-CFR3",
+              "is_reason_encoded": true,
+              "reason": "6Z2Z55qE5oiQ5p6c54mp44Gu44G/44CCUElJ44KS5ZCr44KA44Ki44Kv44K744K544Ot44Kw44Gu5rC457aa5YyW44Gv5Yid5Zue6KaB5Lu25aSW44CC"
+            },
+            {
+              "id": "AwsSolutions-CFR4",
+              "is_reason_encoded": true,
+              "reason": "QVdT5pei5a6a44OJ44Oh44Kk44Oz44Gu6Ki85piO5pu444KS5L2/55So44GZ44KL5oyH5a6a44Gr5b6T44GG44CC54us6Ieq6Ki85piO5pu444KS5L2c5oiQ44GX44Gq44GE44CC"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "DistributionConfig": {
+          "DefaultCacheBehavior": {
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true,
+            "ResponseHeadersPolicyId": "67f7725c-6f97-4210-82d7-5512b31e9d03",
+            "TargetOriginId": "SlotKeeperDistributionOrigin1BA0A70D7",
+            "ViewerProtocolPolicy": "redirect-to-https"
+          },
+          "DefaultRootObject": "index.html",
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": [
+            {
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "Web3C8945DB",
+                  "RegionalDomainName"
+                ]
+              },
+              "Id": "SlotKeeperDistributionOrigin1BA0A70D7",
+              "OriginAccessControlId": {
+                "Fn::GetAtt": [
+                  "DistributionOrigin1S3OriginAccessControlEB606076",
+                  "Id"
+                ]
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
+              }
+            }
+          ]
+        }
+      },
+      "Type": "AWS::CloudFront::Distribution"
+    },
+    "DistributionOrigin1S3OriginAccessControlEB606076": {
+      "Properties": {
+        "OriginAccessControlConfig": {
+          "Name": "SlotKeeperDistributionOrigin1S3OriginAccessControl6B707244",
+          "OriginAccessControlOriginType": "s3",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4"
+        }
+      },
+      "Type": "AWS::CloudFront::OriginAccessControl"
+    },
+    "GatewayLogs64F6314F": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "RetentionInDays": 30
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "HttpApiANYproxy435A1FB9": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7"
+        },
+        "AuthorizationScopes": [
+          "openid"
+        ],
+        "AuthorizationType": "JWT",
+        "AuthorizerId": {
+          "Ref": "HttpApiJwt21C2E32E"
+        },
+        "RouteKey": "ANY /{proxy+}",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "HttpApiGEThealthFastApi5BFB929F"
+              }
+            ]
+          ]
+        }
+      },
+      "Type": "AWS::ApiGatewayV2::Route"
+    },
+    "HttpApiANYproxyFastApiPermission9185CAE5": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiF70053CD",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApiF5A9A8A7"
+              },
+              "/*/*/{proxy+}"
+            ]
+          ]
+        }
+      },
+      "Type": "AWS::Lambda::Permission"
+    },
+    "HttpApiDefaultStage3EEB07D6": {
+      "Properties": {
+        "AccessLogSettings": {
+          "DestinationArn": {
+            "Fn::GetAtt": [
+              "GatewayLogs64F6314F",
+              "Arn"
+            ]
+          },
+          "Format": "{\"requestId\":\"$context.requestId\",\"routeKey\":\"$context.routeKey\",\"status\":\"$context.status\"}"
+        },
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7"
+        },
+        "AutoDeploy": true,
+        "StageName": "$default"
+      },
+      "Type": "AWS::ApiGatewayV2::Stage"
+    },
+    "HttpApiF5A9A8A7": {
+      "Properties": {
+        "CorsConfiguration": {
+          "AllowHeaders": [
+            "Authorization",
+            "Content-Type",
+            "Idempotency-Key"
+          ],
+          "AllowMethods": [
+            "GET",
+            "POST",
+            "PUT"
+          ],
+          "AllowOrigins": [
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Fn::GetAtt": [
+                      "Distribution830FAC52",
+                      "DomainName"
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          "ExposeHeaders": [
+            "X-Request-ID"
+          ]
+        },
+        "Name": "HttpApi",
+        "ProtocolType": "HTTP"
+      },
+      "Type": "AWS::ApiGatewayV2::Api"
+    },
+    "HttpApiGEThealthAB1F4856": {
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-APIG4",
+              "is_reason_encoded": true,
+              "reason": "aGVhbHRo44Gv56eY5a+G44KCRELmg4XloLHjgoLov5TjgZXjgarjgYTlhazplovnqLzlg43norroqo3jgILmpa3li5lyb3V0ZeOBr0pXVOOBp+S/neitt+OBmeOCi+OAgg=="
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "GET /health",
+        "Target": {
+          "Fn::Join": [
+            "",
+            [
+              "integrations/",
+              {
+                "Ref": "HttpApiGEThealthFastApi5BFB929F"
+              }
+            ]
+          ]
+        }
+      },
+      "Type": "AWS::ApiGatewayV2::Route"
+    },
+    "HttpApiGEThealthFastApi5BFB929F": {
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-APIG4",
+              "is_reason_encoded": true,
+              "reason": "aGVhbHRo44Gv56eY5a+G44KCRELmg4XloLHjgoLov5TjgZXjgarjgYTlhazplovnqLzlg43norroqo3jgILmpa3li5lyb3V0ZeOBr0pXVOOBp+S/neitt+OBmeOCi+OAgg=="
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7"
+        },
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::GetAtt": [
+            "ApiF70053CD",
+            "Arn"
+          ]
+        },
+        "PayloadFormatVersion": "2.0"
+      },
+      "Type": "AWS::ApiGatewayV2::Integration"
+    },
+    "HttpApiGEThealthFastApiPermission22F88753": {
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-APIG4",
+              "is_reason_encoded": true,
+              "reason": "aGVhbHRo44Gv56eY5a+G44KCRELmg4XloLHjgoLov5TjgZXjgarjgYTlhazplovnqLzlg43norroqo3jgILmpa3li5lyb3V0ZeOBr0pXVOOBp+S/neitt+OBmeOCi+OAgg=="
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiF70053CD",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "HttpApiF5A9A8A7"
+              },
+              "/*/*/health"
+            ]
+          ]
+        }
+      },
+      "Type": "AWS::Lambda::Permission"
+    },
+    "HttpApiJwt21C2E32E": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApiF5A9A8A7"
+        },
+        "AuthorizerType": "JWT",
+        "IdentitySource": [
+          "$request.header.Authorization"
+        ],
+        "JwtConfiguration": {
+          "Audience": [
+            {
+              "Ref": "UsersBrowser427D6876"
+            }
+          ],
+          "Issuer": {
+            "Fn::GetAtt": [
+              "Users0A0EEA89",
+              "ProviderURL"
+            ]
+          }
+        },
+        "Name": "Jwt"
+      },
+      "Type": "AWS::ApiGatewayV2::Authorizer"
+    },
+    "Users0A0EEA89": {
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-COG2",
+              "is_reason_encoded": true,
+              "reason": "5Yid5Zue44Gv566h55CG6ICF44Gr44KI44KL5Yip55So6ICF55m76Yyy44CCTUZB5b+F6aCI5YyW44Gv5Yip55So57WE57mU44Gu6YGL55So6Kit5a6a44Go44GX44Gm5Yik5pat44GZ44KL44CC"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "verified_phone_number",
+              "Priority": 1
+            },
+            {
+              "Name": "verified_email",
+              "Priority": 2
+            }
+          ]
+        },
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true
+        },
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "EmailVerificationMessage": "The verification code to your new account is {####}",
+        "EmailVerificationSubject": "Verify your new account",
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 12,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "RequireUppercase": true
+          }
+        },
+        "SmsVerificationMessage": "The verification code to your new account is {####}",
+        "UserPoolAddOns": {
+          "AdvancedSecurityMode": "ENFORCED"
+        },
+        "UserPoolTier": "PLUS",
+        "UsernameAttributes": [
+          "email"
+        ],
+        "VerificationMessageTemplate": {
+          "DefaultEmailOption": "CONFIRM_WITH_CODE",
+          "EmailMessage": "The verification code to your new account is {####}",
+          "EmailSubject": "Verify your new account",
+          "SmsMessage": "The verification code to your new account is {####}"
+        }
+      },
+      "Type": "AWS::Cognito::UserPool",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "UsersBrowser427D6876": {
+      "Properties": {
+        "AllowedOAuthFlows": [
+          "code"
+        ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthScopes": [
+          "openid",
+          "profile"
+        ],
+        "CallbackURLs": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "https://",
+                {
+                  "Fn::GetAtt": [
+                    "Distribution830FAC52",
+                    "DomainName"
+                  ]
+                },
+                "/"
+              ]
+            ]
+          }
+        ],
+        "GenerateSecret": false,
+        "LogoutURLs": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "https://",
+                {
+                  "Fn::GetAtt": [
+                    "Distribution830FAC52",
+                    "DomainName"
+                  ]
+                },
+                "/"
+              ]
+            ]
+          }
+        ],
+        "PreventUserExistenceErrors": "ENABLED",
+        "SupportedIdentityProviders": [
+          "COGNITO"
+        ],
+        "UserPoolId": {
+          "Ref": "Users0A0EEA89"
+        }
+      },
+      "Type": "AWS::Cognito::UserPoolClient"
+    },
+    "UsersLogin5F5F2B8C": {
+      "Properties": {
+        "Domain": {
+          "Fn::Join": [
+            "",
+            [
+              "slotkeeper-",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              "-",
+              {
+                "Ref": "AWS::Region"
+              }
+            ]
+          ]
+        },
+        "UserPoolId": {
+          "Ref": "Users0A0EEA89"
+        }
+      },
+      "Type": "AWS::Cognito::UserPoolDomain"
+    },
+    "Web3C8945DB": {
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "cdk_nag": {
+          "rules_to_suppress": [
+            {
+              "id": "AwsSolutions-S1",
+              "is_reason_encoded": true,
+              "reason": "6Z2Z55qE5YWs6ZaL44Ki44K744OD44OI5bCC55So44CC5YCL5Lq65oOF5aCx44KS5L+d5a2Y44Gb44Ga44CB44Ki44Kv44K744K544Ot44Kw55SoYnVja2V044Gu6L+95Yqg44Gv6YGL55SoQURS44Gn5Yil5Yik5pat44GZ44KL44CC"
+            }
+          ]
+        }
+      },
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        }
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain"
+    },
+    "WebPolicy83ABEB90": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "Web3C8945DB"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "Web3C8945DB",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Web3C8945DB",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": "s3:GetObject",
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceArn": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":cloudfront::",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":distribution/",
+                        {
+                          "Ref": "Distribution830FAC52"
+                        }
+                      ]
+                    ]
+                  }
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudfront.amazonaws.com"
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "Web3C8945DB",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "Type": "AWS::S3::BucketPolicy"
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,64 @@
+name: Compose verification and Pages
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      ready: ${{ steps.site.outputs.ready }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - name: Composeから全検証
+        id: checks
+        continue-on-error: true
+        env:
+          SLOT_REVISION: ${{ github.sha }}
+          SLOT_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: docker compose --profile test run --build --rm verify
+      - name: 公開成果物を確認
+        id: site
+        if: always()
+        run: |
+          if test -f artifacts/site-ready && test -f artifacts/site/index.html; then
+            echo ready=true >> "$GITHUB_OUTPUT"
+          fi
+      - name: 原本と診断
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verification-${{ github.sha }}
+          path: artifacts/
+          retention-days: 14
+      - name: Pages artifact
+        if: always() && steps.site.outputs.ready == 'true' && github.ref_name == github.event.repository.default_branch && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
+        with:
+          path: artifacts/site
+      - name: 元の失敗を返す
+        if: always()
+        run: test '${{ steps.checks.outcome }}' = success
+  publish:
+    needs: verify
+    if: always() && needs.verify.outputs.ready == 'true' && github.ref_name == github.event.repository.default_branch && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 公開
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e

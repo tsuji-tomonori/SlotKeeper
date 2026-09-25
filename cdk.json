@@ -1,0 +1,1 @@
+{"app":"python -m infra.app","context":{"@aws-cdk/core:enablePartitionLiterals":true}}

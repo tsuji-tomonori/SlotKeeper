@@ -1,0 +1,61 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+import { marked } from "marked";
+import Layout from "../../layouts/Layout.astro";
+export function getStaticPaths() {
+  const root = path.resolve("docs/design/generated");
+  const files = fs
+    .readdirSync(root, { recursive: true })
+    .filter((p) => String(p).endsWith(".md"));
+  return files.map((file) => ({
+    params: { slug: String(file).replace(/\.md$/, "") },
+    props: {
+      file: String(file),
+      source: fs.readFileSync(path.join(root, String(file)), "utf8"),
+      inventory: files.map(String),
+    },
+  }));
+}
+const { source, file, inventory } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const folder = path.posix.dirname(file);
+const html = marked.parse(
+  source.replace(
+    /\]\(([^)]+)\.md\)/g,
+    (_m: string, dest: string) =>
+      `](${base}/design/${path.posix.normalize(path.posix.join(folder, dest))}/)`,
+  ),
+) as string;
+const headings = [...source.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+---
+
+<Layout title={file}
+  ><div class="docs-layout">
+    <aside aria-label="設計の章一覧">
+      <h2>設計書</h2>{
+        inventory
+          .filter((f: string) => !f.includes("/") || f.endsWith("index.md"))
+          .map((f: string) => (
+            <a
+              class="chapter"
+              aria-current={f === file ? "page" : undefined}
+              href={base + "/design/" + f.replace(/\.md$/, "") + "/"}
+            >
+              {f
+                .replace(/\/index.md$/, "")
+                .replace(/\.md$/, "")
+                .replaceAll("/", " → ")}
+            </a>
+          ))
+      }
+    </aside><article>
+      <p class="breadcrumb">設計書 → {file.replaceAll("/", " → ")}</p><div
+        class="markdown"
+        set:html={html}
+      />
+    </article><aside class="toc">
+      <h2>このページ</h2>{headings.map((h: string) => <p>{h}</p>)}
+    </aside>
+  </div></Layout
+>

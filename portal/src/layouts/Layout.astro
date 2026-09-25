@@ -1,0 +1,110 @@
+---
+import "../style.css";
+const { title = "設計と品質" } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<!doctype html>
+<html lang="ja">
+  <head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width"
+    /><title>{title} | SlotKeeper 品質ポータル</title></head
+  ><body
+    ><header>
+      <a href={base + "/"}>SlotKeeper <span>設計と品質</span></a><nav
+        aria-label="ポータル"
+      >
+        <a href={base + "/"}>実行結果</a><a href={base + "/design/OVERVIEW/"}
+          >設計書</a
+        ><a href={base + "/database/"}>DB探索</a><a
+          href={base + "/requirements/"}>要件</a
+        >
+      </nav>
+    </header><div class="search-bar">
+      <label for="search">設計を検索</label><input
+        id="search"
+        type="search"
+        placeholder="日本語・API・テーブル名で検索"
+      /><ul id="results" aria-live="polite"></ul>
+    </div><main><slot /></main><footer>
+      実装から生成した設計と、同じ実行の検証結果。未実行と成功を区別します。
+    </footer><dialog id="zoom">
+      <button id="close-zoom">閉じる（Escape）</button><div id="zoom-content">
+      </div>
+    </dialog>
+    <script>
+      import mermaid from "mermaid";
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: "strict",
+        theme: "neutral",
+      });
+      for (const block of document.querySelectorAll<HTMLElement>(
+        "pre code.language-mermaid",
+      )) {
+        const pre = block.parentElement!;
+        const div = document.createElement("div");
+        div.className = "mermaid";
+        div.textContent = block.textContent;
+        pre.replaceWith(div);
+      }
+      try {
+        await mermaid.run({ querySelector: ".mermaid" });
+      } catch {
+        const warning = document.createElement("p");
+        warning.role = "alert";
+        warning.textContent =
+          "図の描画に失敗しました。元の設計を確認してください。";
+        document.querySelector("main")?.prepend(warning);
+      }
+      let previous: HTMLElement | null = null;
+      const dialog = document.querySelector<HTMLDialogElement>("#zoom")!;
+      const target = document.querySelector("#zoom-content")!;
+      for (const node of document.querySelectorAll<HTMLElement>(
+        ".mermaid, .evidence-image",
+      )) {
+        node.tabIndex = 0;
+        node.role = "button";
+        node.setAttribute("aria-label", "図を拡大");
+        const open = () => {
+          previous = node;
+          target.replaceChildren(node.cloneNode(true));
+          dialog.showModal();
+        };
+        node.addEventListener("click", open);
+        node.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") open();
+        });
+      }
+      document
+        .querySelector("#close-zoom")
+        ?.addEventListener("click", () => dialog.close());
+      dialog.addEventListener("close", () => previous?.focus());
+      const input = document.querySelector<HTMLInputElement>("#search")!;
+      const results = document.querySelector("#results")!;
+      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+      const docs = (await fetch(base + "/search.json").then((r) =>
+        r.json(),
+      )) as { title: string; path: string; text: string }[];
+      input.addEventListener("input", () => {
+        const term = input.value.trim().toLocaleLowerCase();
+        results.replaceChildren();
+        if (!term) return;
+        for (const doc of docs
+          .filter((d) =>
+            (d.title + " " + d.text).toLocaleLowerCase().includes(term),
+          )
+          .slice(0, 20)) {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = base + doc.path;
+          a.textContent = doc.title;
+          li.append(a);
+          results.append(li);
+        }
+      });
+    </script></body
+  >
+</html>

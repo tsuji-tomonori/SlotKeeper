@@ -1,0 +1,22 @@
+# API×保存先 CRUD
+
+| operation | resource | access |
+|---|---|---|
+| health | - | NONE |
+| reservations_cancel | slotkeeper.reservation_events | C |
+| reservations_cancel | slotkeeper.reservations | RU |
+| reservations_cancel | slotkeeper.resources | U |
+| reservations_create | slotkeeper.idempotency_records | CRD |
+| reservations_create | slotkeeper.reservation_events | C |
+| reservations_create | slotkeeper.reservations | CR |
+| reservations_create | slotkeeper.resources | U |
+| reservations_create | slotkeeper.users | C |
+| reservations_get | slotkeeper.reservation_events | R |
+| reservations_get | slotkeeper.reservations | R |
+| reservations_list | slotkeeper.reservations | R |
+| resources_create | slotkeeper.resources | C |
+| resources_list | slotkeeper.resources | R |
+| resources_update | slotkeeper.reservations | R |
+| resources_update | slotkeeper.resources | U |
+| schedule | slotkeeper.reservations | R |
+| schedule | slotkeeper.resources | R |

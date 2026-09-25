@@ -1,0 +1,186 @@
+{
+  "assets": [
+    {
+      "path": ".agents/skills/chat-first-development/SKILL.md",
+      "sha256": "640e721860ffef0ef4e3b8d709dd1f1cbf09f4acf6102a754581ec4fc46c89aa"
+    },
+    {
+      "path": ".agents/skills/chat-first-development/agents/openai.yaml",
+      "sha256": "fb458bd3bba0d3d1ee4cd64f42523207190dd082f61b7b93cebd0697654a470d"
+    },
+    {
+      "path": ".agents/skills/chat-first-development/references/bootstrap-and-conversation.md",
+      "sha256": "56934ee227dad10ada92311b8e9aadfcb2acddaf002b8120e7acd603665b649d"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/SKILL.md",
+      "sha256": "d09317557f334c10be92ebcf1a4b80439c2d30a54f49db392b7e9233980b20eb"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/agents/openai.yaml",
+      "sha256": "30a20300052931dbf3dba4fbfd8ccc03a7e115512fcd42adbfa4468bb833f6c3"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/assets/adapter-manifest.schema.json",
+      "sha256": "2cd1fffd802a10138b55762cd1aebd90c6910d56d46ed17962b1310843f561d0"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/assets/api-document-profile-v1.json",
+      "sha256": "7ed5f9df0f51db4b33b0d5b3d61b44baf91e1f515343da78df1f96b384bcebca"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/assets/api-document-profile.schema.json",
+      "sha256": "75bd13708116db3336571597d2a032b50aa5d49fa9d179206b2e211c967b230b"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/assets/reference-inventory.schema.json",
+      "sha256": "2b38406c96ef71d832ff10fd733e31a0806a342fe185f69262eb4f49024f22b6"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/assets/reference-tools/lazunex-096e1e5.json",
+      "sha256": "c24e3b3f372ed4bdef8c976244a1db84d83fd0381a9612e4eb04238c219eb62d"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/assets/reference-tools/lazunex-096e1e5.md",
+      "sha256": "0c70813f8f7c88a83687dc5555a57faf1bdef4ed734921f0989c6ac0a5eafced"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/references/adapter-contract.md",
+      "sha256": "56c598074b61ad1d1e6fd8b614bec46b31c67ad72d77c23daca230cf7b004926"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/references/adoption.md",
+      "sha256": "23bd4d9e3c1b5fccc4df3eb2e4dfefb6c969ee4dac04fa9a1d4fe5e34d22349b"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/references/api-documents.md",
+      "sha256": "54ff2cc3b8da55a29fac4c5ea5bea7efbad1e3613dbfcf0c3b2818c115122cd9"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/scripts/check_design.py",
+      "sha256": "6c13787a8004053223f8ff5a1adf96d322827479426732a5982faef9f4e5992a"
+    },
+    {
+      "path": ".agents/skills/generate-implementation-design/scripts/reference_inventory.py",
+      "sha256": "9c4d8ab6deb29562dc290c9a91a1e6ba40fb0fa6c464d2ff785aaccdd37d900a"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/SKILL.md",
+      "sha256": "fdfb3f5d76bbfeb8a1507b4cdb06cb730d05305df0e4f82b11379ed570477ba5"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/agents/openai.yaml",
+      "sha256": "073b20f8a4c4f30a38fac5fb4ae66a56ee7e97caf4cb96beeea189b26e391fd1"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/assets/evidence.css",
+      "sha256": "0ffb970f063100a04909a5df9e426faca93772a7ca6c2165f94a202d10561734"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/assets/evidence.js",
+      "sha256": "18eab728a53b88e9057e10691d1d017bc17adb033caffbd00e82b5d5ea70ccbe"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/references/evidence-portal.md",
+      "sha256": "4318ab61863b5c3b4e44fdf56dcce9ded03aee42140cd7a52fd6fdedf6475f9e"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/references/gate-rules.md",
+      "sha256": "ff46d6b4f78d10a6bf42b89be57b0f0307cda794f26d07c4e0dbd77cb8086380"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/references/runner-contract.md",
+      "sha256": "f7945cb0a096f1b8fc25d83173737fb0a874f6d0327c190d9cf0378fe8340535"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/scripts/evidence.py",
+      "sha256": "f1ba92fc6c04253cf3d8a675a4248c6d597a69b98a3db657ade7855b398798ed"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/scripts/inspect.py",
+      "sha256": "c696ec80a04006c07e0d7b5e82954822240c5e6ac62ad6d22c0f24a5846c820f"
+    },
+    {
+      "path": ".agents/skills/inspect-quality-gates/scripts/test_evidence.py",
+      "sha256": "c74097bab269141e3f20d543eb2e85e49ad3b979fe9a147284a72fb0d4db8ec5"
+    },
+    {
+      "path": ".agents/skills/maintain-canonical-requirements/SKILL.md",
+      "sha256": "d6f858d06f085a391314ce95200403e37551af325cb0cb5b72d8022b4e0ec6b9"
+    },
+    {
+      "path": ".agents/skills/maintain-canonical-requirements/agents/openai.yaml",
+      "sha256": "b01e1f0024fed3697ccf71d93c9111cd47755cf531217ecbf61dfb66ec7b6a89"
+    },
+    {
+      "path": ".agents/skills/maintain-canonical-requirements/assets/documentation-project-nfr.example.json",
+      "sha256": "567fa2f3e74abbfe58c46bef8c7fe7ddc803cc5de4873f0aea6559fbe37dd6b0"
+    },
+    {
+      "path": ".agents/skills/maintain-canonical-requirements/assets/requirements.schema.json",
+      "sha256": "6490588144d58337fa441b15e86ce6e2d1fd8d1b82610c919aba08f073c15c35"
+    },
+    {
+      "path": ".agents/skills/maintain-canonical-requirements/assets/requirements.template.qnt",
+      "sha256": "71374458a4495ade3a6ab15295314aa04273234e7293a84e110eb54c843ed1bc"
+    },
+    {
+      "path": ".agents/skills/maintain-canonical-requirements/references/research-basis.md",
+      "sha256": "682f1d222de51d5f903f981d7acab8b09cb6e5e23c401af1c473a51c61c9e57c"
+    },
+    {
+      "path": ".agents/skills/maintain-canonical-requirements/scripts/specflow.py",
+      "sha256": "0d128303aea90e065ba9f5a5286ed6fd7c173e8c18f9c4d0750c43809120ecad"
+    },
+    {
+      "path": ".dev-standard/quint/source/package-lock.json",
+      "sha256": "5abee91353cda626887b66abb576fbd5f0a19b37b2a62676f87e3fbd3d19d2ee"
+    },
+    {
+      "path": ".dev-standard/quint/source/package.json",
+      "sha256": "670a9194d8749481647c97ba38d324dec3f8b4b20ad5f125d69481f215fbad36"
+    },
+    {
+      "path": "spec/skills/skills.json",
+      "sha256": "bb27b7612319fd2c9407a29cf68ba07f94be3b5b73ed7f19c0a976a48b25050a"
+    },
+    {
+      "path": "spec/skills/skills.qnt",
+      "sha256": "913ffa7b136063922dea98a55d0f913991b3a7ee6fb9faede3213e0619ccbffe"
+    },
+    {
+      "path": "tools/quintflow.py",
+      "sha256": "402028bc7d1f87632e77bb961df96ddda8513105d2ea40281f26e8703b2c248e"
+    },
+    {
+      "path": "tools/render_requirements.py",
+      "sha256": "957f7832815edfd4b07ae20d3dcd58ac4b06edacf91d8f8b67287f2e9013476b"
+    },
+    {
+      "path": "tools/render_skills.py",
+      "sha256": "c4260107372712e683bb11bb7e5ad628c85241556053a452887ff62a41e3dec3"
+    },
+    {
+      "path": "tools/safe_io.py",
+      "sha256": "8f9dd9ba7dabd47f3c9192adf5b9c31add66a8077ab636daac060298178aa620"
+    },
+    {
+      "path": "tools/spec_mapping.py",
+      "sha256": "a6b123572cb206d0eddcb62312b6b2e1b0f5dbc4908fd2ed5fd9afb624ed0aea"
+    }
+  ],
+  "host": "codex",
+  "interface_policy": "required",
+  "managed_by": "dev-standard-reference-installer",
+  "profiles": [
+    "default"
+  ],
+  "quint_version": "0.32.0",
+  "schema_version": 2,
+  "skills": [
+    "chat-first-development",
+    "generate-implementation-design",
+    "inspect-quality-gates",
+    "maintain-canonical-requirements"
+  ]
+}

@@ -1,0 +1,36 @@
+---
+import fs from "node:fs";
+import Layout from "../layouts/Layout.astro";
+const requirements = JSON.parse(
+  fs.readFileSync("spec/requirements/requirements.json", "utf8"),
+).requirements;
+---
+
+<Layout title="要件"
+  ><h1>要件と受入条件</h1><p>
+    Quint正本から生成。catalogの型検査は、予約整合性の形式証明ではありません。
+  </p>{
+    requirements.map(
+      (r: {
+        id: string;
+        title: string;
+        scope: string;
+        acceptance_criteria: { id: string; then: string }[];
+      }) => (
+        <section id={r.id}>
+          <>
+            <h2>{r.id}</h2>
+            <p>{r.title}</p>
+            <ul>
+              {r.acceptance_criteria.map((a) => (
+                <li>
+                  {a.id}：{a.then}
+                </li>
+              ))}
+            </ul>
+          </>
+        </section>
+      ),
+    )
+  }</Layout
+>

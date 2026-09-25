@@ -1,0 +1,275 @@
+{
+  "relations": [
+    {
+      "from": "reservations.resource_id",
+      "guarantee": "reservations_createの資源制御行と存在検査",
+      "kind": "application",
+      "to": "resources.id"
+    },
+    {
+      "from": "reservations.subject",
+      "guarantee": "同一transaction内のuser登録",
+      "kind": "application",
+      "to": "users.subject"
+    },
+    {
+      "from": "reservation_events.reservation_id",
+      "guarantee": "作成と取消endpointの同一transaction",
+      "kind": "application",
+      "to": "reservations.id"
+    }
+  ],
+  "tables": [
+    {
+      "columns": [
+        {
+          "ddl": "id VARCHAR(36) PRIMARY KEY",
+          "label": "資源ID",
+          "name": "id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "name VARCHAR(100) NOT NULL",
+          "label": "資源名",
+          "name": "name",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(100)"
+        },
+        {
+          "ddl": "description VARCHAR(1000) NOT NULL",
+          "label": "説明",
+          "name": "description",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(1000)"
+        },
+        {
+          "ddl": "kind VARCHAR(20) NOT NULL",
+          "label": "種類",
+          "name": "kind",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(20)"
+        },
+        {
+          "ddl": "active BOOLEAN NOT NULL",
+          "label": "有効",
+          "name": "active",
+          "nullable": false,
+          "primary": false,
+          "type": "BOOLEAN"
+        },
+        {
+          "ddl": "version INT NOT NULL",
+          "label": "公開版",
+          "name": "version",
+          "nullable": false,
+          "primary": false,
+          "type": "INT"
+        },
+        {
+          "ddl": "control_version BIGINT NOT NULL",
+          "label": "競合制御版",
+          "name": "control_version",
+          "nullable": false,
+          "primary": false,
+          "type": "BIGINT"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.resources (\n  id VARCHAR(36) PRIMARY KEY,\n  name VARCHAR(100) NOT NULL,\n  description VARCHAR(1000) NOT NULL,\n  kind VARCHAR(20) NOT NULL,\n  active BOOLEAN NOT NULL,\n  version INT NOT NULL,\n  control_version BIGINT NOT NULL\n)",
+      "label": "資源",
+      "name": "resources"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "subject VARCHAR(200) PRIMARY KEY",
+          "label": "認証subject",
+          "name": "subject",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "first_seen TIMESTAMPTZ NOT NULL",
+          "label": "初回利用時刻",
+          "name": "first_seen",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.users (\n  subject VARCHAR(200) PRIMARY KEY,\n  first_seen TIMESTAMPTZ NOT NULL\n)",
+      "label": "利用者",
+      "name": "users"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "id VARCHAR(36) PRIMARY KEY",
+          "label": "予約ID",
+          "name": "id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "resource_id VARCHAR(36) NOT NULL",
+          "label": "資源ID",
+          "name": "resource_id",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "subject VARCHAR(200) NOT NULL",
+          "label": "予約者",
+          "name": "subject",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "start_at TIMESTAMPTZ NOT NULL",
+          "label": "開始日時",
+          "name": "start_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        },
+        {
+          "ddl": "end_at TIMESTAMPTZ NOT NULL",
+          "label": "終了日時",
+          "name": "end_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        },
+        {
+          "ddl": "purpose VARCHAR(200) NOT NULL",
+          "label": "目的",
+          "name": "purpose",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "status VARCHAR(20) NOT NULL",
+          "label": "状態",
+          "name": "status",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(20)"
+        },
+        {
+          "ddl": "version INT NOT NULL",
+          "label": "版",
+          "name": "version",
+          "nullable": false,
+          "primary": false,
+          "type": "INT"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.reservations (\n  id VARCHAR(36) PRIMARY KEY,\n  resource_id VARCHAR(36) NOT NULL,\n  subject VARCHAR(200) NOT NULL,\n  start_at TIMESTAMPTZ NOT NULL,\n  end_at TIMESTAMPTZ NOT NULL,\n  purpose VARCHAR(200) NOT NULL,\n  status VARCHAR(20) NOT NULL,\n  version INT NOT NULL\n)",
+      "label": "予約",
+      "name": "reservations"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "id VARCHAR(36) PRIMARY KEY",
+          "label": "履歴ID",
+          "name": "id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "reservation_id VARCHAR(36) NOT NULL",
+          "label": "予約ID",
+          "name": "reservation_id",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "actor VARCHAR(200) NOT NULL",
+          "label": "操作者",
+          "name": "actor",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "action VARCHAR(20) NOT NULL",
+          "label": "操作",
+          "name": "action",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(20)"
+        },
+        {
+          "ddl": "at TIMESTAMPTZ NOT NULL",
+          "label": "操作日時",
+          "name": "at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.reservation_events (\n  id VARCHAR(36) PRIMARY KEY,\n  reservation_id VARCHAR(36) NOT NULL,\n  actor VARCHAR(200) NOT NULL,\n  action VARCHAR(20) NOT NULL,\n  at TIMESTAMPTZ NOT NULL\n)",
+      "label": "予約履歴",
+      "name": "reservation_events"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "subject VARCHAR(200) NOT NULL",
+          "label": "利用者",
+          "name": "subject",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "request_key VARCHAR(128) NOT NULL",
+          "label": "要求キー",
+          "name": "request_key",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(128)"
+        },
+        {
+          "ddl": "input_hash VARCHAR(64) NOT NULL",
+          "label": "正規化入力hash",
+          "name": "input_hash",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(64)"
+        },
+        {
+          "ddl": "response TEXT NOT NULL",
+          "label": "元の成功応答",
+          "name": "response",
+          "nullable": false,
+          "primary": false,
+          "type": "TEXT"
+        },
+        {
+          "ddl": "expires_at TIMESTAMPTZ NOT NULL",
+          "label": "有効期限",
+          "name": "expires_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.idempotency_records (\n  subject VARCHAR(200) NOT NULL,\n  request_key VARCHAR(128) NOT NULL,\n  input_hash VARCHAR(64) NOT NULL,\n  response TEXT NOT NULL,\n  expires_at TIMESTAMPTZ NOT NULL,\n  PRIMARY KEY (subject, request_key)\n)",
+      "label": "要求成功記録",
+      "name": "idempotency_records"
+    }
+  ]
+}

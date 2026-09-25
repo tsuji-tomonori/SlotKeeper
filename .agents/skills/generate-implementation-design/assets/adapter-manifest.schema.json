@@ -1,0 +1,310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "requirements": {
+      "type": "string",
+      "minLength": 1
+    },
+    "applicable_requirement_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "reference_inventories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "required",
+              "not-applicable"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "required",
+              "not-applicable"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requirement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "generate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "check": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "output_root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "report": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "status",
+          "requirement_ids"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "api": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_inventory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "index": {
+          "type": "string",
+          "minLength": 1
+        },
+        "group_indexes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "api_indexes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "group": {
+                "type": "string",
+                "minLength": 1
+              },
+              "api": {
+                "type": "string",
+                "minLength": 1
+              },
+              "documents": {
+                "type": "object",
+                "properties": {
+                  "detail-design": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "interface": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "messages": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sequence": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "unit-test": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "detail-design",
+                  "interface",
+                  "messages",
+                  "query",
+                  "sequence",
+                  "unit-test"
+                ],
+                "additionalProperties": false
+              },
+              "sections": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 0,
+                  "uniqueItems": true
+                }
+              },
+              "non_applicable": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "required": [
+              "id",
+              "group",
+              "api",
+              "documents",
+              "sections"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "profile",
+        "operation_inventory",
+        "root",
+        "index",
+        "group_indexes",
+        "api_indexes",
+        "operations"
+      ],
+      "additionalProperties": false
+    },
+    "crud": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "csv": {
+          "type": "string",
+          "minLength": 1
+        },
+        "table": {
+          "type": "string",
+          "minLength": 1
+        },
+        "diagram": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "model",
+        "csv",
+        "table",
+        "diagram",
+        "evidence"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "requirements",
+    "applicable_requirement_ids",
+    "reference_inventories",
+    "surfaces",
+    "capabilities"
+  ],
+  "additionalProperties": false
+}
