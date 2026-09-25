@@ -5,6 +5,8 @@ sequenceDiagram
 participant E as endpoint
 participant Q as query
 participant D as transaction
+E->>D: transaction開始
+loop 上限付きOCC retry / 新snapshot
 E->>Q: get
 alt not rows
 E-->>E: raise DomainError('reservation_not_found', 404)
@@ -22,5 +24,6 @@ E-->>E: raise DomainError('already_started')
 end
 E->>Q: cancel
 E->>Q: event
-E->>D: work全体をcommit（OCC時は新snapshotで再試行）
+D-->>E: commit成功時のみ応答
+end
 ```

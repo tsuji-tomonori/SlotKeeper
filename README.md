@@ -32,7 +32,7 @@ docker compose --profile docs up --build --wait docs
 
 品質ポータルは [http://localhost:4173/SlotKeeper/](http://localhost:4173/SlotKeeper/) です。原本は `artifacts/`、公開allowlistは `artifacts/site/`。検証DBは開発DBと別サービスで、開発データを削除しません。失敗を含むポータルを作成してから失敗の終了コードを返します。
 
-`--generate-design` の出力を取り込む場合は、生成物のホストへのコピーが必要です。通常検査は生成物を上書きせずdriftを報告します。
+`--generate-design` は専用のbind mountを通して生成物をホストへ書き戻します。通常検査は生成物を上書きせずdriftを報告します。
 
 ## 停止とリセット
 

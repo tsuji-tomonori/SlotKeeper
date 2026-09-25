@@ -26,7 +26,8 @@ def run(name: str, command: list[str], checks: list[dict[str, Any]], timeout: in
                 command, cwd=ROOT, stdout=output, stderr=subprocess.STDOUT, timeout=timeout
             )
             status = "passed" if result.returncode == 0 else "failed"
-        except subprocess.TimeoutExpired:
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            output.write(str(exc))
             status = "failed"
     checks.append({"name": name, "command": " ".join(command), "status": status})
     print(name + ": " + status, flush=True)
@@ -42,6 +43,7 @@ def main() -> None:
         "--suite", choices=["backend", "frontend", "infra", "e2e", "design", "portal"]
     )
     parser.add_argument("--generate-design", action="store_true")
+    parser.add_argument("--performance", action="store_true")
     args = parser.parse_args()
     if args.generate_design:
         for command in [
@@ -62,6 +64,7 @@ def main() -> None:
         "playwright.json",
         "portal.json",
         "site-ready",
+        "performance.json",
     ]:
         for path in ART.glob(pattern):
             path.unlink()
@@ -80,6 +83,16 @@ def main() -> None:
         run("quint", [sys.executable, "tools/quintflow.py", "check"], checks)
         run("queries", [sys.executable, "tools/project/queries.py", "--check"], checks)
         run("design", [sys.executable, "tools/project/design.py", "--check"], checks)
+        run(
+            "design-contract",
+            [
+                sys.executable,
+                ".agents/skills/generate-implementation-design/scripts/check_design.py",
+                "--root",
+                ".",
+            ],
+            checks,
+        )
         os.environ["SLOT_COLLECTOR"] = "artifacts/pytest-adapter-results.json"
         run(
             "adapter",
@@ -134,6 +147,8 @@ def main() -> None:
     if selected("frontend"):
         for name, command in [
             ("astro", ["npm", "run", "check"]),
+            ("portal-types", ["npx", "astro", "check", "--root", "portal"]),
+            ("openapi-types", ["node", "tools/frontend.mjs"]),
             ("eslint", ["npm", "run", "lint"]),
             ("format", ["npm", "run", "format"]),
             ("frontend-build", ["npm", "run", "build"]),
@@ -152,6 +167,8 @@ def main() -> None:
             run(name, command, checks)
     if selected("e2e"):
         run("e2e", ["npx", "playwright", "test", "--config=e2e/playwright.config.ts"], checks)
+    if args.performance:
+        run("performance", [sys.executable, "-m", "tools.project.perf"], checks, timeout=1800)
     scope = "full" if args.suite is None else "partial: " + args.suite
     evidence.build(revision, run_id, checks, scope)
     ready = run("portal-build", ["npm", "run", "portal"], checks)

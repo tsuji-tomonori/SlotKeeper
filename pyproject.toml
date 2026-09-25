@@ -4,7 +4,22 @@ version = "0.1.0"
 requires-python = ">=3.12,<3.13"
 dependencies = ["fastapi>=0.121,<1", "uvicorn>=0.34,<1", "psycopg[binary]>=3.2,<4", "PyJWT[crypto]>=2.10,<3", "pydantic-settings>=2.7,<3", "mangum>=0.19,<1", "aurora-dsql-python-connector>=0.2", "httpx>=0.28,<1"]
 [dependency-groups]
-dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.12", "mypy>=1.15,<2", "pyright>=1.1", "sqlglot>=26", "aws-cdk-lib>=2.220,<3", "constructs>=10,<11", "cdk-nag>=2.35,<3", "jsonschema>=4.23", "types-jsonschema", "defusedxml", "types-defusedxml"]
+dev = [
+    "pytest>=8,<10",
+    "pytest-cov>=6,<8",
+    "ruff>=0.12",
+    "mypy>=1.15,<2",
+    "pyright>=1.1",
+    "sqlglot>=26",
+    "aws-cdk-lib>=2.220,<3",
+    "constructs>=10,<11",
+    "cdk-nag>=2.35,<3",
+    "jsonschema>=4.23",
+    "types-jsonschema",
+    "defusedxml",
+    "types-defusedxml",
+    "boto3-stubs-lite[cloudfront,cognito-idp,s3]==1.43.102",
+]
 [tool.uv]
 package = false
 [tool.pytest.ini_options]

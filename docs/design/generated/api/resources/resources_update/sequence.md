@@ -6,6 +6,8 @@ participant E as endpoint
 participant Q as query
 participant D as transaction
 E->>E: require_admin
+E->>D: transaction開始
+loop 上限付きOCC retry / 新snapshot
 E->>Q: control
 alt not rows
 E-->>E: raise DomainError('resource_not_found', 404)
@@ -17,5 +19,6 @@ alt not value.active and q.future(connection, q.FutureParams(id=resource_id, now
 E-->>E: raise DomainError('future_reservations_exist')
 end
 E->>Q: update
-E->>D: work全体をcommit（OCC時は新snapshotで再試行）
+D-->>E: commit成功時のみ応答
+end
 ```

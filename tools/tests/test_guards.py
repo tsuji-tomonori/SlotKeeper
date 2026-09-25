@@ -48,7 +48,7 @@ def test_schema_dictionary_mutations(tmp_path, monkeypatch, change):
 
 def test_sql_parameter_mutation(tmp_path, monkeypatch):
     """Given SQLの束縛変数だけ変更 When 型生成 Then 引数不一致を拒否。"""
-    shutil.copytree(queries.ROOT / "backend/src", tmp_path / "backend/src")
+    shutil.copytree(queries.ROOT / "backend", tmp_path / "backend")
     monkeypatch.setattr(queries, "ROOT", tmp_path)
     file = tmp_path / "backend/src/slotkeeper/operations/resources_create/sql/create.sql"
     file.write_text(file.read_text().replace("%(name)s", "%(renamed)s"))

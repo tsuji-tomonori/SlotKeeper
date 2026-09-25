@@ -5,6 +5,8 @@ sequenceDiagram
 participant E as endpoint
 participant Q as query
 participant D as transaction
+E->>D: transaction開始
+loop 上限付きOCC retry / 新snapshot
 E->>Q: replay
 alt records and records[0].expires_at > now
 alt records[0].input_hash != digest
@@ -29,5 +31,6 @@ E->>Q: user
 E->>Q: create
 E->>Q: event
 E->>Q: record
-E->>D: work全体をcommit（OCC時は新snapshotで再試行）
+D-->>E: commit成功時のみ応答
+end
 ```

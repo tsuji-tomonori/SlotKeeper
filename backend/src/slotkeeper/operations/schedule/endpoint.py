@@ -7,15 +7,10 @@ from fastapi import APIRouter, Query
 
 from slotkeeper.auth import Principal
 from slotkeeper.db import Connection, transaction
-from slotkeeper.domain import JST, BusySlot, Clock, DomainError, SystemClock
+from slotkeeper.domain import JST, BusySlot, DomainError
 from slotkeeper.operations.schedule import queries as q
 
 router = APIRouter()
-
-
-def clock() -> Clock:
-    """現在時刻を依存として提供する。"""
-    return SystemClock()
 
 
 @router.get(

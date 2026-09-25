@@ -80,13 +80,21 @@ services:
     profiles: [test]
     environment:
       SLOT_DATABASE_URL: postgresql://slotkeeper:test-only@verify-db:5432/slotkeeper_test
+      SLOT_PERF_DATABASE_URL: postgresql://slotkeeper:local-only@db:5432/slotkeeper
       SLOT_TEST_DB: '1'
       SLOT_WEB_URL: http://web:4321
       SLOT_API_URL: http://api:8000
       SLOT_OIDC_INTERNAL: http://oidc:8080
       SLOT_REVISION: ${SLOT_REVISION:-local-worktree}
       SLOT_RUN_ID: ${SLOT_RUN_ID:-local}
-    volumes: ['./artifacts:/app/artifacts']
+    volumes:
+      - ./artifacts:/app/artifacts
+      - ./backend/src:/app/backend/src
+      - ./docs/design/generated:/app/docs/design/generated
+      - ./docs/requirements:/app/docs/requirements
+      - ./spec/requirements:/app/spec/requirements
+      - ./.dev-standard/design.json:/app/.dev-standard/design.json
+      - ./frontend/src/generated:/app/frontend/src/generated
     depends_on:
       verify-db: {condition: service_healthy}
       web: {condition: service_healthy}
@@ -109,6 +117,7 @@ services:
       SLOT_API_URL: http://api:8000
       SLOT_OIDC_INTERNAL: http://oidc:8080
       SLOT_REVISION: ${SLOT_REVISION:-local-worktree}
+      SLOT_RUN_ID: ${SLOT_RUN_ID:-local}
     volumes: ['./artifacts:/app/artifacts']
     depends_on:
       api: {condition: service_healthy}

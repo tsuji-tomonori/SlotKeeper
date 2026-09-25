@@ -57,7 +57,11 @@ def package() -> None:
             ROOT / "artifacts/lambda.zip", "w", compression=zipfile.ZIP_DEFLATED
         ) as archive:
             for path in sorted(target.rglob("*")):
-                if path.is_file():
+                if (
+                    path.is_file()
+                    and path.relative_to(target).parts[0] != "bin"
+                    and path.name != "RECORD"
+                ):
                     entry = zipfile.ZipInfo(
                         path.relative_to(target).as_posix(), date_time=(2026, 1, 1, 0, 0, 0)
                     )

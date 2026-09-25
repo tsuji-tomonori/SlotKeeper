@@ -99,4 +99,4 @@ def endpoint(
         )
         return reservation
 
-    return transaction(work)
+    return transaction(work, replay_safe=True)

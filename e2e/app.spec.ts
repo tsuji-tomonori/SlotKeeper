@@ -15,6 +15,7 @@ test.beforeEach(async ({ page }) => {
         const url = new URL(route.request().url());
         const response = await route.fetch({
           url: target + url.pathname + url.search,
+          maxRedirects: 0,
         });
         await route.fulfill({ response });
       });

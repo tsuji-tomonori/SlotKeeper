@@ -13,7 +13,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import sqlglot
 from sqlglot import exp
@@ -125,10 +125,14 @@ def sequence(nodes: list[ast.stmt]) -> str:
         "participant D as transaction",
     ]
 
+    functions = {
+        n.name: n.body for n in nodes if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+
     def visit(body: list[ast.stmt]) -> None:
         for node in body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                visit(node.body)
+                continue
             elif isinstance(node, ast.If):
                 condition = ast.unparse(node.test).replace("\n", " ").replace(";", ",")
                 lines.append("alt " + condition)
@@ -153,7 +157,17 @@ def sequence(nodes: list[ast.stmt]) -> str:
                     elif name in ("require_admin", "require_owner", "validate_booking"):
                         lines.append("E->>E: " + name)
                     elif name == "transaction":
-                        lines.append("E->>D: work全体をcommit（OCC時は新snapshotで再試行）")
+                        lines.append("E->>D: transaction開始")
+                        lines.append("loop 上限付きOCC retry / 新snapshot")
+                        if (
+                            not call.args
+                            or not isinstance(call.args[0], ast.Name)
+                            or call.args[0].id not in functions
+                        ):
+                            raise ValueError("未対応transaction callback")
+                        visit(functions[call.args[0].id])
+                        lines.append("D-->>E: commit成功時のみ応答")
+                        lines.append("end")
 
     visit(nodes)
     return "\n".join(lines) + "\n"
@@ -214,8 +228,8 @@ def generate() -> tuple[dict[str, str], dict[str, Any]]:
 
     collect_routes(app.routes)
     actual_ids = {route.operation_id for route in routes}
-    contract_ids = {
-        value["operationId"]
+    contract_ids: set[str] = {
+        str(cast(Any, value)["operationId"])
         for path in openapi["paths"].values()
         for value in path.values()
         if isinstance(value, dict) and "operationId" in value

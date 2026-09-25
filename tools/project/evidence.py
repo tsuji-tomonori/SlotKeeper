@@ -117,7 +117,11 @@ def build(revision: str, run_id: str, checks: list[dict[str, Any]], scope: str) 
                 coverage.append(
                     {
                         "name": name + " / " + label,
-                        "status": "passed",
+                        "status": "passed"
+                        if totals.get(total, 0) > 0
+                        and totals.get(covered, 0) / totals[total]
+                        >= (0.90 if label == "branches" else 0.95)
+                        else "failed",
                         "covered": totals.get(covered, 0),
                         "total": totals.get(total, 0),
                     }
@@ -139,6 +143,12 @@ def build(revision: str, run_id: str, checks: list[dict[str, Any]], scope: str) 
     else:
         coverage.append({"name": "frontend", "status": "missing"})
     performance = {"status": "not-run", "reason": "性能profileは今回のrunでは実行していない。"}
+    perf_file = ART / "performance.json"
+    if perf_file.exists():
+        measured = json.loads(perf_file.read_text())
+        if measured["revision"] != revision or measured["runId"] != run_id:
+            raise ValueError("性能結果のrevision/run不一致")
+        performance = measured
     cloud = {"status": "not-run", "reason": "AWS account・role未指定。synthと実AWS検証を区別する。"}
     evidence = {
         "revision": revision,

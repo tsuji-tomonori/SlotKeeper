@@ -82,7 +82,7 @@ def test_replay_before_validation(client, signed, booking, timer):
     timer.value += timedelta(hours=23)
     replay = create(client, signed, booking, key)
     assert replay.json() == first.json()
-    timer.value += timedelta(hours=2)
+    timer.value += timedelta(hours=1)
     assert create(client, signed, booking, key).status_code == 201
 
 

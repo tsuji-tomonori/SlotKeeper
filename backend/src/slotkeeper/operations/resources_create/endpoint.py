@@ -6,15 +6,10 @@ from fastapi import APIRouter
 
 from slotkeeper.auth import Principal
 from slotkeeper.db import Connection, transaction
-from slotkeeper.domain import Clock, Resource, ResourceInput, SystemClock, require_admin
+from slotkeeper.domain import Resource, ResourceInput, require_admin
 from slotkeeper.operations.resources_create import queries as q
 
 router = APIRouter()
-
-
-def clock() -> Clock:
-    """現在時刻を依存として提供する。"""
-    return SystemClock()
 
 
 @router.post(

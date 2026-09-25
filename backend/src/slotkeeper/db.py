@@ -36,7 +36,7 @@ def connect() -> Connection:
     return connection
 
 
-def transaction[T](work: Callable[[Connection], T]) -> T:
+def transaction[T](work: Callable[[Connection], T], *, replay_safe: bool = False) -> T:
     """直列化競合、冪等キー競合、成否不明の接続切断を新snapshotで再実行する。"""
     deadline = monotonic() + 8
     for attempt in range(12):
@@ -48,10 +48,13 @@ def transaction[T](work: Callable[[Connection], T]) -> T:
             psycopg.errors.SerializationFailure,
             psycopg.errors.DeadlockDetected,
             psycopg.errors.UniqueViolation,
-            psycopg.OperationalError,
         ) as exc:
             # 一意性競合の再照合も同じ入口から行う。業務例外は対象外。
             if attempt == 11 or monotonic() >= deadline:
+                raise DomainError("storage_temporarily_unavailable", 503) from exc
+            sleep(uniform(0, min(0.02 * 2**attempt, 0.4)))
+        except psycopg.OperationalError as exc:
+            if not replay_safe or attempt == 11 or monotonic() >= deadline:
                 raise DomainError("storage_temporarily_unavailable", 503) from exc
             sleep(uniform(0, min(0.02 * 2**attempt, 0.4)))
     raise AssertionError("到達不能")

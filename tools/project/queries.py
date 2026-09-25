@@ -2,9 +2,11 @@
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(ROOT), str(ROOT / "backend/src")]
 
 
 def generate() -> dict[Path, str]:
@@ -25,6 +27,9 @@ def generate() -> dict[Path, str]:
             "",
         ]
         for path in sorted((folder / "sql").glob("*.sql")):
+            from tools.project.sql_contract import validate
+
+            validate(path, ROOT)
             source = path.read_text()
             header = source.splitlines()
             params = header[1].removeprefix("-- params: ").split(", ")

@@ -56,7 +56,8 @@ for (const item of evidence.tests)
                 </tr>
               ),
             )
-          }</tbody>
+          }</tbody
+        >
       </table>
     </div>
   </section><section>
@@ -90,6 +91,10 @@ for (const item of evidence.tests)
           steps?: { phase: string; text: string; image: string }[];
         }) => (
           <details>
+            <summary>
+              {c.status} · {c.id}
+            </summary>
+            <p>{c.narrative}</p>
             <p>
               実測：{c.status} · {c.duration ?? 0}秒
             </p>

@@ -1,12 +1,17 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "@playwright/test";
+const root = fileURLToPath(new URL("../", import.meta.url));
 export default defineConfig({
   testDir: ".",
   testMatch: "app.spec.ts",
   timeout: 60000,
   retries: 0,
   workers: 1,
-  reporter: [["list"], ["json", { outputFile: "artifacts/playwright.json" }]],
-  outputDir: "artifacts/e2e",
+  reporter: [
+    ["list"],
+    ["json", { outputFile: root + "artifacts/playwright.json" }],
+  ],
+  outputDir: root + "artifacts/e2e",
   use: {
     baseURL: "http://localhost:4321",
     trace: "off",
