@@ -41,70 +41,75 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         securityLevel: "strict",
         theme: "neutral",
       });
-      for (const block of document.querySelectorAll<HTMLElement>(
-        "pre code.language-mermaid",
-      )) {
-        const pre = block.parentElement!;
-        const div = document.createElement("div");
-        div.className = "mermaid";
-        div.textContent = block.textContent;
-        pre.replaceWith(div);
-      }
-      try {
-        await mermaid.run({ querySelector: ".mermaid" });
-      } catch {
-        const warning = document.createElement("p");
-        warning.role = "alert";
-        warning.textContent =
-          "図の描画に失敗しました。元の設計を確認してください。";
-        document.querySelector("main")?.prepend(warning);
-      }
-      let previous: HTMLElement | null = null;
-      const dialog = document.querySelector<HTMLDialogElement>("#zoom")!;
-      const target = document.querySelector("#zoom-content")!;
-      for (const node of document.querySelectorAll<HTMLElement>(
-        ".mermaid, .evidence-image",
-      )) {
-        node.tabIndex = 0;
-        node.role = "button";
-        node.setAttribute("aria-label", "図を拡大");
-        const open = () => {
-          previous = node;
-          target.replaceChildren(node.cloneNode(true));
-          dialog.showModal();
-        };
-        node.addEventListener("click", open);
-        node.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") open();
+      // top-level awaitにすると、遅延読込する図チャンクがこのmoduleの評価完了を待ち、
+      // mermaid.runと循環待ちになる。module評価を先に終えてから描画する。
+      async function setup() {
+        for (const block of document.querySelectorAll<HTMLElement>(
+          "pre code.language-mermaid",
+        )) {
+          const pre = block.parentElement!;
+          const div = document.createElement("div");
+          div.className = "mermaid";
+          div.textContent = block.textContent;
+          pre.replaceWith(div);
+        }
+        try {
+          await mermaid.run({ querySelector: ".mermaid" });
+        } catch {
+          const warning = document.createElement("p");
+          warning.role = "alert";
+          warning.textContent =
+            "図の描画に失敗しました。元の設計を確認してください。";
+          document.querySelector("main")?.prepend(warning);
+        }
+        let previous: HTMLElement | null = null;
+        const dialog = document.querySelector<HTMLDialogElement>("#zoom")!;
+        const target = document.querySelector("#zoom-content")!;
+        for (const node of document.querySelectorAll<HTMLElement>(
+          ".mermaid, .evidence-image",
+        )) {
+          node.tabIndex = 0;
+          node.role = "button";
+          node.setAttribute("aria-label", "図を拡大");
+          const open = () => {
+            previous = node;
+            target.replaceChildren(node.cloneNode(true));
+            dialog.showModal();
+          };
+          node.addEventListener("click", open);
+          node.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") open();
+          });
+        }
+        document
+          .querySelector("#close-zoom")
+          ?.addEventListener("click", () => dialog.close());
+        dialog.addEventListener("close", () => previous?.focus());
+        const input = document.querySelector<HTMLInputElement>("#search")!;
+        const results = document.querySelector("#results")!;
+        const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+        const docs = (await fetch(base + "/search.json").then((r) =>
+          r.json(),
+        )) as { title: string; path: string; text: string }[];
+        input.addEventListener("input", () => {
+          const term = input.value.trim().toLocaleLowerCase();
+          results.replaceChildren();
+          if (!term) return;
+          for (const doc of docs
+            .filter((d) =>
+              (d.title + " " + d.text).toLocaleLowerCase().includes(term),
+            )
+            .slice(0, 20)) {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = base + doc.path;
+            a.textContent = doc.title;
+            li.append(a);
+            results.append(li);
+          }
         });
       }
-      document
-        .querySelector("#close-zoom")
-        ?.addEventListener("click", () => dialog.close());
-      dialog.addEventListener("close", () => previous?.focus());
-      const input = document.querySelector<HTMLInputElement>("#search")!;
-      const results = document.querySelector("#results")!;
-      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-      const docs = (await fetch(base + "/search.json").then((r) =>
-        r.json(),
-      )) as { title: string; path: string; text: string }[];
-      input.addEventListener("input", () => {
-        const term = input.value.trim().toLocaleLowerCase();
-        results.replaceChildren();
-        if (!term) return;
-        for (const doc of docs
-          .filter((d) =>
-            (d.title + " " + d.text).toLocaleLowerCase().includes(term),
-          )
-          .slice(0, 20)) {
-          const li = document.createElement("li");
-          const a = document.createElement("a");
-          a.href = base + doc.path;
-          a.textContent = doc.title;
-          li.append(a);
-          results.append(li);
-        }
-      });
+      void setup();
     </script></body
   >
 </html>

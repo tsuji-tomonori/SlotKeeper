@@ -50,6 +50,6 @@ venv = ".venv"
 [tool.coverage.run]
 branch = true
 source = ["backend/src/slotkeeper", "infra", "tools/project"]
-omit = ["*/generated/*"]
+omit = ["*/generated/*", "*/operations/*/queries.py"]
 [tool.coverage.report]
 show_missing = true

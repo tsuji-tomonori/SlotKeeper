@@ -56,6 +56,8 @@ jobs:
     concurrency:
       group: pages
       cancel-in-progress: false
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -67,3 +69,22 @@ jobs:
       - name: 公開
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+  smoke:
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - name: 公開URLのsmoke test
+        env:
+          SLOT_PORTAL_URL: ${{ needs.publish.outputs.page_url }}
+        run: docker compose --profile test run --build --rm --no-deps -e SLOT_PORTAL_URL --entrypoint npx verify playwright test --config=e2e/portal-remote.config.ts
+      - name: smoke結果
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: portal-smoke-${{ github.sha }}
+          path: artifacts/portal-smoke*
+          retention-days: 14

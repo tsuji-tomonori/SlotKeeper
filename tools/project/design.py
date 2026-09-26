@@ -12,6 +12,7 @@ import re
 import shutil
 import sys
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -29,7 +30,7 @@ def dump(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
 
 
-def table(headers: list[str], rows: list[list[object]]) -> str:
+def table(headers: list[str], rows: Sequence[Sequence[object]]) -> str:
     """改行と区切り文字を安全に表へ変換する。"""
     return (
         "\n".join(
@@ -114,6 +115,228 @@ def test_cases() -> list[dict[str, str]]:
                     }
                 )
     return cases
+
+
+TAG = re.compile(r"\[([A-Z]+-[A-Z0-9]+(?:-AC)?)\]")
+PYTHON_TESTS = ["backend/tests", "infra/tests", "tools/tests"]
+
+
+def tagged_tests() -> list[dict[str, Any]]:
+    """pytest・Vitest・Playwrightの実在テストと受入条件タグを収集する。"""
+    found: list[dict[str, Any]] = []
+    for folder in PYTHON_TESTS:
+        for file in sorted((ROOT / folder).glob("test_*.py")):
+            for node in ast.walk(ast.parse(file.read_text())):
+                if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+                    narrative = ast.get_docstring(node) or ""
+                    found.append(
+                        {
+                            "id": file.relative_to(ROOT).as_posix() + "::" + node.name,
+                            "file": file.relative_to(ROOT).as_posix(),
+                            "narrative": TAG.sub("", narrative).strip(),
+                            "tags": TAG.findall(narrative),
+                        }
+                    )
+    scripts = [("vitest", p) for p in sorted((ROOT / "frontend/tests").glob("*.test.ts"))]
+    scripts += [("playwright", ROOT / "e2e/app.spec.ts"), ("portal", ROOT / "e2e/portal.spec.ts")]
+    for kind, file in scripts:
+        pattern = r'describe\(\s*"([^"]+)"' if kind == "vitest" else r'\btest\(\s*"([^"]+)"'
+        for title in re.findall(pattern, file.read_text()):
+            found.append(
+                {
+                    "id": kind + "::" + title,
+                    "file": file.relative_to(ROOT).as_posix(),
+                    "narrative": TAG.sub("", title).strip(),
+                    "tags": TAG.findall(title),
+                }
+            )
+    return found
+
+
+def verify_checks() -> set[str]:
+    """verify入口が実行する検査名をASTから取得する。"""
+    names: set[str] = set()
+    for node in ast.walk(ast.parse((ROOT / "tools/project/verify.py").read_text())):
+        if isinstance(node, ast.Call) and ast.unparse(node.func) == "run" and node.args:
+            first = node.args[0]
+            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                names.add(first.value)
+        if isinstance(node, ast.Tuple) and len(node.elts) == 2:
+            first = node.elts[0]
+            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                names.add(first.value)
+    return names
+
+
+def trace() -> tuple[str, list[dict[str, Any]]]:
+    """要件→受入条件→実在テストID・検査名を照合し、欠落と未知タグを拒否する。"""
+    catalog = json.loads((ROOT / "spec/requirements/requirements.json").read_text())
+    tests = tagged_tests()
+    checks = verify_checks()
+    criteria: dict[str, dict[str, Any]] = {}
+    rows: list[dict[str, Any]] = []
+    for item in catalog["requirements"]:
+        if item["status"] != "active":
+            continue
+        for criterion in item["acceptance_criteria"]:
+            criteria[criterion["id"]] = item
+    unknown = sorted({t for case in tests for t in case["tags"]} - set(criteria))
+    if unknown:
+        raise ValueError("要件にない受入条件タグ: " + ", ".join(unknown))
+    for item in catalog["requirements"]:
+        if item["status"] != "active":
+            continue
+        method = item["verification"]["method"]
+        for criterion in item["acceptance_criteria"]:
+            linked = [case for case in tests if criterion["id"] in case["tags"]]
+            evidence: list[str] = []
+            if method == "check":
+                evidence = re.findall(r"verify:([\w-]+)", item["verification"]["evidence"])
+                missing_checks = sorted(set(evidence) - checks)
+                if not evidence or missing_checks:
+                    raise ValueError(
+                        "検査名の欠落: " + criterion["id"] + " " + ", ".join(missing_checks)
+                    )
+            elif not linked:
+                raise ValueError("受入条件にテストがない: " + criterion["id"])
+            outside = sorted({c["file"] for c in linked} - set(item["traces"]["tests"]))
+            if outside:
+                raise ValueError(
+                    "要件traceにないテスト: " + criterion["id"] + " " + ", ".join(outside)
+                )
+            rows.append(
+                {
+                    "requirement": item["id"],
+                    "criterion": criterion["id"],
+                    "gwt": "Given "
+                    + criterion["given"]
+                    + " When "
+                    + criterion["when"]
+                    + " Then "
+                    + criterion["then"],
+                    "tests": [c["id"] for c in linked],
+                    "checks": evidence,
+                }
+            )
+    document = "# 要件トレーサビリティ\n\n" + table(
+        ["要件", "受入条件", "Given / When / Then", "実在テストID", "検査"],
+        [
+            [
+                r["requirement"],
+                r["criterion"],
+                r["gwt"],
+                "<br>".join(r["tests"]) or "—",
+                ", ".join(r["checks"]) or "—",
+            ]
+            for r in rows
+        ],
+    )
+    return document, rows
+
+
+def frontend_design() -> str:
+    """App.tsxの画面区画・入力・呼出API・権限と、logic.tsの例外表示を抽出する。"""
+    app = (ROOT / "frontend/src/App.tsx").read_text()
+    logic = (ROOT / "frontend/src/logic.ts").read_text()
+    auth = (ROOT / "frontend/src/auth.ts").read_text()
+    nav = re.search(r'<nav aria-label="メインメニュー">(.*?)</nav>', app, re.S)
+    if not nav:
+        raise ValueError("未対応の画面構造: frontend/src/App.tsx にメインメニューがない")
+    tabs = re.findall(r'\["(\w+)", "([^"]+)"\]', nav.group(1))
+    admin_only = set(re.findall(r'admin \? \[\["(\w+)"', nav.group(1)))
+    functions: dict[str, list[str]] = {}
+    for match in re.finditer(r"async function (\w+)\(", app):
+        body = app[match.end() : app.find("\n  }\n", match.end())]
+        calls = re.findall(r'client\.(GET|POST|PUT)\(\s*"([^"]+)"', body)
+        functions[match.group(1)] = [m + " " + path for m, path in calls]
+
+    def section(start: int, end: int) -> list[str]:
+        text = app[start:end]
+        headings = [h.strip() for h in re.findall(r"<h2>([^<{]+)", text)]
+        labels = [
+            re.sub(r"\s+", " ", t).strip()
+            for t in re.findall(r"<label[^>]*>\s*([^<{]+)", text)
+            if t.strip()
+        ]
+        handlers = sorted(set(re.findall(r"void (\w+)\(", text)) & set(functions))
+        apis = sorted({api for name in handlers for api in functions[name]})
+        return [
+            " / ".join(headings) or "—",
+            ", ".join(labels) or "—",
+            ", ".join(handlers) or "—",
+            ", ".join(apis) or "—",
+        ]
+
+    rows: list[list[str]] = []
+    starts = [(m.start(), m.group(1)) for m in re.finditer(r'\{tab === "(\w+)"', app)]
+    detail = app.find('aria-label="予約詳細"')
+    if not tabs or len(starts) != len(tabs) or detail < 0:
+        raise ValueError("未対応の画面構造: タブと画面区画の対応を抽出できない")
+    labels = dict(tabs)
+    for index, (start, tab) in enumerate(starts):
+        end = starts[index + 1][0] if index + 1 < len(starts) else detail
+        rows.append(
+            [labels[tab] + "（" + tab + "）", "管理者" if tab in admin_only else "認証済み利用者"]
+            + section(start, end)
+        )
+    rows.append(
+        ["予約詳細・履歴（?reservation=ID）", "本人・管理者（APIで判定）"]
+        + section(detail, len(app))
+    )
+    effects = [
+        [
+            re.sub(r"\s+", " ", condition).strip(),
+            name,
+            ", ".join(functions[name]) or "—",
+            deps.strip(),
+        ]
+        for condition, name, deps in re.findall(
+            r"useEffect\(\(\) => \{\s*(?:const [^;]+;\s*)?if \(([^)]*)\) void (\w+)\([^)]*\);\s*\}, \[([^\]]*)\]\)",
+            app,
+        )
+        if name in functions
+    ]
+    catalog = re.search(r"const codes[^{]*\{(.*?)\};", logic, re.S)
+    if not catalog:
+        raise ValueError("未対応の例外表示: frontend/src/logic.ts に業務コード表がない")
+    codes = re.findall(r"(\w+):\s*\n?\s*\"([^\"]+)\"", catalog.group(1))
+    statuses = re.findall(r"(\d{3}): \"([^\"]+)\"", logic)
+    storage = [
+        name
+        for name, found in [
+            ("tokenはInMemoryWebStorage（メモリ）", "InMemoryWebStorage" in auth),
+            ("PKCE stateはsessionStorage", "sessionStorage" in auth),
+            ("localStorage不使用", "localStorage" not in auth + app),
+        ]
+        if found
+    ]
+    return (
+        "# 画面・状態・呼出API\n\n"
+        + "静的Astroページ1枚にReact islandを載せ、画面区画はメニューとURLのreservation引数で切り替える。"
+        + "権限はUI表示に加え、APIの403で最終判定する。\n\n## 画面一覧\n\n"
+        + table(["画面", "表示権限", "見出し", "入力", "操作関数", "呼出API"], rows)
+        + "\n## 状態変化による取得\n\n"
+        + table(["条件", "関数", "呼出API", "再実行の依存"], effects)
+        + "\n## 例外表示（業務コード）\n\n"
+        + table(["コード", "表示"], [list(c) for c in codes])
+        + "\n## 例外表示（HTTP status）\n\n"
+        + table(
+            ["status", "表示"],
+            [list(c) for c in statuses] + [["通信失敗", "入力を保持して再送を案内"]],
+        )
+        + "\n## 認証情報の保持\n\n"
+        + "\n".join("- " + item for item in storage)
+        + "\n"
+    )
+
+
+def drift(files: dict[str, str], out: Path) -> list[str]:
+    """欠落・変更・余剰（旧帳票を含む）を検出し、既存ファイルは書き換えない。"""
+    existing = {p.relative_to(out).as_posix() for p in out.rglob("*") if p.is_file()}
+    changed = [
+        p for p, s in sorted(files.items()) if not (out / p).exists() or (out / p).read_text() != s
+    ]
+    return changed + sorted(existing - set(files))
 
 
 def sequence(nodes: list[ast.stmt]) -> str:
@@ -210,8 +433,11 @@ def generate() -> tuple[dict[str, str], dict[str, Any]]:
         + "\n論理参照はbackend/logical-relations.jsonに宣言。物理FKは使用しない。\n"
     )
     cases = test_cases()
+    files["TRACE.md"], trace_rows = trace()
+    files["trace.json"] = dump(trace_rows)
     files["TESTS.md"] = "# テスト設計\n\n" + table(
-        ["実在テスト", "Given / When / Then"], [[c["id"], c["narrative"]] for c in cases]
+        ["実在テストID", "Given / When / Then", "受入条件"],
+        [[c["id"], c["narrative"], " ".join(c["tags"])] for c in tagged_tests()],
     )
     operations: list[dict[str, Any]] = []
     rows: list[dict[str, Any]] = []
@@ -487,8 +713,10 @@ def generate() -> tuple[dict[str, str], dict[str, Any]]:
                 ", ".join(re.findall(r'client\.(?:GET|POST|PUT)\(\s*["\']([^"\']+)', text)),
             ]
         )
-    files["FRONTEND.md"] = "# 画面・状態・呼出API\n\n" + table(
-        ["source", "状態宣言", "API"], frontend
+    files["FRONTEND.md"] = (
+        frontend_design()
+        + "\n## source別の状態宣言\n\n"
+        + table(["source", "状態宣言", "API"], frontend)
     )
     with tempfile.TemporaryDirectory() as folder:
         import aws_cdk as cdk
@@ -497,7 +725,7 @@ def generate() -> tuple[dict[str, str], dict[str, Any]]:
         from infra.stack import SlotKeeperStack
 
         cdk_app = cdk.App(outdir=folder)
-        stack = SlotKeeperStack(cdk_app, "SlotKeeper")
+        stack = SlotKeeperStack(cdk_app, "SlotKeeper-dev")
         template = Template.from_stack(stack).to_json()
     files["infra.json"] = dump(template)
     files["INFRA.md"] = "# 合成インフラ\n\n" + table(
@@ -508,7 +736,7 @@ def generate() -> tuple[dict[str, str], dict[str, Any]]:
         ],
     )
     files["OVERVIEW.md"] = (
-        "# 全体構成\n\n静的Astro → HTTP API → FastAPI / Mangum → Aurora DSQL。ローカルはPostgreSQL Repeatable ReadとKeycloak。\n\n[API](api/index.md) · [DB](DATA.md) · [CRUD](crud/matrix.md) · [画面](FRONTEND.md) · [インフラ](INFRA.md) · [テスト](TESTS.md)\n"
+        "# 全体構成\n\n静的Astro → HTTP API → FastAPI / Mangum → Aurora DSQL。ローカルはPostgreSQL Repeatable ReadとKeycloak。\n\n[API](api/index.md) · [DB](DATA.md) · [CRUD](crud/matrix.md) · [画面](FRONTEND.md) · [インフラ](INFRA.md) · [テスト](TESTS.md) · [要件トレース](TRACE.md)\n"
     )
     sources: list[Path] = []
     for root in ["backend", "frontend/src", "infra", "tools/project", "tools/tests", "e2e"]:
@@ -591,20 +819,18 @@ def main() -> None:
     parser.add_argument("--manifest", action="store_true")
     args = parser.parse_args()
     files, manifest = generate()
-    existing: set[str] = (
-        {p.relative_to(OUT).as_posix() for p in OUT.rglob("*") if p.is_file()}
-        if OUT.exists()
-        else set()
-    )
     if args.check:
-        changed = [
-            p for p, s in files.items() if not (OUT / p).exists() or (OUT / p).read_text() != s
-        ]
-        if changed or existing - set(files):
-            raise SystemExit("設計drift: " + str(changed + sorted(existing - set(files))))
+        found = drift(files, OUT) if OUT.exists() else sorted(files)
+        if found:
+            raise SystemExit("設計drift: " + str(found))
     else:
-        if OUT.exists():
-            shutil.rmtree(OUT)
+        # 出力rootはComposeのbind mount先なので、root自体ではなく中身を入れ替える。
+        children: list[Path] = list(OUT.iterdir()) if OUT.exists() else []
+        for child in children:
+            if child.is_dir() and not child.is_symlink():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
         for p, s in files.items():
             (OUT / p).parent.mkdir(parents=True, exist_ok=True)
             (OUT / p).write_text(s)

@@ -84,10 +84,10 @@ const crud = JSON.parse(
       ))
     }
   </ul><script
-    define:vars={{ db, crud }}
+    is:inline
     type="application/json"
     id="db-data"
-    set:html={JSON.stringify({ db, crud }).replace(/</g, "\u003c")}
+    set:html={JSON.stringify({ db, crud }).replace(/</g, "\\u003c")}
   />
   <script>
     const { db, crud } = JSON.parse(
@@ -98,8 +98,22 @@ const crud = JSON.parse(
     const graph = document.querySelector<HTMLElement>("#graph")!;
     const detail = document.querySelector<HTMLElement>("#db-detail")!;
     const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+    let revision = "";
+    void fetch(base + "/evidence.json")
+      .then((r) => r.json())
+      .then((e: { revision: string }) => {
+        if (/^[0-9a-f]{40}$/.test(e.revision)) revision = e.revision;
+      })
+      .catch(() => undefined);
+    function mark(names: string[]) {
+      for (const node of document.querySelectorAll<HTMLElement>(
+        "[data-column]",
+      ))
+        node.classList.toggle("selected", names.includes(node.dataset.column!));
+    }
     function select(name: string) {
       selected = name;
+      mark([name]);
       const [table, column] = name.split(".");
       const t = db.tables.find((v: { name: string }) => v.name === table);
       if (!t) return;
@@ -129,9 +143,16 @@ const crud = JSON.parse(
         link.textContent = row.operation + " · " + row.access.join("/");
         detail.append(link);
         for (const e of row.evidence) {
-          const p = document.createElement("p");
-          p.textContent = e.path;
-          detail.append(p);
+          // 同じ検証runのrevisionのsourceへ移動する。未確定のworktreeはpathだけ示す。
+          const source = document.createElement(revision ? "a" : "p");
+          source.textContent = "SQL: " + e.path;
+          if (source instanceof HTMLAnchorElement)
+            source.href =
+              "https://github.com/tsuji-tomonori/SlotKeeper/blob/" +
+              revision +
+              "/" +
+              e.path;
+          detail.append(source);
         }
       }
     }
@@ -151,8 +172,10 @@ const crud = JSON.parse(
     for (const b of document.querySelectorAll<HTMLButtonElement>(".relation"))
       b.addEventListener("click", () => {
         select(b.dataset.from!);
+        mark([b.dataset.from!, b.dataset.to!]);
         const p = document.createElement("p");
-        p.textContent = "論理参照先：" + b.dataset.to;
+        p.textContent =
+          "論理参照先：" + b.dataset.to + "（物理FKではなくアプリが保証）";
         detail.append(p);
       });
     document.querySelector("#names")?.addEventListener("change", (e) => {

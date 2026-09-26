@@ -8,6 +8,8 @@ export interface PublicConfig {
   authority: string;
   clientId: string;
   authMode: "oidc" | "cognito";
+  /** CognitoのHosted UI logout。OIDCのend_session_endpointがない場合に使う。 */
+  logoutUrl?: string;
 }
 export function manager(config: PublicConfig) {
   return new UserManager({

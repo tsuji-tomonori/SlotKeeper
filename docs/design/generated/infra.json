@@ -163,7 +163,7 @@
                 "Endpoint"
               ]
             },
-            "SLOT_ENVIRONMENT": "aws",
+            "SLOT_ENVIRONMENT": "dev",
             "SLOT_ISSUER": {
               "Fn::GetAtt": [
                 "Users0A0EEA89",
@@ -203,6 +203,16 @@
           ]
         },
         "Runtime": "python3.12",
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "SlotKeeper"
+          },
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          }
+        ],
         "Timeout": 28
       },
       "Type": "AWS::Lambda::Function"
@@ -210,7 +220,17 @@
     "ApiLogs3D05D88B": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "RetentionInDays": 30
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "SlotKeeper"
+          },
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          }
+        ]
       },
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Retain"
@@ -257,6 +277,16 @@
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
               ]
             ]
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "SlotKeeper"
+          },
+          {
+            "Key": "Environment",
+            "Value": "dev"
           }
         ]
       },
@@ -307,7 +337,17 @@
     "Database": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "DeletionProtectionEnabled": true
+        "DeletionProtectionEnabled": true,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "SlotKeeper"
+          },
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          }
+        ]
       },
       "Type": "AWS::DSQL::Cluster",
       "UpdateReplacePolicy": "Retain"
@@ -345,7 +385,7 @@
             "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
             "Compress": true,
             "ResponseHeadersPolicyId": "67f7725c-6f97-4210-82d7-5512b31e9d03",
-            "TargetOriginId": "SlotKeeperDistributionOrigin1BA0A70D7",
+            "TargetOriginId": "SlotKeeperdevDistributionOrigin148F9C9C5",
             "ViewerProtocolPolicy": "redirect-to-https"
           },
           "DefaultRootObject": "index.html",
@@ -360,7 +400,7 @@
                   "RegionalDomainName"
                 ]
               },
-              "Id": "SlotKeeperDistributionOrigin1BA0A70D7",
+              "Id": "SlotKeeperdevDistributionOrigin148F9C9C5",
               "OriginAccessControlId": {
                 "Fn::GetAtt": [
                   "DistributionOrigin1S3OriginAccessControlEB606076",
@@ -372,14 +412,24 @@
               }
             }
           ]
-        }
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "SlotKeeper"
+          },
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          }
+        ]
       },
       "Type": "AWS::CloudFront::Distribution"
     },
     "DistributionOrigin1S3OriginAccessControlEB606076": {
       "Properties": {
         "OriginAccessControlConfig": {
-          "Name": "SlotKeeperDistributionOrigin1S3OriginAccessControl6B707244",
+          "Name": "SlotKeeperdevDistributionOrigin1S3OriginAccessControl10CFA6E4",
           "OriginAccessControlOriginType": "s3",
           "SigningBehavior": "always",
           "SigningProtocol": "sigv4"
@@ -390,7 +440,17 @@
     "GatewayLogs64F6314F": {
       "DeletionPolicy": "Retain",
       "Properties": {
-        "RetentionInDays": 30
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "SlotKeeper"
+          },
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          }
+        ]
       },
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Retain"
@@ -474,7 +534,15 @@
           "Ref": "HttpApiF5A9A8A7"
         },
         "AutoDeploy": true,
-        "StageName": "$default"
+        "DefaultRouteSettings": {
+          "ThrottlingBurstLimit": 100,
+          "ThrottlingRateLimit": 50
+        },
+        "StageName": "$default",
+        "Tags": {
+          "Application": "SlotKeeper",
+          "Environment": "dev"
+        }
       },
       "Type": "AWS::ApiGatewayV2::Stage"
     },
@@ -512,7 +580,11 @@
           ]
         },
         "Name": "HttpApi",
-        "ProtocolType": "HTTP"
+        "ProtocolType": "HTTP",
+        "Tags": {
+          "Application": "SlotKeeper",
+          "Environment": "dev"
+        }
       },
       "Type": "AWS::ApiGatewayV2::Api"
     },
@@ -696,6 +768,10 @@
         "UserPoolAddOns": {
           "AdvancedSecurityMode": "ENFORCED"
         },
+        "UserPoolTags": {
+          "Application": "SlotKeeper",
+          "Environment": "dev"
+        },
         "UserPoolTier": "PLUS",
         "UsernameAttributes": [
           "email"
@@ -771,13 +847,9 @@
           "Fn::Join": [
             "",
             [
-              "slotkeeper-",
+              "slotkeeper-dev-",
               {
                 "Ref": "AWS::AccountId"
-              },
-              "-",
-              {
-                "Ref": "AWS::Region"
               }
             ]
           ]
@@ -817,6 +889,16 @@
           "IgnorePublicAcls": true,
           "RestrictPublicBuckets": true
         },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": "SlotKeeper"
+          },
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          }
+        ],
         "VersioningConfiguration": {
           "Status": "Enabled"
         }

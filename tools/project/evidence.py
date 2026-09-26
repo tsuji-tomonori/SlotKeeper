@@ -106,6 +106,14 @@ def build(revision: str, run_id: str, checks: list[dict[str, Any]], scope: str) 
 
         visit(data.get("suites", []))
     coverage: list[dict[str, Any]] = []
+    scopes = {
+        "backend": "手書き業務コード backend/src/slotkeeper。除外: 生成した型付きSQL"
+        "（operations/*/queries.py）とテストコード",
+        "infra": "CDK定義 infra。除外: テストコード",
+        "adapter": "設計生成・証跡変換 tools/project。除外: テストコード",
+        "frontend": "画面の業務ロジック frontend/src/logic.ts。除外: 生成したOpenAPI型、"
+        "React描画（E2Eで検証）",
+    }
     for name in ["backend", "infra", "adapter"]:
         file = ART / (name + "-coverage.json")
         if file.exists():
@@ -114,34 +122,42 @@ def build(revision: str, run_id: str, checks: list[dict[str, Any]], scope: str) 
                 ("lines", "covered_lines", "num_statements"),
                 ("branches", "covered_branches", "num_branches"),
             ]:
+                # 目標値は手書き業務コードだけに適用し、infra・adapterは計測値を別表示する。
+                goal = 0.90 if label == "branches" else 0.95
+                measured = totals.get(total, 0) > 0
                 coverage.append(
                     {
                         "name": name + " / " + label,
-                        "status": "passed"
-                        if totals.get(total, 0) > 0
-                        and totals.get(covered, 0) / totals[total]
-                        >= (0.90 if label == "branches" else 0.95)
+                        "scope": scopes[name],
+                        "status": ("measured" if measured else "missing")
+                        if name != "backend"
+                        else "passed"
+                        if measured and totals.get(covered, 0) / totals[total] >= goal
                         else "failed",
                         "covered": totals.get(covered, 0),
                         "total": totals.get(total, 0),
                     }
                 )
         else:
-            coverage.append({"name": name, "status": "missing"})
+            coverage.append({"name": name, "status": "missing", "scope": scopes[name]})
     summary = ART / "frontend-coverage/coverage-summary.json"
     if summary.exists():
         data = json.loads(summary.read_text())["total"]
         for metric in ["statements", "branches", "lines"]:
+            covered, total = data[metric]["covered"], data[metric]["total"]
             coverage.append(
                 {
                     "name": "frontend / " + metric,
-                    "status": "passed",
+                    "scope": scopes["frontend"],
+                    "status": "passed"
+                    if total > 0 and covered / total >= (0.90 if metric == "branches" else 0.95)
+                    else "failed",
                     "covered": data[metric]["covered"],
                     "total": data[metric]["total"],
                 }
             )
     else:
-        coverage.append({"name": "frontend", "status": "missing"})
+        coverage.append({"name": "frontend", "status": "missing", "scope": scopes["frontend"]})
     performance = {"status": "not-run", "reason": "性能profileは今回のrunでは実行していない。"}
     perf_file = ART / "performance.json"
     if perf_file.exists():
@@ -149,7 +165,16 @@ def build(revision: str, run_id: str, checks: list[dict[str, Any]], scope: str) 
         if measured["revision"] != revision or measured["runId"] != run_id:
             raise ValueError("性能結果のrevision/run不一致")
         performance = measured
-    cloud = {"status": "not-run", "reason": "AWS account・role未指定。synthと実AWS検証を区別する。"}
+    cloud: dict[str, Any] = {
+        "status": "not-run",
+        "reason": "AWS account・role未指定。synthと実AWS検証を区別する。",
+    }
+    cloud_file = ART / "cloud.json"
+    if cloud_file.exists():
+        measured = json.loads(cloud_file.read_text())
+        if measured.get("revision") != revision or measured.get("runId") != run_id:
+            raise ValueError("実AWS結果のrevision/run不一致")
+        cloud = measured
     evidence = {
         "revision": revision,
         "runId": run_id,

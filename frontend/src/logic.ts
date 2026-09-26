@@ -1,3 +1,4 @@
+import type { PublicConfig } from "./auth";
 export function japanInput(value: string): string {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value))
     throw new Error("日時を入力してください");
@@ -32,4 +33,10 @@ export function message(status: number, code?: string): string {
     }[status] ??
     "通信に失敗しました。入力は保持されています。もう一度お試しください。"
   );
+}
+export function logoutLocation(config: PublicConfig, returnTo: string) {
+  const url = new URL(config.logoutUrl ?? "");
+  url.searchParams.set("client_id", config.clientId);
+  url.searchParams.set("logout_uri", returnTo);
+  return url.toString();
 }

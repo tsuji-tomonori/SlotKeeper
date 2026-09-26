@@ -30,13 +30,13 @@ def event(path):
 
 
 def test_gateway_event():
-    """Given HTTP APIイベント When Mangum変換 Then health200・未認証業務401。 [TECH-LAMBDA]"""
+    """Given HTTP APIイベント When Mangum変換 Then health200・未認証業務401。 [TECH-LAMBDA-AC]"""
     assert handler(event("/health"), {})["statusCode"] == 200
     assert handler(event("/resources"), {})["statusCode"] == 401
 
 
 def test_distribution_zip():
-    """Given 配布ZIP When 隔離pathからimport Then SQLと依存を含むhandlerを読める。 [TECH-LAMBDA]"""
+    """Given 配布ZIP When 隔離pathからimport Then SQLと依存を含むhandlerを読める。 [TECH-LAMBDA-AC]"""
     with tempfile.TemporaryDirectory() as directory:
         with zipfile.ZipFile("artifacts/lambda.zip") as archive:
             archive.extractall(directory)

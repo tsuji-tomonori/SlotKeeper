@@ -4,24 +4,9 @@ async function stage(page: Page, info: TestInfo, phase: string) {
   await page.screenshot({ path, fullPage: true });
   await info.attach(phase, { path, contentType: "image/png" });
 }
-test.beforeEach(async ({ page }) => {
-  for (const [port, target] of [
-    ["4321", process.env.SLOT_WEB_URL],
-    ["8000", process.env.SLOT_API_URL],
-    ["8080", process.env.SLOT_OIDC_INTERNAL],
-  ]) {
-    if (target)
-      await page.route("http://localhost:" + port + "/**", async (route) => {
-        const url = new URL(route.request().url());
-        const response = await route.fetch({
-          url: target + url.pathname + url.search,
-          maxRedirects: 0,
-        });
-        await route.fulfill({ response });
-      });
-  }
-});
-test("ログインから予約・履歴・取消・ログアウトまで", async ({ page }, info) => {
+test("ログインから予約・履歴・取消・ログアウトまで [COM-01-AC] [SLOT-AC01] [SLOT-02-AC] [SLOT-07-AC] [SLOT-AC04]", async ({
+  page,
+}, info) => {
   await page.goto("/");
   await page.getByRole("button", { name: "ログインして予約する" }).click();
   await page.locator("#username").fill("alice");
@@ -57,7 +42,9 @@ test("ログインから予約・履歴・取消・ログアウトまで", async
     page.getByRole("button", { name: "ログインして予約する" }),
   ).toBeVisible();
 });
-test("一般利用者に資源管理を表示しない", async ({ page }, info) => {
+test("一般利用者に資源管理を表示しない [COM-01-AC] [COM-04-AC]", async ({
+  page,
+}, info) => {
   await page.goto("/");
   await page.getByRole("button", { name: "ログインして予約する" }).click();
   await page.locator("#username").fill("bob");

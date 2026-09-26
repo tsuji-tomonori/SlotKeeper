@@ -93,7 +93,14 @@
             "backend/tests/test_reservations.py::test_same_key_concurrent",
             "backend/tests/test_reservations.py::test_create_vs_disable",
             "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_repeatable_read"
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
           ],
           "factors": [
             "入力・権限・状態・競合"
@@ -151,7 +158,14 @@
             "backend/tests/test_reservations.py::test_same_key_concurrent",
             "backend/tests/test_reservations.py::test_create_vs_disable",
             "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_repeatable_read"
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
           ],
           "factors": [
             "入力・権限・状態・競合"
@@ -213,7 +227,14 @@
             "backend/tests/test_reservations.py::test_same_key_concurrent",
             "backend/tests/test_reservations.py::test_create_vs_disable",
             "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_repeatable_read"
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
           ],
           "factors": [
             "入力・権限・状態・競合"
@@ -269,7 +290,14 @@
             "backend/tests/test_reservations.py::test_same_key_concurrent",
             "backend/tests/test_reservations.py::test_create_vs_disable",
             "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_repeatable_read"
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
           ],
           "factors": [
             "入力・権限・状態・競合"
@@ -313,7 +341,8 @@
             "backend/tests/test_auth.py::test_anonymous_and_health",
             "backend/tests/test_auth.py::test_user_cannot_create_resource",
             "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_domain.py::test_resource_input"
+            "backend/tests/test_domain.py::test_resource_input",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
           ],
           "factors": [
             "入力・権限・状態・競合"
@@ -357,7 +386,8 @@
             "backend/tests/test_auth.py::test_anonymous_and_health",
             "backend/tests/test_auth.py::test_user_cannot_create_resource",
             "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_domain.py::test_resource_input"
+            "backend/tests/test_domain.py::test_resource_input",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
           ],
           "factors": [
             "入力・権限・状態・競合"
@@ -401,7 +431,8 @@
             "backend/tests/test_auth.py::test_anonymous_and_health",
             "backend/tests/test_auth.py::test_user_cannot_create_resource",
             "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_domain.py::test_resource_input"
+            "backend/tests/test_domain.py::test_resource_input",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
           ],
           "factors": [
             "入力・権限・状態・競合"
@@ -497,6 +528,7 @@
         "docs/design/generated/INFRA.md",
         "docs/design/generated/OVERVIEW.md",
         "docs/design/generated/TESTS.md",
+        "docs/design/generated/TRACE.md",
         "docs/design/generated/api/index.md",
         "docs/design/generated/api/reservations/index.md",
         "docs/design/generated/api/reservations/reservations_cancel/detail-design.md",
@@ -574,7 +606,8 @@
         "docs/design/generated/openapi.json",
         "docs/design/generated/operations.json",
         "docs/design/generated/report.json",
-        "docs/design/generated/sources.json"
+        "docs/design/generated/sources.json",
+        "docs/design/generated/trace.json"
       ],
       "report": "docs/design/generated/report.json",
       "requirement_ids": [
@@ -643,10 +676,13 @@
         "backend/tests/test_auth.py",
         "backend/tests/test_domain.py",
         "backend/tests/test_lambda.py",
+        "backend/tests/test_operations.py",
         "backend/tests/test_reservations.py",
         "compose.yaml",
         "e2e/app.spec.ts",
+        "e2e/forward.ts",
         "e2e/playwright.config.ts",
+        "e2e/portal-remote.config.ts",
         "e2e/portal.config.ts",
         "e2e/portal.spec.ts",
         "frontend/src/App.tsx",
@@ -657,6 +693,9 @@
         "frontend/src/style.css",
         "infra/__init__.py",
         "infra/app.py",
+        "infra/config.py",
+        "infra/environments/dev.json",
+        "infra/environments/prod.json",
         "infra/stack.py",
         "infra/tests/test_stack.py",
         "package.json",

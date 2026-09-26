@@ -45,6 +45,7 @@ def publish(outputs: dict[str, str], root: Path) -> None:
         "authority": outputs["Issuer"],
         "clientId": outputs["ClientId"],
         "authMode": "cognito",
+        "logoutUrl": outputs["LoginUrl"] + "/logout",
     }
     (root / "config.json").write_text(json.dumps(config) + "\n")
     for path in sorted(root.rglob("*")):
@@ -76,9 +77,10 @@ def main() -> None:
     parser.add_argument("--outputs", required=True)
     parser.add_argument("--publish", action="store_true")
     parser.add_argument("--admin-email")
+    parser.add_argument("--stack", default="SlotKeeper-dev")
     args = parser.parse_args()
     data = json.loads(Path(args.outputs).read_text())
-    outputs = cast(dict[str, str], data["SlotKeeper"])
+    outputs = cast(dict[str, str], data[args.stack])
     if args.publish:
         publish(outputs, Path("frontend/dist"))
     if args.admin_email:

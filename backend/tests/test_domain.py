@@ -27,7 +27,7 @@ def value(start, end):
     ],
 )
 def test_reject_invalid_time(start, end):
-    """Given 範囲外または刻み不正 When 時刻検証 Then 入力不正。 [SLOT-AC06]"""
+    """Given 範囲外または刻み不正 When 時刻検証 Then 入力不正。 [SLOT-AC06] [RULE-02-AC] [RULE-03-AC]"""
     with pytest.raises(DomainError) as exc:
         validate_booking(value(start, end), NOW)
     assert exc.value.status == 422
@@ -35,14 +35,14 @@ def test_reject_invalid_time(start, end):
 
 @pytest.mark.parametrize("days,minutes", [(1, 15), (1, 240), (30, 15)])
 def test_boundaries(days, minutes):
-    """Given 15分・4時間・30日境界 When 時刻検証 Then 受け付ける。 [SLOT-AC06]"""
+    """Given 15分・4時間・30日境界 When 時刻検証 Then 受け付ける。 [SLOT-AC06] [RULE-02-AC] [RULE-03-AC]"""
     start = NOW + timedelta(days=days)
     validate_booking(value(start, start + timedelta(minutes=minutes)), NOW)
 
 
 @pytest.mark.parametrize("name", ["", " " * 4, "a" * 101])
 def test_resource_input(name):
-    """Given 空白か長すぎる資源名 When 入力解析 Then 拒否。 [COM-03]"""
+    """Given 空白か長すぎる資源名 When 入力解析 Then 拒否。 [COM-03-AC] [RULE-14-AC]"""
     with pytest.raises(ValidationError):
         ResourceInput(name=name)
 

@@ -1,33 +1,99 @@
 ---
 import fs from "node:fs";
 import Layout from "../layouts/Layout.astro";
+type Row = {
+  requirement: string;
+  criterion: string;
+  gwt: string;
+  tests: string[];
+  checks: string[];
+};
+type Result = { id: string; status: string };
 const requirements = JSON.parse(
   fs.readFileSync("spec/requirements/requirements.json", "utf8"),
 ).requirements;
+const trace: Row[] = JSON.parse(
+  fs.readFileSync("docs/design/generated/trace.json", "utf8"),
+);
+const evidence = JSON.parse(
+  fs.readFileSync("artifacts/public/evidence.json", "utf8"),
+);
+// 設計上の実在テストIDと、同一runのcollector IDを対応付ける。結果がなければmissing。
+function results(id: string): Result[] {
+  const [kind, ...rest] = id.split("::");
+  const title = rest.join("::");
+  return evidence.tests.filter((t: Result) => {
+    if (kind === "vitest") return t.id.startsWith(id + " ") || t.id === id;
+    if (kind === "playwright" || kind === "portal")
+      return t.id.startsWith(kind + "::") && t.id.endsWith("::" + title);
+    return t.id === id || t.id.startsWith(id + "[");
+  });
+}
+function summary(items: { status: string }[]): string {
+  if (!items.length) return "missing";
+  for (const s of ["failed", "flaky", "not-run", "skipped", "missing"])
+    if (items.some((i) => i.status === s)) return s;
+  return "passed";
+}
+function checkStatus(name: string): string {
+  return (
+    evidence.checks.find((c: { name: string }) => c.name === name)?.status ??
+    "not-run"
+  );
+}
 ---
 
 <Layout title="要件"
   ><h1>要件と受入条件</h1><p>
-    Quint正本から生成。catalogの型検査は、予約整合性の形式証明ではありません。
+    Quint正本から生成。catalogの型検査は、予約整合性の形式証明ではありません。受入条件ごとの実在テストIDは設計生成器が照合し、結果は同じrun（{
+      evidence.runId
+    }）のcollectorから表示します。
   </p>{
     requirements.map(
       (r: {
         id: string;
         title: string;
-        scope: string;
-        acceptance_criteria: { id: string; then: string }[];
+        acceptance_criteria: {
+          id: string;
+          given: string;
+          when: string;
+          then: string;
+        }[];
       }) => (
         <section id={r.id}>
           <>
             <h2>{r.id}</h2>
             <p>{r.title}</p>
-            <ul>
-              {r.acceptance_criteria.map((a) => (
-                <li>
-                  {a.id}：{a.then}
-                </li>
-              ))}
-            </ul>
+            {r.acceptance_criteria.map((a) => {
+              const row = trace.find((t) => t.criterion === a.id);
+              const linked = (row?.tests ?? []).map((id) => ({
+                id,
+                status: summary(results(id)),
+              }));
+              const checks = (row?.checks ?? []).map((name) => ({
+                id: "verify:" + name,
+                status: checkStatus(name),
+              }));
+              const all = [...linked, ...checks];
+              return (
+                <details id={a.id}>
+                  <summary>
+                    {a.id}：{summary(all)}（{all.length}件）
+                  </summary>
+                  <p>
+                    Given {a.given} / When {a.when} / Then {a.then}
+                  </p>
+                  <ul>
+                    {all.map((t) => (
+                      <li>
+                        <span data-status={t.status}>{t.status}</span>{" "}
+                        <code>{t.id}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              );
+            })}
           </>
         </section>
       ),

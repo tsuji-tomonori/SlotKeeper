@@ -4,7 +4,7 @@ import type { UserManager, User } from "oidc-client-ts";
 import createClient from "openapi-fetch";
 import type { paths, components } from "./generated/api";
 import { manager, type PublicConfig } from "./auth";
-import { japanDate, japanInput, message } from "./logic";
+import { japanDate, japanInput, logoutLocation, message } from "./logic";
 type Resource = components["schemas"]["Resource"];
 type Reservation = components["schemas"]["Reservation"];
 type Detail = components["schemas"]["Detail"];
@@ -100,6 +100,15 @@ export default function App() {
     window.addEventListener("popstate", listener);
     return () => window.removeEventListener("popstate", listener);
   });
+  async function logout() {
+    // メモリ上のtokenを先に破棄し、OIDC側のsessionも終了する。
+    const hint = user?.id_token;
+    if (!auth || !config) return;
+    await auth.removeUser();
+    if (config.logoutUrl)
+      location.assign(logoutLocation(config, location.origin + "/"));
+    else await auth.signoutRedirect({ id_token_hint: hint });
+  }
   async function task(work: () => Promise<void>) {
     setBusy(true);
     setError("");
@@ -262,7 +271,7 @@ export default function App() {
                   setSlots([]);
                   setPurpose("");
                   request.current = undefined;
-                  void auth?.removeUser().then(() => auth.signoutRedirect());
+                  void logout();
                 }}
               >
                 ログアウト

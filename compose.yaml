@@ -111,7 +111,7 @@ services:
   perf:
     build: {context: ., target: verify}
     profiles: [perf]
-    entrypoint: [python, -m, tools.project.perf]
+    command: [--performance-only]
     environment:
       SLOT_DATABASE_URL: postgresql://slotkeeper:local-only@db:5432/slotkeeper
       SLOT_API_URL: http://api:8000
@@ -128,5 +128,9 @@ services:
     environment:
       SLOT_CLOUD_API: ${SLOT_CLOUD_API:-}
       SLOT_CLOUD_TOKEN: ${SLOT_CLOUD_TOKEN:-}
+      SLOT_CLOUD_RESOURCE_ID: ${SLOT_CLOUD_RESOURCE_ID:-}
+      SLOT_REVISION: ${SLOT_REVISION:-local-worktree}
+      SLOT_RUN_ID: ${SLOT_RUN_ID:-local}
+    volumes: ['./artifacts:/app/artifacts']
 volumes:
   data:

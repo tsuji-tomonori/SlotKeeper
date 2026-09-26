@@ -5,13 +5,26 @@ type PerfRun = {
   index: number;
   metrics: Record<
     string,
-    { count: number; p50: number; p95: number; p99: number }
+    {
+      count: number;
+      p50: number | null;
+      p95: number | null;
+      p99: number | null;
+      throughput: number;
+      success: number;
+      four_xx: number;
+      unexpected: number;
+    }
   >;
 };
 const evidence = JSON.parse(
   fs.readFileSync("artifacts/public/evidence.json", "utf8"),
 );
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+// 実AWSの明示実行結果。未実行ならcasesを持たない。
+const cloudCases = Object.entries(
+  (evidence.cloud.cases ?? {}) as Record<string, Record<string, unknown>>,
+);
 const counts: Record<string, number> = {};
 for (const item of evidence.tests)
   counts[item.status] = (counts[item.status] ?? 0) + 1;
@@ -68,14 +81,17 @@ for (const item of evidence.tests)
         (c: {
           name: string;
           status: string;
+          scope?: string;
           covered?: number;
           total?: number;
         }) => (
-          <p>
+          <p title={c.scope}>
             {c.name}：{c.status}{" "}
             {c.total
               ? `${c.covered} / ${c.total} (${(((c.covered ?? 0) / c.total) * 100).toFixed(1)}%)`
               : "未計測・分母なし"}
+            <br />
+            <small>{c.scope}</small>
           </p>
         ),
       )
@@ -117,43 +133,112 @@ for (const item of evidence.tests)
     }
   </section><section>
     <h2>性能</h2><p>
-      {evidence.performance.status}：{evidence.performance.reason}
+      {evidence.performance.status}：{
+        evidence.performance.reason ??
+          "ローカルのCompose環境での参考値。AWSのSLO達成を意味しない。"
+      }
     </p>{
+      evidence.performance.runs && (
+        <dl class="conditions">
+          <dt>データ量</dt>
+          <dd>
+            資源{evidence.performance.resources}・利用者
+            {evidence.performance.users}・予約
+            {evidence.performance.reservations}件
+          </dd>
+          <dt>負荷</dt>
+          <dd>
+            {evidence.performance.concurrency}並列 · seed{" "}
+            {evidence.performance.seed} · {evidence.performance.scope}
+          </dd>
+          <dt>資源制約</dt>
+          <dd>{JSON.stringify(evidence.performance.limits)}</dd>
+          <dt>CPU・メモリ実測</dt>
+          <dd>{evidence.performance.runtime_resource_measurement}</dd>
+          <dt>整合性違反</dt>
+          <dd>{evidence.performance.integrity_violations}件</dd>
+        </dl>
+      )
+    }{
       evidence.performance.runs?.map((run: PerfRun) => (
         <div>
           <>
             <h3>測定 {run.index}</h3>
-            <table>
-              <>
-                <thead>
-                  <tr>
-                    <>
-                      <th>API</th>
-                      <th>件数</th>
-                      <th>p50</th>
-                      <th>p95</th>
-                      <th>p99</th>
-                    </>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(run.metrics).map(([name, m]) => (
+            <div class="scroll">
+              <table>
+                <>
+                  <thead>
                     <tr>
-                      <td>{name}</td>
-                      <td>{m.count}</td>
-                      <td>{m.p50}ms</td>
-                      <td>{m.p95}ms</td>
-                      <td>{m.p99}ms</td>
+                      <>
+                        <th>API</th>
+                        <th>件数</th>
+                        <th>throughput</th>
+                        <th>p50</th>
+                        <th>p95</th>
+                        <th>p99</th>
+                        <th>成功</th>
+                        <th>想定4xx</th>
+                        <th>想定外</th>
+                        <th>p95（目標比）</th>
+                      </>
                     </tr>
-                  ))}
-                </tbody>
-              </>
-            </table>
+                  </thead>
+                  <tbody>
+                    {Object.entries(run.metrics).map(([name, m]) => {
+                      const target =
+                        name === "schedule" || name === "mine" ? 500 : 800;
+                      const ratio = Math.min(1, (m.p95 ?? target) / target);
+                      return (
+                        <tr>
+                          <td>{name}</td>
+                          <td>{m.count}</td>
+                          <td>{m.throughput.toFixed(1)}/s</td>
+                          <td>{m.p50}ms</td>
+                          <td>{m.p95}ms</td>
+                          <td>{m.p99}ms</td>
+                          <td>{m.success}</td>
+                          <td>{m.four_xx}</td>
+                          <td>{m.unexpected}</td>
+                          <td>
+                            <span
+                              class="bar"
+                              role="img"
+                              aria-label={`p95 ${m.p95}ms / 目標 ${target}ms`}
+                            >
+                              <span
+                                style={`width:${(ratio * 100).toFixed(0)}%`}
+                              />
+                            </span>
+                            {m.p95}/{target}ms
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </>
+              </table>
+            </div>
           </>
         </div>
       ))
     }
   </section><section>
-    <h2>AWS実環境</h2><p>{evidence.cloud.status}：{evidence.cloud.reason}</p>
+    <h2>AWS実環境</h2><p>
+      {evidence.cloud.status}：{
+        evidence.cloud.reason ??
+          "実AWSで明示実行した結果。ローカルのPostgreSQL検証とは別物です。"
+      }
+    </p>{
+      cloudCases.length > 0 && (
+        <ul>
+          {cloudCases.map(([name, c]) => (
+            <li>
+              <span data-status={String(c.status)}>{String(c.status)}</span>{" "}
+              {name}：{JSON.stringify({ ...c, status: undefined })}
+            </li>
+          ))}
+        </ul>
+      )
+    }
   </section></Layout
 >

@@ -9,10 +9,12 @@
 ```bash
 # 事前にCompose検証でLinux用ZIPを作る
 # 認証情報は環境に一時的に渡し、ファイルをcommitしない
-docker compose --profile test run --rm --entrypoint npx verify cdk synth --strict
-docker compose --profile test run --rm --entrypoint npx verify cdk diff
-docker compose --profile test run --rm --entrypoint npx verify cdk deploy --outputs-file artifacts/cdk-outputs.json
+docker compose --profile test run --rm --entrypoint npx verify cdk synth --strict -c env=dev
+docker compose --profile test run --rm --entrypoint npx verify cdk diff -c env=dev
+docker compose --profile test run --rm --entrypoint npx verify cdk deploy -c env=dev --outputs-file artifacts/cdk-outputs.json
 ```
+
+環境ごとの公開可能な設定は `infra/environments/<env>.json`（dev/prod）にあります。未定義の環境名は合成前に拒否します。stack名は `SlotKeeper-<env>` です。秘密値はここに置かず、CDKのsynthはAWS認証情報もlive lookupも使いません。
 
 CDK出力のDsqlEndpointへ、初期設定用の `dsql:DbConnectAdmin` 権限を持つIAMロールで接続します。アプリは `slotkeeper_app` と `dsql:DbConnect` のみです。DDLを適用するmigrationロールは別に作成します。schema/索引は1DDL1transactionとし、非同期索引の完了を待ちます。
 
@@ -31,9 +33,27 @@ ALTER DEFAULT PRIVILEGES FOR ROLE slotkeeper_migration IN SCHEMA slotkeeper GRAN
 DSQL設定（`SLOT_DATABASE_MODE=dsql`、`SLOT_ENVIRONMENT=aws`、`SLOT_DSQL_HOST`、`SLOT_DATABASE_USER=slotkeeper_migration`）を指定して `python -m tools.project.migrate` をコンテナ内で実行します。初期設定用権限を常時アプリへ付与しません。
 
 ```bash
-docker compose --profile test run --rm --entrypoint python verify -m tools.project.deploy --outputs artifacts/cdk-outputs.json --publish
+docker compose --profile test run --rm --entrypoint python verify -m tools.project.deploy --outputs artifacts/cdk-outputs.json --stack SlotKeeper-dev --publish
 # 初期管理者にはCognitoから案内メールが送られる。実メール送信は別途明示した宛先で実行する。
-docker compose --profile test run --rm --entrypoint python verify -m tools.project.deploy --outputs artifacts/cdk-outputs.json --admin-email ADMIN_EMAIL
+docker compose --profile test run --rm --entrypoint python verify -m tools.project.deploy --outputs artifacts/cdk-outputs.json --stack SlotKeeper-dev --admin-email ADMIN_EMAIL
+```
+
+`--publish` はCDK出力から `config.json`（API URL、issuer、client ID、Hosted UIのlogout URL）を作り、静的成果物をS3へ配置してCloudFrontの入口と設定をinvalidateします。利用者情報や秘密は埋め込みません。
+
+## 設計・品質ポータルの公開
+
+`.github/workflows/quality.yml` がPRと既定branchで同じ `verify` を実行します。既定branchへのpushだけが `site-ready` を満たすPages artifactを公開し、公開後にsmoke job（`e2e/portal-remote.config.ts`）が実URLのbase path・検索・図・DB探索を検査します。公開jobだけが `pages: write` と `id-token: write` を持ちます。ローカルで同じsmokeを行う場合:
+
+```bash
+docker compose --profile test run --rm --no-deps -e SLOT_PORTAL_URL=https://tsuji-tomonori.github.io/SlotKeeper/ --entrypoint npx verify playwright test --config=e2e/portal-remote.config.ts
+```
+
+## ログ確認
+
+APIは1要求1行のJSON（`request_id`、`operation`、`status`、`elapsed_ms`）を出力します。応答ヘッダー `X-Request-ID` と照合します。予約目的・token・生の例外本文は出力しません。
+
+```bash
+docker compose logs api --since 10m
 ```
 
 ## 復旧

@@ -383,3 +383,30 @@ small {
     gap: 14px;
   }
 }
+.entity button.selected {
+  outline: 3px solid #1d4ed8;
+  outline-offset: -3px;
+}
+.entity button.selected::after {
+  content: "選択中";
+  font-size: 0.75rem;
+}
+.bar {
+  display: inline-block;
+  width: 80px;
+  height: 10px;
+  margin-right: 6px;
+  background: #d9e4eb;
+  vertical-align: middle;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  background: #31596e;
+}
+.conditions {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  overflow-wrap: anywhere;
+}

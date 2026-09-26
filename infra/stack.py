@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import cast
 
-from aws_cdk import Aspects, CfnOutput, Duration, RemovalPolicy, Stack
+from aws_cdk import Aspects, CfnOutput, Duration, Environment, RemovalPolicy, Stack, Tags
 from aws_cdk import aws_apigatewayv2 as apigw
 from aws_cdk import aws_apigatewayv2_authorizers as authorizers
 from aws_cdk import aws_apigatewayv2_integrations as integrations
@@ -18,6 +18,8 @@ from aws_cdk import aws_s3 as s3
 from cdk_nag import AwsSolutionsChecks, NagSuppressions
 from constructs import Construct
 
+from infra.config import EnvironmentConfig, load
+
 
 class SlotKeeperStack(Stack):
     """S3/OAC、HTTP API、Lambda、Cognitoと単一リージョンDSQLを接続する。"""
@@ -28,9 +30,19 @@ class SlotKeeperStack(Stack):
         construct_id: str,
         *,
         asset_path: str = "artifacts/lambda.zip",
-        **kwargs: object,
+        config: EnvironmentConfig | None = None,
+        env: Environment | None = None,
     ) -> None:
-        super().__init__(scope, construct_id, termination_protection=True)
+        super().__init__(scope, construct_id, termination_protection=True, env=env)
+        config = config or load("dev")
+        retention = {
+            30: logs.RetentionDays.ONE_MONTH,
+            90: logs.RetentionDays.THREE_MONTHS,
+            180: logs.RetentionDays.SIX_MONTHS,
+            365: logs.RetentionDays.ONE_YEAR,
+        }[config.log_retention_days]
+        Tags.of(self).add("Application", "SlotKeeper")
+        Tags.of(self).add("Environment", config.name)
         bucket = s3.Bucket(
             self,
             "Web",
@@ -70,7 +82,7 @@ class SlotKeeperStack(Stack):
         domain = pool.add_domain(
             "Login",
             cognito_domain=cognito.CognitoDomainOptions(
-                domain_prefix="slotkeeper-" + self.account + "-" + self.region
+                domain_prefix="slotkeeper-" + config.name + "-" + self.account
             ),
         )
         client = pool.add_client(
@@ -92,7 +104,7 @@ class SlotKeeperStack(Stack):
         log_group = logs.LogGroup(
             self,
             "ApiLogs",
-            retention=logs.RetentionDays.ONE_MONTH,
+            retention=retention,
             removal_policy=RemovalPolicy.RETAIN,
         )
         function = lambda_.Function(
@@ -102,11 +114,11 @@ class SlotKeeperStack(Stack):
             architecture=lambda_.Architecture.X86_64,
             handler="slotkeeper.app.handler",
             code=lambda_.Code.from_asset(str(Path(asset_path))),
-            memory_size=1024,
-            timeout=Duration.seconds(28),
+            memory_size=config.lambda_memory_mb,
+            timeout=Duration.seconds(config.lambda_timeout_seconds),
             log_group=log_group,
             environment={
-                "SLOT_ENVIRONMENT": "aws",
+                "SLOT_ENVIRONMENT": config.name,
                 "SLOT_DATABASE_MODE": "dsql",
                 "SLOT_DSQL_HOST": cluster.attr_endpoint,
                 "SLOT_REGION": self.region,
@@ -138,12 +150,16 @@ class SlotKeeperStack(Stack):
         access_logs = logs.LogGroup(
             self,
             "GatewayLogs",
-            retention=logs.RetentionDays.ONE_MONTH,
+            retention=retention,
             removal_policy=RemovalPolicy.RETAIN,
         )
         if api.default_stage:
             stage = api.default_stage.node.default_child
             if isinstance(stage, apigw.CfnStage):
+                stage.default_route_settings = apigw.CfnStage.RouteSettingsProperty(
+                    throttling_rate_limit=config.api_throttle_rate,
+                    throttling_burst_limit=config.api_throttle_burst,
+                )
                 stage.access_log_settings = apigw.CfnStage.AccessLogSettingsProperty(
                     destination_arn=access_logs.log_group_arn,
                     format='{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status"}',

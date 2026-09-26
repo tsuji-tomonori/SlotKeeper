@@ -44,6 +44,11 @@ def main() -> None:
     )
     parser.add_argument("--generate-design", action="store_true")
     parser.add_argument("--performance", action="store_true")
+    parser.add_argument(
+        "--performance-only",
+        action="store_true",
+        help="性能だけを測定し、同じrunの結果でポータルを更新する",
+    )
     args = parser.parse_args()
     if args.generate_design:
         for command in [
@@ -65,6 +70,7 @@ def main() -> None:
         "portal.json",
         "site-ready",
         "performance.json",
+        "cloud.json",
     ]:
         for path in ART.glob(pattern):
             path.unlink()
@@ -76,9 +82,10 @@ def main() -> None:
     checks: list[dict[str, Any]] = []
 
     def selected(s: str) -> bool:
-        return args.suite is None or args.suite == s
+        return not args.performance_only and (args.suite is None or args.suite == s)
 
-    run("package", [sys.executable, "-m", "tools.project.package_lambda"], checks)
+    if not args.performance_only:
+        run("package", [sys.executable, "-m", "tools.project.package_lambda"], checks)
     if selected("design"):
         run("quint", [sys.executable, "tools/quintflow.py", "check"], checks)
         run("queries", [sys.executable, "tools/project/queries.py", "--check"], checks)
@@ -143,7 +150,21 @@ def main() -> None:
             ],
             checks,
         )
-        run("synth", ["npx", "cdk", "synth", "--strict", "--output", "artifacts/cdk.out"], checks)
+        for env in ["dev", "prod"]:
+            run(
+                "synth-" + env,
+                [
+                    "npx",
+                    "cdk",
+                    "synth",
+                    "--strict",
+                    "-c",
+                    "env=" + env,
+                    "--output",
+                    "artifacts/cdk.out/" + env,
+                ],
+                checks,
+            )
     if selected("frontend"):
         for name, command in [
             ("astro", ["npm", "run", "check"]),
@@ -167,9 +188,15 @@ def main() -> None:
             run(name, command, checks)
     if selected("e2e"):
         run("e2e", ["npx", "playwright", "test", "--config=e2e/playwright.config.ts"], checks)
-    if args.performance:
+    if args.performance or args.performance_only:
         run("performance", [sys.executable, "-m", "tools.project.perf"], checks, timeout=1800)
-    scope = "full" if args.suite is None else "partial: " + args.suite
+    scope = (
+        "performance-only"
+        if args.performance_only
+        else "full"
+        if args.suite is None
+        else "partial: " + args.suite
+    )
     evidence.build(revision, run_id, checks, scope)
     ready = run("portal-build", ["npm", "run", "portal"], checks)
     if ready and selected("portal"):

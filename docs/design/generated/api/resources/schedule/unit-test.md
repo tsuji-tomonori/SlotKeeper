@@ -16,8 +16,8 @@ FastAPI入力解析と認証依存を適用。
 | --- | --- |
 | backend/tests/test_auth.py::test_bad_claims | Given 不正claim When 業務API呼出し Then 401でDB未接続。 [SLOT-AC14] |
 | backend/tests/test_auth.py::test_bad_signature | Given 別の秘密鍵による改ざん When 検証 Then 401。 [SLOT-AC14] |
-| backend/tests/test_auth.py::test_anonymous_and_health | Given 未認証 When 業務APIとhealth Then 業務401・healthは秘密なし。 [COM-04] |
-| backend/tests/test_auth.py::test_user_cannot_create_resource | Given 一般利用者 When 管理API Then 403。 [SLOT-01] |
+| backend/tests/test_auth.py::test_anonymous_and_health | Given 未認証 When 業務APIとhealth Then 業務401・healthは秘密なし。 [COM-04-AC] [COM-03-AC] |
+| backend/tests/test_auth.py::test_user_cannot_create_resource | Given 一般利用者 When 管理API Then 403。 [SLOT-01-AC] [COM-04-AC] |
 | backend/tests/test_auth.py::test_cognito_access_and_id | Given Cognito claim When accessとIDを検証 Then accessだけ受理。 [SLOT-AC14] |
 
 ## 3. テスト詳細
@@ -32,11 +32,11 @@ Given 別の秘密鍵による改ざん When 検証 Then 401。 [SLOT-AC14]
 
 ### backend/tests/test_auth.py::test_anonymous_and_health
 
-Given 未認証 When 業務APIとhealth Then 業務401・healthは秘密なし。 [COM-04]
+Given 未認証 When 業務APIとhealth Then 業務401・healthは秘密なし。 [COM-04-AC] [COM-03-AC]
 
 ### backend/tests/test_auth.py::test_user_cannot_create_resource
 
-Given 一般利用者 When 管理API Then 403。 [SLOT-01]
+Given 一般利用者 When 管理API Then 403。 [SLOT-01-AC] [COM-04-AC]
 
 ### backend/tests/test_auth.py::test_cognito_access_and_id
 

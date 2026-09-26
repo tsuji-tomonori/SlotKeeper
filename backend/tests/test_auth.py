@@ -39,7 +39,7 @@ def test_bad_signature(client, signed):
 
 
 def test_anonymous_and_health(client):
-    """Given 未認証 When 業務APIとhealth Then 業務401・healthは秘密なし。 [COM-04]"""
+    """Given 未認証 When 業務APIとhealth Then 業務401・healthは秘密なし。 [COM-04-AC] [COM-03-AC]"""
     assert client.get("/resources").status_code == 401
     response = client.get("/health")
     assert response.json() == {"status": "ok"}
@@ -47,7 +47,7 @@ def test_anonymous_and_health(client):
 
 
 def test_user_cannot_create_resource(client, signed):
-    """Given 一般利用者 When 管理API Then 403。 [SLOT-01]"""
+    """Given 一般利用者 When 管理API Then 403。 [SLOT-01-AC] [COM-04-AC]"""
     assert client.post("/resources", json={"name": "会議室"}, headers=signed()).status_code == 403
 
 

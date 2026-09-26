@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-  "/resources": {
+  "/health": {
     parameters: {
       query?: never;
       header?: never;
@@ -12,54 +12,10 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Endpoint
-     * @description 認証済み利用者へ固定順とページ単位で資源を返す。
+     * Health
+     * @description 秘密やDB情報を含まない稼働状態を返す。
      */
-    get: operations["resources_list"];
-    put?: never;
-    /**
-     * Endpoint
-     * @description 管理者権限を確認して新しい資源を登録する。
-     */
-    post: operations["resources_create"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/resources/{resource_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /**
-     * Endpoint
-     * @description 内部版で予約と競合し、公開版と将来予約を検査して編集を確定する。
-     */
-    put: operations["resources_update"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/resources/{resource_id}/schedule": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Endpoint
-     * @description 一般利用者には他人の識別情報と目的を返さない。
-     */
-    get: operations["schedule"];
+    get: operations["health"];
     put?: never;
     post?: never;
     delete?: never;
@@ -132,7 +88,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/health": {
+  "/resources": {
     parameters: {
       query?: never;
       header?: never;
@@ -140,10 +96,54 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Health
-     * @description 秘密やDB情報を含まない稼働状態を返す。
+     * Endpoint
+     * @description 認証済み利用者へ固定順とページ単位で資源を返す。
      */
-    get: operations["health"];
+    get: operations["resources_list"];
+    put?: never;
+    /**
+     * Endpoint
+     * @description 管理者権限を確認して新しい資源を登録する。
+     */
+    post: operations["resources_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/resources/{resource_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Endpoint
+     * @description 内部版で予約と競合し、公開版と将来予約を検査して編集を確定する。
+     */
+    put: operations["resources_update"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/resources/{resource_id}/schedule": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Endpoint
+     * @description 一般利用者には他人の識別情報と目的を返さない。
+     */
+    get: operations["schedule"];
     put?: never;
     post?: never;
     delete?: never;
@@ -158,13 +158,6 @@ export interface components {
   schemas: {
     /** BookingInput */
     BookingInput: {
-      /** Resource Id */
-      resource_id: string;
-      /**
-       * Start At
-       * Format: date-time
-       */
-      start_at: string;
       /**
        * End At
        * Format: date-time
@@ -172,14 +165,16 @@ export interface components {
       end_at: string;
       /** Purpose */
       purpose: string;
-    };
-    /** BusySlot */
-    BusySlot: {
+      /** Resource Id */
+      resource_id: string;
       /**
        * Start At
        * Format: date-time
        */
       start_at: string;
+    };
+    /** BusySlot */
+    BusySlot: {
       /**
        * End At
        * Format: date-time
@@ -191,6 +186,11 @@ export interface components {
        */
       label: string;
       reservation?: components["schemas"]["Reservation"] | null;
+      /**
+       * Start At
+       * Format: date-time
+       */
+      start_at: string;
     };
     /** CancelInput */
     CancelInput: {
@@ -199,9 +199,9 @@ export interface components {
     };
     /** Detail */
     Detail: {
-      reservation: components["schemas"]["Reservation"];
       /** Events */
       events: components["schemas"]["Event"][];
+      reservation: components["schemas"]["Reservation"];
     };
     /** ErrorBody */
     ErrorBody: {
@@ -212,22 +212,31 @@ export interface components {
     };
     /** Event */
     Event: {
-      /** Id */
-      id: string;
-      /** Reservation Id */
-      reservation_id: string;
-      /** Actor */
-      actor: string;
       /** Action */
       action: string;
+      /** Actor */
+      actor: string;
       /**
        * At
        * Format: date-time
        */
       at: string;
+      /** Id */
+      id: string;
+      /** Reservation Id */
+      reservation_id: string;
     };
     /** Reservation */
     Reservation: {
+      /**
+       * End At
+       * Format: date-time
+       */
+      end_at: string;
+      /** Id */
+      id: string;
+      /** Purpose */
+      purpose: string;
       /** Resource Id */
       resource_id: string;
       /**
@@ -236,50 +245,41 @@ export interface components {
        */
       start_at: string;
       /**
-       * End At
-       * Format: date-time
-       */
-      end_at: string;
-      /** Purpose */
-      purpose: string;
-      /** Id */
-      id: string;
-      /** Subject */
-      subject: string;
-      /**
        * Status
        * @enum {string}
        */
       status: "confirmed" | "cancelled";
+      /** Subject */
+      subject: string;
       /** Version */
       version: number;
     };
     /** Resource */
     Resource: {
-      /** Name */
-      name: string;
+      /** Active */
+      active: boolean;
       /**
        * Description
        * @default
        */
       description: string;
+      /** Id */
+      id: string;
       /**
        * Kind
        * @default room
        * @enum {string}
        */
       kind: "room" | "equipment";
-      /** Id */
-      id: string;
-      /** Active */
-      active: boolean;
+      /** Name */
+      name: string;
       /** Version */
       version: number;
     };
     /** ResourceEdit */
     ResourceEdit: {
-      /** Name */
-      name: string;
+      /** Active */
+      active: boolean;
       /**
        * Description
        * @default
@@ -291,15 +291,13 @@ export interface components {
        * @enum {string}
        */
       kind: "room" | "equipment";
-      /** Active */
-      active: boolean;
+      /** Name */
+      name: string;
       /** Version */
       version: number;
     };
     /** ResourceInput */
     ResourceInput: {
-      /** Name */
-      name: string;
       /**
        * Description
        * @default
@@ -311,6 +309,8 @@ export interface components {
        * @enum {string}
        */
       kind: "room" | "equipment";
+      /** Name */
+      name: string;
     };
   };
   responses: never;
@@ -321,12 +321,9 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  resources_list: {
+  health: {
     parameters: {
-      query?: {
-        limit?: number;
-        offset?: number;
-      };
+      query?: never;
       header?: never;
       path?: never;
       cookie?: never;
@@ -339,245 +336,9 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Resource"][];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Service Unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-    };
-  };
-  resources_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ResourceInput"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["Resource"];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Service Unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-    };
-  };
-  resources_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        resource_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ResourceEdit"];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["Resource"];
-        };
-      };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Service Unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-    };
-  };
-  schedule: {
-    parameters: {
-      query: {
-        day: string;
-        limit?: number;
-        offset?: number;
-      };
-      header?: never;
-      path: {
-        resource_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BusySlot"][];
+          "application/json": {
+            [key: string]: string;
+          };
         };
       };
       /** @description Unauthorized */
@@ -952,9 +713,12 @@ export interface operations {
       };
     };
   };
-  health: {
+  resources_list: {
     parameters: {
-      query?: never;
+      query?: {
+        limit?: number;
+        offset?: number;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -967,9 +731,245 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: string;
-          };
+          "application/json": components["schemas"]["Resource"][];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+    };
+  };
+  resources_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResourceInput"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Resource"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+    };
+  };
+  resources_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        resource_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResourceEdit"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Resource"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Forbidden */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Unprocessable Entity */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorBody"];
+        };
+      };
+    };
+  };
+  schedule: {
+    parameters: {
+      query: {
+        day: string;
+        limit?: number;
+        offset?: number;
+      };
+      header?: never;
+      path: {
+        resource_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["BusySlot"][];
         };
       };
       /** @description Unauthorized */
