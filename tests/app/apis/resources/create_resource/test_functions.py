@@ -5,9 +5,12 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from app.apis.exceptions import ApiFunctionError
 from app.apis.resources.create_resource import functions
+from app.apis.resources.create_resource.generated import queries
 from app.apis.resources.create_resource.schemas import CreateResourceRequest
 from app.apis.sequence_types import CallerIdentity
+from tests.app.apis.function_helpers import ADMIN, BOB, QueryRecorder, fake_session, response_error
 
 
 @pytest.mark.parametrize("name", ["", " " * 4, "a" * 101])
@@ -31,3 +34,30 @@ async def test_only_admin_manages_resources() -> None:
     admin = CallerIdentity(principal_id="admin", groups=("admin",))
     assert not await functions.has_resource_management_permission(user)
     assert await functions.has_resource_management_permission(admin)
+
+
+@pytest.mark.anyio
+async def test_save_resource_and_builders(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Given 登録要求 When 資源を保存し応答を組み立てる Then 有効な初期版を返し保存失敗と権限不足を区別する。 [SLOT-01-AC]"""
+    recorder = QueryRecorder()
+    row = queries.InsertResourcesRow(
+        resource_id="resource",
+        name="会議室",
+        description="",
+        kind="room",
+        active=True,
+        row_version=1,
+    )
+    recorder.install(monkeypatch, queries, "insert_resources", row)
+    request = CreateResourceRequest(name="会議室")
+    resource = await functions.save_resource(request, fake_session())
+    assert (await functions.build_resource_response(resource)).version == 1
+    assert recorder.params("insert_resources").name == "会議室"
+    recorder.install(monkeypatch, queries, "insert_resources", None)
+    with pytest.raises(ApiFunctionError):
+        await functions.save_resource(request, fake_session())
+    forbidden = await functions.build_caller_cannot_manage_resources_response(request, BOB)
+    assert response_error(forbidden) == (403, "forbidden")
+    error = ApiFunctionError(500, "resource_not_saved", summary="保存結果なし")
+    routed = await functions.build_router_error_response(request, ADMIN, error)
+    assert response_error(routed) == (500, "resource_not_saved")

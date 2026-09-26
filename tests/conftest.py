@@ -92,9 +92,16 @@ def database() -> None:
         pytest.fail("実DB検査は専用PostgreSQLが必要。Compose verifyを実行する。")
     if "slotkeeper_test" not in settings.database_url:
         pytest.fail("開発DBでの受入試験は禁止")
+    from tests.helpers import db_connect
     from tools.project.migrate import migrate
 
     migrate()
+    # 検証DB専用。前回runの行を残さず、件数と順序の検査を独立させる。
+    with db_connect() as connection:
+        connection.execute(
+            "TRUNCATE slotkeeper.reservation_events, slotkeeper.idempotency_records,"
+            " slotkeeper.reservations, slotkeeper.users, slotkeeper.resources"
+        )
 
 
 @pytest.fixture

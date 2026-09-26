@@ -11,8 +11,8 @@ from typing import Any
 from uuid import uuid4
 
 import psycopg
-from psycopg import sql
 from fastapi.testclient import TestClient
+from psycopg import sql
 from psycopg.rows import dict_row
 
 from app.core.config import settings

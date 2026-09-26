@@ -9,8 +9,10 @@ from pydantic import ValidationError
 
 from app.apis.exceptions import ApiFunctionError
 from app.apis.reservations.create_reservation import functions
+from app.apis.reservations.create_reservation.generated import queries
 from app.apis.reservations.create_reservation.schemas import CreateReservationRequest
 from app.apis.sequence_types import IdempotencyRecordRef
+from tests.app.apis.function_helpers import ALICE, QueryRecorder, fake_session, response_error
 from tests.conftest import FixedClock
 
 pytestmark = pytest.mark.anyio
@@ -100,3 +102,107 @@ def test_request_rejects_unknown_fields() -> None:
                 "now": "2026-09-01T00:00:00Z",
             }
         )
+
+
+def reservation_row(**overrides: object) -> queries.InsertReservationsRow:
+    values: dict[str, object] = {
+        "reservation_id": "reservation-1",
+        "resource_id": "resource",
+        "owner_principal_id": "alice",
+        "start_at": NOW + timedelta(days=1),
+        "end_at": NOW + timedelta(days=1, hours=1),
+        "purpose": "会議",
+        "status": "confirmed",
+        "row_version": 1,
+    }
+    values.update(overrides)
+    return queries.InsertReservationsRow.model_validate(values)
+
+
+def valid_request() -> CreateReservationRequest:
+    start = NOW + timedelta(days=1)
+    return request(start, start + timedelta(hours=1))
+
+
+async def test_get_idempotency_record_marks_expiry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Given 期限切れと未登録の要求キー When 成功記録を取得 Then 期限切れを区別し未登録は空の参照を返す。 [SLOT-AC15]"""
+    recorder = QueryRecorder()
+    row = queries.SelectIdempotencyRecordsRow(
+        idempotency_key="key", request_hash="h", response_payload="{}", expires_at=NOW
+    )
+    recorder.install(monkeypatch, queries, "select_idempotency_records", [row])
+    record = await functions.get_idempotency_record("key", ALICE, clock(), fake_session())
+    assert record.is_expired and record.response_payload == "{}"
+    assert recorder.params("select_idempotency_records").principal_id == "alice"
+    recorder.install(monkeypatch, queries, "select_idempotency_records", [])
+    empty = await functions.get_idempotency_record("key", ALICE, clock(), fake_session())
+    assert empty == IdempotencyRecordRef(idempotency_key="key")
+
+
+async def test_update_resource_control_version_locks_or_404(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Given 存在する資源と存在しない資源 When 内部制御版を進める Then 資源参照か404を返す。 [SLOT-AC10]"""
+    recorder = QueryRecorder()
+    row = queries.UpdateResourcesControlVersionRow(
+        resource_id="resource", active=False, row_version=2
+    )
+    recorder.install(monkeypatch, queries, "update_resources_control_version", row)
+    resource = await functions.update_resource_control_version("resource", fake_session())
+    assert not await functions.is_active_resource(resource)
+    recorder.install(monkeypatch, queries, "update_resources_control_version", None)
+    with pytest.raises(ApiFunctionError) as error:
+        await functions.update_resource_control_version("missing", fake_session())
+    assert error.value.status_code == 404 and error.value.detail == "resource_not_found"
+
+
+async def test_has_overlapping_reservation_uses_half_open_interval(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Given 重なる確定予約の件数 When 重複を判定 Then 開始と終了を半開区間の条件として渡す。 [RULE-01-AC]"""
+    recorder = QueryRecorder()
+    count = queries.SelectReservationsRow(overlapping_reservation_count=1)
+    recorder.install(monkeypatch, queries, "select_reservations", [count])
+    assert await functions.has_overlapping_reservation(valid_request(), fake_session())
+    params = recorder.params("select_reservations")
+    assert params.start_at == valid_request().start_at and params.end_at == valid_request().end_at
+
+
+async def test_save_reservation_owner_event_and_record(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Given 検証済み要求 When 利用者・予約・履歴・成功記録を保存 Then 同じ予約と要求hashで記録する。 [RULE-12-AC]"""
+    recorder = QueryRecorder()
+    for name in ("insert_users", "insert_reservation_events", "insert_idempotency_records"):
+        recorder.install(monkeypatch, queries, name, None)
+    recorder.install(monkeypatch, queries, "insert_reservations", reservation_row())
+    session = fake_session()
+    assert await functions.save_reservation_owner(ALICE, clock(), session) == ALICE
+    reservation = await functions.save_reservation(valid_request(), ALICE, session)
+    event = await functions.append_reservation_created_event(reservation, ALICE, clock(), session)
+    record = await functions.create_idempotency_record(
+        "key", valid_request(), reservation, clock(), session
+    )
+    assert recorder.params("insert_reservation_events").event_id == event.event_id
+    assert record.expires_at == NOW + timedelta(hours=24)
+    replayed = await functions.build_replayed_reservation_response(record)
+    assert replayed == await functions.build_reservation_response(reservation)
+    recorder.install(monkeypatch, queries, "insert_reservations", None)
+    with pytest.raises(ApiFunctionError):
+        await functions.save_reservation(valid_request(), ALICE, session)
+
+
+async def test_rejection_builders_return_conflicts() -> None:
+    """Given 再送誤用・無効資源・重複 When 拒否応答を組み立てる Then それぞれ409と理由コードを返す。 [SLOT-AC02] [SLOT-AC05] [SLOT-AC09]"""
+    cases = {
+        functions.build_idempotency_key_reused_response: "idempotency_input_mismatch",
+        functions.build_resource_inactive_response: "resource_inactive",
+        functions.build_slot_taken_response: "slot_taken",
+    }
+    for builder, reason in cases.items():
+        assert response_error(await builder(valid_request(), "key", ALICE)) == (409, reason)
+
+
+async def test_router_error_response_maps_exceptions() -> None:
+    """Given Routerで捕捉した業務例外 When error responseへ変換 Then 例外のstatusと理由を返す。 [COM-03-AC]"""
+    error = ApiFunctionError(404, "resource_not_found", summary="資源なし")
+    response = await functions.build_router_error_response(valid_request(), "key", ALICE, error)
+    assert response_error(response) == (404, "resource_not_found")

@@ -2,14 +2,25 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from typing import Any
 from uuid import uuid4
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
+from app.apis.base import sample_value
+from app.apis.exceptions import ApiFunctionError
+from app.apis.resources.update_resource.samples import (
+    UPDATE_RESOURCE_REQUEST_SAMPLE,
+    UPDATE_RESOURCE_RESPONSE_SAMPLE,
+    UPDATE_RESOURCE_STATUS_SAMPLES,
+)
+from app.integrations.common_errors import ExternalApiError
+from tests.app.apis.router_db import RouterDbHarness
 from tests.conftest import FixedClock
 from tests.helpers import Signer, create_reservation, error_reason
 
@@ -105,3 +116,275 @@ def test_missing_resource_returns_404(client: TestClient, signed: Signer, databa
     response = client.put("/resources/" + str(uuid4()), headers=signed("admin", True), json=edit)
     assert response.status_code == 404
     assert error_reason(response) == "resource_not_found"
+
+
+@pytest.mark.anyio
+async def test_update_resource_router_returns_sample_shaped_response_with_db(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    router_fetch_one: Callable[..., Any],
+    router_seed_resource: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 版1の資源 When 標本requestで編集 Then 標本と同じ形で版2の資源を返し保存する。 [SLOT-01-AC] [SLOT-AC11]"""
+    _ = timer
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    response = await router_db_harness.client.put(
+        "/resources/" + resource["resourceId"],
+        headers=router_auth_headers("admin", True),
+        json=sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE),
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    expected = sample_value(UPDATE_RESOURCE_RESPONSE_SAMPLE)
+    expected["resourceId"] = resource["resourceId"]
+    assert body == expected
+    row = await router_fetch_one(
+        router_db_harness.session_factory, "resources", {"resource_id": resource["resourceId"]}
+    )
+    assert row is not None and row["row_version"] == 2 and row["control_version"] == 1
+
+
+@pytest.mark.anyio
+async def test_update_resource_sample_request_emits_router_error_log_to_stdio(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    assert_router_error_log: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 標本requestと処理中の業務例外 When 資源編集 Then Router例外の運用ログをcatalogどおり出す。 [COM-07-AC]"""
+    _ = timer
+    await assert_router_error_log(
+        router_db_harness=router_db_harness,
+        capsys=capsys,
+        monkeypatch=monkeypatch,
+        method="PUT",
+        path_template="/resources/{resourceId}",
+        status_samples=UPDATE_RESOURCE_STATUS_SAMPLES,
+        success_status=200,
+        patch_target=(
+            "app.apis.resources.update_resource.functions.update_resource_control_version"
+        ),
+        message_id="updateResource.router_api_function_error",
+        catalog_id="M004",
+        headers=router_auth_headers("admin", True),
+    )
+
+
+# unit-test_gen.md executable cases
+@pytest.mark.anyio
+async def test_tc001_update_resource_router_matches_unit_test_gen(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    router_seed_resource: Callable[..., Any],
+    capsys: pytest.CaptureFixture[str],
+    capture_router_logs: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 一般利用者 When 資源編集 Then 403で運用ログを出す。 [SLOT-01-AC] [COM-04-AC]"""
+    _ = timer
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    with capture_router_logs(capsys) as find_log_event:
+        response = await router_db_harness.client.put(
+            "/resources/" + resource["resourceId"],
+            headers=router_auth_headers("alice"),
+            json=sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE),
+        )
+
+    assert response.status_code == 403, response.text
+    assert response.json()["error"]["details"][0]["reason"] == "forbidden"
+    actual_log_event = find_log_event("updateResource.caller_cannot_manage_resources")
+    assert actual_log_event["messageId"] == "updateResource.caller_cannot_manage_resources"
+    assert actual_log_event["summary"] == "呼び出し元が管理者ではないため、資源編集を拒否した。"
+
+
+@pytest.mark.anyio
+async def test_tc002_update_resource_router_matches_unit_test_gen(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    router_seed_resource: Callable[..., Any],
+    capsys: pytest.CaptureFixture[str],
+    capture_router_logs: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 版1の資源 When 版2を指定して編集 Then 409で運用ログを出す。 [SLOT-AC11]"""
+    _ = timer
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    with capture_router_logs(capsys) as find_log_event:
+        response = await router_db_harness.client.put(
+            "/resources/" + resource["resourceId"],
+            headers=router_auth_headers("admin", True),
+            json={**sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE), "version": 2},
+        )
+
+    assert response.status_code == 409, response.text
+    assert response.json()["error"]["details"][0]["reason"] == "stale_version"
+    actual_log_event = find_log_event("updateResource.stale_resource_version")
+    assert actual_log_event["messageId"] == "updateResource.stale_resource_version"
+    assert (
+        actual_log_event["summary"] == "資源の公開版が現在値と一致しないため、資源編集を拒否した。"
+    )
+
+
+@pytest.mark.anyio
+async def test_tc003_update_resource_router_matches_unit_test_gen(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    router_seed_resource: Callable[..., Any],
+    router_seed_reservation: Callable[..., Any],
+    capsys: pytest.CaptureFixture[str],
+    capture_router_logs: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 将来予約のある資源 When 無効化 Then 409で運用ログを出す。 [SLOT-AC05] [RULE-08-AC]"""
+    _ = timer
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    await router_seed_reservation(
+        router_db_harness, router_auth_headers("alice"), resource["resourceId"]
+    )
+    with capture_router_logs(capsys) as find_log_event:
+        response = await router_db_harness.client.put(
+            "/resources/" + resource["resourceId"],
+            headers=router_auth_headers("admin", True),
+            json={**sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE), "active": False},
+        )
+
+    assert response.status_code == 409, response.text
+    assert response.json()["error"]["details"][0]["reason"] == "future_reservations_exist"
+    actual_log_event = find_log_event("updateResource.future_reservations_exist")
+    assert actual_log_event["messageId"] == "updateResource.future_reservations_exist"
+    assert (
+        actual_log_event["summary"] == "開始前の確定予約が残っているため、資源の無効化を拒否した。"
+    )
+
+
+@pytest.mark.anyio
+async def test_tc004_update_resource_router_matches_unit_test_gen(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    router_seed_resource: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 将来予約のない資源 When 無効化 Then 200で無効な資源を返す。 [SLOT-01-AC]"""
+    _ = timer
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    response = await router_db_harness.client.put(
+        "/resources/" + resource["resourceId"],
+        headers=router_auth_headers("admin", True),
+        json={**sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE), "active": False},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["active"] is False
+
+
+@pytest.mark.anyio
+async def test_tc005_update_resource_router_matches_unit_test_gen(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    capture_router_logs: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 資源編集の制御版更新で業務例外 When API呼出し Then Routerで500へ変換し運用ログを出す。"""
+    _ = timer
+
+    async def raise_expected_error(*args: object, **kwargs: object) -> None:
+        _ = args, kwargs
+        raise ApiFunctionError(500, "forced router error", summary="unit-test_gen case")
+
+    monkeypatch.setattr(
+        "app.apis.resources.update_resource.functions.update_resource_control_version",
+        raise_expected_error,
+    )
+    headers = router_auth_headers("admin", True)
+    with capture_router_logs(capsys) as find_log_event:
+        response = await router_db_harness.client.put(
+            "/resources/" + str(uuid4()),
+            headers=headers,
+            json=sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE),
+        )
+
+    assert response.status_code == 500, response.text
+    assert response.json()["error"]["details"][0]["reason"] == "forced router error"
+    actual_log_event = find_log_event("updateResource.router_api_function_error")
+    assert actual_log_event["messageId"] == "updateResource.router_api_function_error"
+    assert (
+        actual_log_event["summary"] == "Routerで捕捉したApiFunctionErrorにより資源編集が失敗した。"
+    )
+
+
+@pytest.mark.anyio
+async def test_tc006_update_resource_router_matches_unit_test_gen(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    capture_router_logs: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 資源編集の制御版更新で外部API例外 When API呼出し Then Routerで502へ変換し運用ログを出す。"""
+    _ = timer
+
+    async def raise_expected_error(*args: object, **kwargs: object) -> None:
+        _ = args, kwargs
+        raise ExternalApiError("forced external api error")
+
+    monkeypatch.setattr(
+        "app.apis.resources.update_resource.functions.update_resource_control_version",
+        raise_expected_error,
+    )
+    headers = router_auth_headers("admin", True)
+    with capture_router_logs(capsys) as find_log_event:
+        response = await router_db_harness.client.put(
+            "/resources/" + str(uuid4()),
+            headers=headers,
+            json=sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE),
+        )
+
+    assert response.status_code == 502, response.text
+    assert response.json()["error"]["details"][0]["reason"] == "external service request failed"
+    actual_log_event = find_log_event("updateResource.router_external_api_error")
+    assert actual_log_event["messageId"] == "updateResource.router_external_api_error"
+    assert (
+        actual_log_event["summary"] == "Routerで捕捉したExternalApiErrorにより資源編集が失敗した。"
+    )
+
+
+@pytest.mark.anyio
+async def test_tc007_update_resource_router_matches_unit_test_gen(
+    router_db_harness: RouterDbHarness,
+    router_auth_headers: Callable[..., dict[str, str]],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    capture_router_logs: Callable[..., Any],
+    timer: FixedClock,
+) -> None:
+    """Given 資源編集の制御版更新でHTTP例外 When API呼出し Then Routerで400へ変換し運用ログを出す。"""
+    _ = timer
+
+    async def raise_expected_error(*args: object, **kwargs: object) -> None:
+        _ = args, kwargs
+        raise HTTPException(status_code=400, detail="forced http exception")
+
+    monkeypatch.setattr(
+        "app.apis.resources.update_resource.functions.update_resource_control_version",
+        raise_expected_error,
+    )
+    headers = router_auth_headers("admin", True)
+    with capture_router_logs(capsys) as find_log_event:
+        response = await router_db_harness.client.put(
+            "/resources/" + str(uuid4()),
+            headers=headers,
+            json=sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE),
+        )
+
+    assert response.status_code == 400, response.text
+    assert response.json()["error"]["details"][0]["reason"] == "forced http exception"
+    actual_log_event = find_log_event("updateResource.router_http_exception")
+    assert actual_log_event["messageId"] == "updateResource.router_http_exception"
+    assert actual_log_event["summary"] == "Routerで捕捉したHTTPExceptionにより資源編集が失敗した。"
