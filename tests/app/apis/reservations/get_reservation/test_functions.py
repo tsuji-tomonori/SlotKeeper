@@ -7,6 +7,7 @@ from datetime import timedelta
 import pytest
 
 from app.apis.exceptions import ApiFunctionError
+from app.apis.reservations.common import ReservationAction, ReservationStatus
 from app.apis.reservations.get_reservation import functions
 from app.apis.reservations.get_reservation.generated import queries
 from tests.app.apis.function_helpers import (
@@ -32,7 +33,7 @@ async def test_get_reservation_with_events(monkeypatch: pytest.MonkeyPatch) -> N
         start_at=NOW + timedelta(days=1),
         end_at=NOW + timedelta(days=1, hours=1),
         purpose="会議",
-        status="cancelled",
+        status=ReservationStatus.CANCELLED,
         row_version=2,
     )
     events = [
@@ -43,7 +44,7 @@ async def test_get_reservation_with_events(monkeypatch: pytest.MonkeyPatch) -> N
             action=action,
             occurred_at=NOW,
         )
-        for index, action in enumerate(["created", "cancelled"])
+        for index, action in enumerate([ReservationAction.CREATED, ReservationAction.CANCELLED])
     ]
     recorder.install(monkeypatch, queries, "select_reservations", [reservation_row])
     recorder.install(monkeypatch, queries, "select_reservation_events", events)
@@ -54,7 +55,10 @@ async def test_get_reservation_with_events(monkeypatch: pytest.MonkeyPatch) -> N
     assert not await functions.has_reservation_view_permission(reservation, BOB)
     history = await functions.get_reservation_events(reservation, session)
     detail = await functions.build_reservation_detail_response(reservation, history)
-    assert [event.action for event in detail.events] == ["created", "cancelled"]
+    assert [event.action for event in detail.events] == [
+        ReservationAction.CREATED,
+        ReservationAction.CANCELLED,
+    ]
     recorder.install(monkeypatch, queries, "select_reservations", [])
     with pytest.raises(ApiFunctionError):
         await functions.get_reservation("missing", session)

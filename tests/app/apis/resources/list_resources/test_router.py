@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from app.apis.base import sample_value
 from app.apis.exceptions import ApiFunctionError
+from app.apis.resources.common import ResourceKind
 from app.apis.resources.list_resources.samples import (
     LIST_RESOURCES_RESPONSE_SAMPLE,
     LIST_RESOURCES_STATUS_SAMPLES,
@@ -26,11 +27,13 @@ pytestmark = pytest.mark.db
 
 def test_resource_paging_order(client: TestClient, signed: Signer, database: None) -> None:
     """Given 同名の資源 When ページ単位で取得 Then 名前とIDの固定順で欠落・重複がない。 [SLOT-01-AC] [RULE-14-AC]"""
-    admin = signed("admin", True)
+    admin = signed("manager", True)
     name = "順序確認 " + str(uuid4())
     created = sorted(
         client.post(
-            "/resources", headers=admin, json={"name": name, "description": "", "kind": "room"}
+            "/resources",
+            headers=admin,
+            json={"name": name, "description": "", "kind": ResourceKind.ROOM},
         ).json()["resourceId"]
         for _ in range(3)
     )
@@ -57,7 +60,7 @@ async def test_list_resources_router_returns_sample_shaped_response_with_db(
     """Given 先頭に並ぶ名前の資源 When 標本queryで一覧取得 Then 標本と同じ形で資源を返す。 [SLOT-01-AC]"""
     _ = timer
     resource = await router_seed_resource(
-        router_db_harness, router_auth_headers("admin", True), name="!先頭資源 " + str(uuid4())
+        router_db_harness, router_auth_headers("manager", True), name="!先頭資源 " + str(uuid4())
     )
     request = LIST_RESOURCES_STATUS_SAMPLES[200]["request"]
     response = await router_db_harness.client.get(
@@ -109,7 +112,7 @@ async def test_tc001_list_resources_router_matches_unit_test_gen(
 ) -> None:
     """Given 登録済みの資源 When 一覧取得 Then 200で資源を返す。 [SLOT-01-AC]"""
     _ = timer
-    await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     response = await router_db_harness.client.get(
         "/resources", headers=router_auth_headers("alice")
     )

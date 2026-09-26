@@ -10,6 +10,7 @@ from app.apis.exceptions import ApiFunctionError
 from app.apis.reservations.cancel_reservation import functions
 from app.apis.reservations.cancel_reservation.generated import queries
 from app.apis.reservations.cancel_reservation.schemas import CancelReservationRequest
+from app.apis.reservations.common import ReservationStatus
 from tests.app.apis.function_helpers import (
     ADMIN,
     ALICE,
@@ -32,7 +33,7 @@ def row(**overrides: object) -> queries.SelectReservationsRow:
         "start_at": NOW + timedelta(days=1),
         "end_at": NOW + timedelta(days=1, hours=1),
         "purpose": "会議",
-        "status": "confirmed",
+        "status": ReservationStatus.CONFIRMED,
         "row_version": 1,
     }
     values.update(overrides)
@@ -73,7 +74,7 @@ async def test_cancel_updates_and_appends_event(monkeypatch: pytest.MonkeyPatch)
         ),
     )
     cancelled_row = queries.UpdateReservationsRow.model_validate(
-        {**row().model_dump(), "status": "cancelled", "row_version": 2}
+        {**row().model_dump(), "status": ReservationStatus.CANCELLED, "row_version": 2}
     )
     recorder.install(monkeypatch, queries, "update_reservations", cancelled_row)
     recorder.install(monkeypatch, queries, "insert_reservation_events", None)
@@ -86,7 +87,7 @@ async def test_cancel_updates_and_appends_event(monkeypatch: pytest.MonkeyPatch)
     )
     assert recorder.params("insert_reservation_events").event_id == event.event_id
     response = await functions.build_reservation_response(cancelled)
-    assert response.status == "cancelled" and response.version == 2
+    assert response.status == ReservationStatus.CANCELLED and response.version == 2
     recorder.install(monkeypatch, queries, "update_resources_control_version", None)
     with pytest.raises(ApiFunctionError):
         await functions.update_resource_control_version(reservation, session)

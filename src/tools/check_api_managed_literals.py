@@ -6,38 +6,18 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-MANAGED_LITERALS = frozenset(
-    {
-        "hub-admin",
-        "PUBLIC_PKCE",
-        "PUBLIC",
-        "CONFIDENTIAL_CLIENT_CREDENTIALS",
-        "CONFIDENTIAL",
-        "CALLBACK",
-        "LOGOUT",
-        "OPENAPI",
-        "published",
-        "openapi",
-    }
-)
+MANAGED_LITERALS = frozenset({"admin", "confirmed", "cancelled", "created", "room", "equipment"})
 
 ALLOWED_LITERAL_PATHS = {
-    "hub-admin": frozenset({Path("common.py")}),
-    "PUBLIC_PKCE": frozenset(
-        {
-            Path("api_access_requests/common.py"),
-            Path("projects/common.py"),
-        }
-    ),
-    "PUBLIC": frozenset({Path("projects/common.py")}),
-    "CONFIDENTIAL_CLIENT_CREDENTIALS": frozenset({Path("projects/common.py")}),
-    "CONFIDENTIAL": frozenset({Path("projects/common.py")}),
-    "CALLBACK": frozenset({Path("projects/common.py")}),
-    "LOGOUT": frozenset({Path("projects/common.py")}),
-    "OPENAPI": frozenset({Path("apis/common.py")}),
-    "published": frozenset({Path("apis/common.py")}),
-    "openapi": frozenset({Path("apis/common.py")}),
+    "admin": frozenset({Path("common.py")}),
+    "confirmed": frozenset({Path("reservations/common.py")}),
+    "cancelled": frozenset({Path("reservations/common.py")}),
+    "created": frozenset({Path("reservations/common.py")}),
+    "room": frozenset({Path("resources/common.py")}),
+    "equipment": frozenset({Path("resources/common.py")}),
 }
+# CONTRACT.permissions must stay a literal tuple so check_api_contracts can read it statically.
+CONTRACT_PERMISSION_LITERALS = frozenset({"admin"})
 
 
 @dataclass(frozen=True, order=True)
@@ -95,6 +75,8 @@ class ManagedLiteralVisitor(ast.NodeVisitor):
         if literal not in MANAGED_LITERALS:
             return
         if self.relative_path in ALLOWED_LITERAL_PATHS.get(literal, frozenset()):
+            return
+        if self.relative_path.name == "contract.py" and literal in CONTRACT_PERMISSION_LITERALS:
             return
         self.issues.append(
             ManagedLiteralIssue(

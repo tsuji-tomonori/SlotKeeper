@@ -339,10 +339,10 @@ def flatten_settings(
             )
         return rows
     if isinstance(value, Sequence) and not isinstance(value, str):
-        rows: list[tuple[str, str]] = []
+        sequence_rows: list[tuple[str, str]] = []
         sequence = cast(Sequence[object], value)
         for index, child in enumerate(sequence):
-            rows.extend(
+            sequence_rows.extend(
                 flatten_settings(
                     child,
                     prefix=f"{prefix}[{index}]",
@@ -351,7 +351,7 @@ def flatten_settings(
                     api_id=api_id,
                 )
             )
-        return rows
+        return sequence_rows
     raw_value = format_setting_value(value)
     return [
         (
@@ -521,17 +521,13 @@ def error_setting_rows(
             "submit_request",
             "duplicate_pending_rejected",
             "duplicate_pending_request",
-        ): (
-            ("error.precondition", f"{project} x {api} のPENDING申請が存在する"),
-        ),
+        ): (("error.precondition", f"{project} x {api} のPENDING申請が存在する"),),
         (
             "access_request_workflow",
             "submit_request",
             "existing_subscription_rejected",
             "request_both_auth",
-        ): (
-            ("error.precondition", f"{project} x {api} のACTIVE subscriptionが存在する"),
-        ),
+        ): (("error.precondition", f"{project} x {api} のACTIVE subscriptionが存在する"),),
         ("review_decision", "approve_request", "forbidden", "approve_both"): (
             ("error.actor", "reviewer ではない管理主体"),
         ),
@@ -549,25 +545,19 @@ def error_setting_rows(
             "provision_entitlement",
             "partially_failed",
             "approved_both_entitlement",
-        ): (
-            ("error.injectedFailure", "Usage Plan stage または Cognito scope の片方を失敗させる"),
-        ),
+        ): (("error.injectedFailure", "Usage Plan stage または Cognito scope の片方を失敗させる"),),
         (
             "runtime_authorization",
             "invoke_runtime_api",
             "credential_invalid",
             "scope_missing",
-        ): (
-            ("error.token", "custom scope を含まない access token"),
-        ),
+        ): (("error.token", "custom scope を含まない access token"),),
         (
             "runtime_authorization",
             "invoke_runtime_api",
             "credential_invalid",
             "api_key_missing",
-        ): (
-            ("error.header.x-api-key", "送信しない"),
-        ),
+        ): (("error.header.x-api-key", "送信しない"),),
     }
     return rows.get((component_id, action_id, state_id, data_id), ())
 
@@ -860,8 +850,7 @@ def render_step_detail(index: int, step: ScenarioStepDetail) -> list[str]:
         *(
             [
                 "",
-                "失敗を発生させるため、"
-                f"{markdown_escape(step.failure_trigger)}",
+                f"失敗を発生させるため、{markdown_escape(step.failure_trigger)}",
             ]
             if step.failure_trigger
             else []
@@ -896,9 +885,7 @@ def goal_description(target_case: E2eTargetCase) -> str:
     component_id, action_id, project_id, api_id, state_id, data_id = parse_component_variant(
         target_case.goal_variant
     )
-    action_title = component_item_title(
-        component_id, "actions.manual.yaml", "actions", action_id
-    )
+    action_title = component_item_title(component_id, "actions.manual.yaml", "actions", action_id)
     state_title = component_item_title(component_id, "states.manual.yaml", "states", state_id)
     data_label = concrete_data_label(
         component_id=component_id,

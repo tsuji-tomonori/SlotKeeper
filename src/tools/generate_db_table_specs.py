@@ -116,7 +116,9 @@ def parse_comments(
     return table_comments, column_comments
 
 
-CREATE_TABLE_RE = re.compile(r"^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?P<name>[\w.\"]+)", re.I)
+CREATE_TABLE_RE = re.compile(
+    r"^\s*CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?P<name>[\w.\"]+)", re.I
+)
 LOGICAL_REFERENCE_RE = re.compile(
     r"^\s*(?P<column>\w+)\s[^\n]*--\s*REFERENCES\s+(?P<table>[\w.\"]+)\s*\((?P<target>\w+)\)"
 )
@@ -154,8 +156,7 @@ def apply_table_constraints(table: Table, logical: dict[tuple[str, str], str]) -
             primary_key=column.primary_key or column.name in primary_columns,
             nullable=column.nullable and column.name not in primary_columns,
             references=column.references or logical.get((table.name, column.name)),
-            logical_reference=column.references is None
-            and (table.name, column.name) in logical,
+            logical_reference=column.references is None and (table.name, column.name) in logical,
         )
         for column in table.columns
     ]

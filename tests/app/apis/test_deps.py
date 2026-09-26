@@ -7,6 +7,7 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 
+from app.apis.common import IdentityGroup
 from tests.helpers import Signer, error_reason
 
 
@@ -34,7 +35,7 @@ def test_bad_signature(client: TestClient, signed: Signer) -> None:
     """Given 別の秘密鍵による改ざん When 検証 Then 401。 [SLOT-AC14]"""
     token = signed()["Authorization"].split()[1]
     claims = jwt.decode(token, options={"verify_signature": False})
-    claims["realm_access"] = {"roles": ["admin"]}
+    claims["realm_access"] = {"roles": [IdentityGroup.ADMIN.value]}
     other = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     response = client.get(
         "/resources",

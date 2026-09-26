@@ -1,0 +1,236 @@
+{
+  "ambiguous_words": [
+    "適切",
+    "必要に応じて",
+    "可能な限り",
+    "できるだけ",
+    "原則",
+    "最小限",
+    "など",
+    "十分",
+    "なるべく"
+  ],
+  "operation_required_files": [
+    "__init__.py",
+    "router.py",
+    "functions.py",
+    "schemas.py",
+    "samples.py",
+    "queries.py",
+    "sql"
+  ],
+  "tools_required_files": [
+    "check_api_function_names.py",
+    "generate_api_sequences.py",
+    "check_api_mermaid_sequences.py",
+    "generate_queries.py",
+    "generate_db_crud.py",
+    "check_operational_logging.py"
+  ],
+  "metrics": {
+    "exclude_globs": [
+      "src/app/**/generated/*.py",
+      "src/app/**/generated/**/*.py",
+      "tests/generated/**/*.py"
+    ],
+    "cyclomatic_complexity": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 10,
+        "function_kind": "endpoint"
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 10
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 12
+      }
+    ],
+    "control_nesting_depth": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 3,
+        "function_kind": "endpoint"
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 3
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 4
+      }
+    ],
+    "function_logical_lines": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 120,
+        "function_kind": "endpoint"
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 100
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 120
+      }
+    ],
+    "file_logical_lines": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 260
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 600
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 1000
+      }
+    ],
+    "function_argument_count": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 8,
+        "function_kind": "endpoint"
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 5,
+        "function_kind": "public"
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 5,
+        "function_kind": "private"
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 6,
+        "function_kind": "public"
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 6,
+        "function_kind": "private"
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 8,
+        "function_kind": "cli_adapter"
+      }
+    ],
+    "endpoint_business_argument_count": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 3,
+        "function_kind": "endpoint"
+      }
+    ],
+    "return_count": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 6,
+        "function_kind": "endpoint"
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 6
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 8
+      }
+    ],
+    "try_body_statement_count": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 5,
+        "function_kind": "endpoint"
+      }
+    ],
+    "local_variable_count": [
+      {
+        "glob": "src/app/**/*.py",
+        "max": 10
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 15
+      }
+    ],
+    "branch_count": [
+      {
+        "glob": "src/app/apis/**/router.py",
+        "max": 4,
+        "function_kind": "endpoint"
+      },
+      {
+        "glob": "src/app/**/*.py",
+        "max": 8
+      },
+      {
+        "glob": "src/tools/**/*.py",
+        "max": 10
+      }
+    ],
+    "condition_complexity": {
+      "bool_ops_max": 3,
+      "comparison_ops_max": 3,
+      "ast_depth_max": 7,
+      "thresholds": [
+        {
+          "glob": "src/app/apis/**/router.py",
+          "bool_ops_max": 1
+        },
+        {
+          "glob": "src/app/**/*.py",
+          "bool_ops_max": 3
+        },
+        {
+          "glob": "src/tools/**/*.py",
+          "bool_ops_max": 3
+        }
+      ],
+      "forbid_mixed_and_or": false,
+      "forbid_nested_ternary": true
+    }
+  },
+  "forbidden_provider_imports": [
+    "boto3",
+    "botocore",
+    "httpx",
+    "requests",
+    "jwt"
+  ],
+  "allowed_provider_import_globs": [
+    "src/app/integrations/common_errors.py",
+    "src/app/integrations/**/deps.py",
+    "src/app/integrations/**/*_provider/*.py",
+    "tests/**/*.py"
+  ],
+  "managed_literals": {
+    "admin": [
+      "common.py"
+    ],
+    "confirmed": [
+      "reservations/common.py"
+    ],
+    "cancelled": [
+      "reservations/common.py"
+    ],
+    "created": [
+      "reservations/common.py"
+    ],
+    "room": [
+      "resources/common.py"
+    ],
+    "equipment": [
+      "resources/common.py"
+    ]
+  }
+}

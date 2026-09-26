@@ -25,7 +25,12 @@ LIST_RESERVATIONS_RESPONSE_SAMPLE = ListReservationsResponse(
 )
 LIST_RESERVATIONS_STATUS_SAMPLES = status_samples(
     request=request_sample(
-        query={"day": "2026-09-26", "status": "confirmed", "future": True, "limit": 50},
+        query={
+            "day": "2026-09-26",
+            "status": ReservationStatus.CONFIRMED,
+            "future": True,
+            "limit": 50,
+        },
         headers={"Authorization": "Bearer <access-token>"},
     ),
     success_status=200,

@@ -119,9 +119,9 @@ def parse_rule_file(path: Path, root: Path | None = None) -> list[RuleItem]:
         cells = _table_cells(line)
         if cells is None:
             continue
-        item = _parse_table_rule(relative, line_number, len(items) + 1, cells)
-        if item is not None:
-            items.append(item)
+        table_item = _parse_table_rule(relative, line_number, len(items) + 1, cells)
+        if table_item is not None:
+            items.append(table_item)
     return items
 
 

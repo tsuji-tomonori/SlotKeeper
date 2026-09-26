@@ -119,10 +119,13 @@ def _forbidden_import(module: str, context: CheckContext, path: Path) -> str | N
     allowed = context.config.get("allowed_provider_import_globs", [])
     if _matches_any(rel, allowed):
         return None
-    for forbidden in context.config.get("forbidden_provider_imports", []):
+    forbidden_imports: list[str] = context.config.get("forbidden_provider_imports", [])
+    for forbidden in forbidden_imports:
         if module == forbidden or module.startswith(f"{forbidden}."):
             return forbidden
-    if ".boto3_provider" in module or (module.endswith(".client") and ".provider" in module):
+    if re.search(r"\.\w+_provider(?:\.|$)", module) or (
+        module.endswith(".client") and ".provider" in module
+    ):
         return module
     return None
 
@@ -946,7 +949,7 @@ def functions_exception_policy(item: RuleItem, context: CheckContext) -> list[Ch
     suffixes = ("_client", "_control", "_admin", "_values")
     issues: list[CheckResult] = []
     targets = [*_api_function_files(context)]
-    common = _repo_path(context, "src/app/apis/projects/common.py")
+    common = _repo_path(context, "src/app/apis/common.py")
     if common.exists():
         targets.append(common)
     for path in targets:
@@ -1326,7 +1329,9 @@ def _metric_exclude_globs(context: CheckContext) -> tuple[str, ...]:
 
 def _is_metric_excluded(rel: Path, context: CheckContext) -> bool:
     value = rel.as_posix()
-    return any(_matches_metric_pattern(value, pattern) for pattern in _metric_exclude_globs(context))
+    return any(
+        _matches_metric_pattern(value, pattern) for pattern in _metric_exclude_globs(context)
+    )
 
 
 def _matches_metric_pattern(value: str, pattern: str) -> bool:
@@ -1373,10 +1378,7 @@ def _effective_function_threshold(
         threshold
         for threshold in thresholds
         if _matches_metric_pattern(value, threshold.pattern)
-        and (
-            threshold.function_kind is None
-            or threshold.function_kind == _function_kind(rel, fn)
-        )
+        and (threshold.function_kind is None or threshold.function_kind == _function_kind(rel, fn))
     ]
     if not matches:
         return None
@@ -1871,7 +1873,7 @@ def _load_rule_names(path: Path) -> set[str]:
     entries_raw = raw_dict.get("entries")
     if not isinstance(entries_raw, list):
         raise ValueError(f"{path} must contain entries list")
-    entries = cast(list[Any], entries_raw)
+    entries = cast(list[Any], entries_raw)  # type: ignore[redundant-cast]
     names: set[str] = set()
     for entry in entries:
         if not isinstance(entry, dict):

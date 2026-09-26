@@ -36,7 +36,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from types import TracebackType
-from typing import Any, cast
+from typing import Any, TypedDict, Unpack, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -295,6 +295,31 @@ def current_log_context() -> Mapping[str, Any]:
     return dict(_CONTEXT.get() or {})
 
 
+class MessageFields(TypedDict, total=False):
+    """Catalog fields accepted by every operational log emission."""
+
+    catalog_id: str | None
+    summary: str | None
+    status_code: int | None
+    detail: str | None
+    when: str | None
+    why_production: str | None
+    check_procedure: str | None
+    remediation_procedure: str | None
+    context_model: LogContextModel | None
+    operator_action: str | None
+    runbook: str | None
+    context: Mapping[str, Any] | None
+    result: str | None
+    error: Mapping[str, Any] | BaseException | None
+    exc_info: ExcInfo
+
+
+type ExcInfo = (
+    bool | BaseException | tuple[type[BaseException], BaseException, TracebackType | None]
+)
+
+
 class OperationalLogger:
     """Small wrapper that emits only catalogued operational messages."""
 
@@ -308,295 +333,48 @@ class OperationalLogger:
         return self._name
 
     def emit(
-        self,
-        message_id: str,
-        *,
-        level: LogLevel | str,
-        catalog_id: str | None = None,
-        summary: str | None = None,
-        status_code: int | None = None,
-        detail: str | None = None,
-        when: str | None = None,
-        why_production: str | None = None,
-        check_procedure: str | None = None,
-        remediation_procedure: str | None = None,
-        context_model: LogContextModel | None = None,
-        operator_action: str | None = None,
-        runbook: str | None = None,
-        context: Mapping[str, Any] | None = None,
-        result: str | None = None,
-        error: Mapping[str, Any] | BaseException | None = None,
-        exc_info: bool
-        | BaseException
-        | tuple[type[BaseException], BaseException, TracebackType | None] = False,
+        self, message_id: str, *, level: LogLevel | str, **fields: Unpack[MessageFields]
     ) -> None:
         """Emit a catalogued operational message.
 
-        ``message_id`` must exist in the API's ``message_catalog.py`` before CI
-        enables ``--fail-on-undocumented-emits``.  ``context`` is sanitized before
-        it reaches the stdlib logger.
+        ``context`` is sanitized before it reaches the stdlib logger.
         """
 
         level_value = _normalize_level(level)
+        exc_info = fields.pop("exc_info", False)
         payload = _build_payload(
             logger_name=self._name,
             logical_function=self._logical_function,
             message_id=message_id,
-            catalog_id=catalog_id,
             level=level_value,
-            summary=summary,
-            status_code=status_code,
-            detail=detail,
-            when=when,
-            why_production=why_production,
-            check_procedure=check_procedure,
-            remediation_procedure=remediation_procedure,
-            context_model=context_model,
-            operator_action=operator_action,
-            runbook=runbook,
-            context=context,
-            result=result,
-            error=error,
+            fields=fields,
         )
         self._logger.log(
             _to_logging_level(level_value),
-            summary or message_id,
+            fields.get("summary") or message_id,
             extra={"slotkeeper_event": payload},
             exc_info=_normalize_exc_info(exc_info),
         )
 
-    def debug(
-        self,
-        message_id: str,
-        *,
-        summary: str | None = None,
-        catalog_id: str | None = None,
-        status_code: int | None = None,
-        detail: str | None = None,
-        when: str | None = None,
-        why_production: str | None = None,
-        check_procedure: str | None = None,
-        remediation_procedure: str | None = None,
-        context_model: LogContextModel | None = None,
-        operator_action: str | None = None,
-        runbook: str | None = None,
-        context: Mapping[str, Any] | None = None,
-        result: str | None = None,
-    ) -> None:
-        self.emit(
-            message_id,
-            level=LogLevel.DEBUG,
-            catalog_id=catalog_id,
-            summary=summary,
-            status_code=status_code,
-            detail=detail,
-            when=when,
-            why_production=why_production,
-            check_procedure=check_procedure,
-            remediation_procedure=remediation_procedure,
-            context_model=context_model,
-            operator_action=operator_action,
-            runbook=runbook,
-            context=context,
-            result=result,
-        )
+    def debug(self, message_id: str, **fields: Unpack[MessageFields]) -> None:
+        self.emit(message_id, level=LogLevel.DEBUG, **fields)
 
-    def info(
-        self,
-        message_id: str,
-        *,
-        summary: str | None = None,
-        catalog_id: str | None = None,
-        status_code: int | None = None,
-        detail: str | None = None,
-        when: str | None = None,
-        why_production: str | None = None,
-        check_procedure: str | None = None,
-        remediation_procedure: str | None = None,
-        context_model: LogContextModel | None = None,
-        operator_action: str | None = None,
-        runbook: str | None = None,
-        context: Mapping[str, Any] | None = None,
-        result: str | None = None,
-    ) -> None:
-        self.emit(
-            message_id,
-            level=LogLevel.INFO,
-            catalog_id=catalog_id,
-            summary=summary,
-            status_code=status_code,
-            detail=detail,
-            when=when,
-            why_production=why_production,
-            check_procedure=check_procedure,
-            remediation_procedure=remediation_procedure,
-            context_model=context_model,
-            operator_action=operator_action,
-            runbook=runbook,
-            context=context,
-            result=result,
-        )
+    def info(self, message_id: str, **fields: Unpack[MessageFields]) -> None:
+        self.emit(message_id, level=LogLevel.INFO, **fields)
 
-    def warning(
-        self,
-        message_id: str,
-        *,
-        summary: str | None = None,
-        catalog_id: str | None = None,
-        status_code: int | None = None,
-        detail: str | None = None,
-        when: str | None = None,
-        why_production: str | None = None,
-        check_procedure: str | None = None,
-        remediation_procedure: str | None = None,
-        context_model: LogContextModel | None = None,
-        operator_action: str | None = None,
-        runbook: str | None = None,
-        context: Mapping[str, Any] | None = None,
-        result: str | None = None,
-        error: Mapping[str, Any] | BaseException | None = None,
-    ) -> None:
-        self.emit(
-            message_id,
-            level=LogLevel.WARNING,
-            catalog_id=catalog_id,
-            summary=summary,
-            status_code=status_code,
-            detail=detail,
-            when=when,
-            why_production=why_production,
-            check_procedure=check_procedure,
-            remediation_procedure=remediation_procedure,
-            context_model=context_model,
-            operator_action=operator_action,
-            runbook=runbook,
-            context=context,
-            result=result,
-            error=error,
-        )
+    def warning(self, message_id: str, **fields: Unpack[MessageFields]) -> None:
+        self.emit(message_id, level=LogLevel.WARNING, **fields)
 
-    def error(
-        self,
-        message_id: str,
-        *,
-        summary: str | None = None,
-        catalog_id: str | None = None,
-        status_code: int | None = None,
-        detail: str | None = None,
-        when: str | None = None,
-        why_production: str | None = None,
-        check_procedure: str | None = None,
-        remediation_procedure: str | None = None,
-        context_model: LogContextModel | None = None,
-        operator_action: str | None = None,
-        runbook: str | None = None,
-        context: Mapping[str, Any] | None = None,
-        result: str | None = None,
-        error: Mapping[str, Any] | BaseException | None = None,
-        exc_info: bool
-        | BaseException
-        | tuple[type[BaseException], BaseException, TracebackType | None] = False,
-    ) -> None:
-        self.emit(
-            message_id,
-            level=LogLevel.ERROR,
-            catalog_id=catalog_id,
-            summary=summary,
-            status_code=status_code,
-            detail=detail,
-            when=when,
-            why_production=why_production,
-            check_procedure=check_procedure,
-            remediation_procedure=remediation_procedure,
-            context_model=context_model,
-            operator_action=operator_action,
-            runbook=runbook,
-            context=context,
-            result=result,
-            error=error,
-            exc_info=exc_info,
-        )
+    def error(self, message_id: str, **fields: Unpack[MessageFields]) -> None:
+        self.emit(message_id, level=LogLevel.ERROR, **fields)
 
-    def exception(
-        self,
-        message_id: str,
-        *,
-        summary: str | None = None,
-        catalog_id: str | None = None,
-        status_code: int | None = None,
-        detail: str | None = None,
-        when: str | None = None,
-        why_production: str | None = None,
-        check_procedure: str | None = None,
-        remediation_procedure: str | None = None,
-        context_model: LogContextModel | None = None,
-        operator_action: str | None = None,
-        runbook: str | None = None,
-        context: Mapping[str, Any] | None = None,
-        result: str | None = None,
-        error: Mapping[str, Any] | BaseException | None = None,
-    ) -> None:
-        self.emit(
-            message_id,
-            level=LogLevel.ERROR,
-            catalog_id=catalog_id,
-            summary=summary,
-            status_code=status_code,
-            detail=detail,
-            when=when,
-            why_production=why_production,
-            check_procedure=check_procedure,
-            remediation_procedure=remediation_procedure,
-            context_model=context_model,
-            operator_action=operator_action,
-            runbook=runbook,
-            context=context,
-            result=result,
-            error=error,
-            exc_info=True,
-        )
+    def exception(self, message_id: str, **fields: Unpack[MessageFields]) -> None:
+        exception_fields = MessageFields(**fields)
+        exception_fields["exc_info"] = True
+        self.emit(message_id, level=LogLevel.ERROR, **exception_fields)
 
-    def critical(
-        self,
-        message_id: str,
-        *,
-        summary: str | None = None,
-        catalog_id: str | None = None,
-        status_code: int | None = None,
-        detail: str | None = None,
-        when: str | None = None,
-        why_production: str | None = None,
-        check_procedure: str | None = None,
-        remediation_procedure: str | None = None,
-        context_model: LogContextModel | None = None,
-        operator_action: str | None = None,
-        runbook: str | None = None,
-        context: Mapping[str, Any] | None = None,
-        result: str | None = None,
-        error: Mapping[str, Any] | BaseException | None = None,
-        exc_info: bool
-        | BaseException
-        | tuple[type[BaseException], BaseException, TracebackType | None] = False,
-    ) -> None:
-        self.emit(
-            message_id,
-            level=LogLevel.CRITICAL,
-            catalog_id=catalog_id,
-            summary=summary,
-            status_code=status_code,
-            detail=detail,
-            when=when,
-            why_production=why_production,
-            check_procedure=check_procedure,
-            remediation_procedure=remediation_procedure,
-            context_model=context_model,
-            operator_action=operator_action,
-            runbook=runbook,
-            context=context,
-            result=result,
-            error=error,
-            exc_info=exc_info,
-        )
+    def critical(self, message_id: str, **fields: Unpack[MessageFields]) -> None:
+        self.emit(message_id, level=LogLevel.CRITICAL, **fields)
 
 
 def get_operation_logger(
@@ -611,45 +389,11 @@ def emit_message(
     message_id: str,
     *,
     level: LogLevel | str = LogLevel.INFO,
-    catalog_id: str | None = None,
-    summary: str | None = None,
-    status_code: int | None = None,
-    detail: str | None = None,
-    when: str | None = None,
-    why_production: str | None = None,
-    check_procedure: str | None = None,
-    remediation_procedure: str | None = None,
-    context_model: LogContextModel | None = None,
-    operator_action: str | None = None,
-    runbook: str | None = None,
-    context: Mapping[str, Any] | None = None,
-    result: str | None = None,
-    error: Mapping[str, Any] | BaseException | None = None,
-    exc_info: bool
-    | BaseException
-    | tuple[type[BaseException], BaseException, TracebackType | None] = False,
+    **fields: Unpack[MessageFields],
 ) -> None:
     """Module-level emission helper for simple call sites."""
 
-    get_operation_logger("slotkeeper").emit(
-        message_id,
-        level=level,
-        catalog_id=catalog_id,
-        summary=summary,
-        status_code=status_code,
-        detail=detail,
-        when=when,
-        why_production=why_production,
-        check_procedure=check_procedure,
-        remediation_procedure=remediation_procedure,
-        context_model=context_model,
-        operator_action=operator_action,
-        runbook=runbook,
-        context=context,
-        result=result,
-        error=error,
-        exc_info=exc_info,
-    )
+    get_operation_logger("slotkeeper").emit(message_id, level=level, **fields)
 
 
 def _build_payload(
@@ -657,25 +401,16 @@ def _build_payload(
     logger_name: str,
     logical_function: str | None,
     message_id: str,
-    catalog_id: str | None,
     level: LogLevel,
-    summary: str | None,
-    status_code: int | None,
-    detail: str | None,
-    when: str | None,
-    why_production: str | None,
-    check_procedure: str | None,
-    remediation_procedure: str | None,
-    context_model: LogContextModel | None,
-    operator_action: str | None,
-    runbook: str | None,
-    context: Mapping[str, Any] | None,
-    result: str | None,
-    error: Mapping[str, Any] | BaseException | None,
+    fields: MessageFields,
 ) -> JsonObject:
     base_context = dict(_CONTEXT.get() or {})
+    context = fields.get("context")
     if context:
         base_context = _deep_merge(base_context, dict(context))
+    catalog_id = fields.get("catalog_id")
+    result = fields.get("result")
+    error = fields.get("error")
 
     payload: JsonObject = {
         "timestamp": datetime.now(UTC).isoformat(),
@@ -688,7 +423,7 @@ def _build_payload(
         if catalog_id is not None
         else base_context.pop("messageCatalogId", base_context.pop("catalogId", None)),
         "messageId": message_id,
-        "summary": summary,
+        "summary": fields.get("summary"),
         "traceId": base_context.pop("traceId", None),
         "requestId": base_context.pop("requestId", None),
         "actorPrincipalId": base_context.pop("actorPrincipalId", None),
@@ -699,30 +434,36 @@ def _build_payload(
         "result": result if result is not None else base_context.pop("result", None),
         "error": _normalize_error(error) if error is not None else base_context.pop("error", None),
     }
-    message_catalog = {
-        key: value
-        for key, value in {
-            "id": payload["messageCatalogId"],
-            "messageId": message_id,
-            "level": level.value,
-            "summary": summary,
-            "statusCode": status_code,
-            "detail": detail,
-            "when": when,
-            "whyProduction": why_production,
-            "checkProcedure": check_procedure,
-            "remediationProcedure": remediation_procedure,
-            "contextModel": _context_model_display(context_model),
-            "operatorAction": operator_action,
-            "runbook": runbook,
-        }.items()
-        if value is not None
-    }
+    message_catalog = _message_catalog(payload["messageCatalogId"], message_id, level, fields)
     if message_catalog:
         payload["messageCatalog"] = message_catalog
     if base_context:
         payload["context"] = base_context
     return cast("JsonObject", _mask_secrets(payload))
+
+
+def _message_catalog(
+    catalog_id: object, message_id: str, level: LogLevel, fields: MessageFields
+) -> JsonObject:
+    return {
+        key: value
+        for key, value in {
+            "id": catalog_id,
+            "messageId": message_id,
+            "level": level.value,
+            "summary": fields.get("summary"),
+            "statusCode": fields.get("status_code"),
+            "detail": fields.get("detail"),
+            "when": fields.get("when"),
+            "whyProduction": fields.get("why_production"),
+            "checkProcedure": fields.get("check_procedure"),
+            "remediationProcedure": fields.get("remediation_procedure"),
+            "contextModel": _context_model_display(fields.get("context_model")),
+            "operatorAction": fields.get("operator_action"),
+            "runbook": fields.get("runbook"),
+        }.items()
+        if value is not None
+    }
 
 
 def _normalize_level(level: LogLevel | str) -> LogLevel:
@@ -766,9 +507,7 @@ def _exception_to_error(
 
 
 def _normalize_exc_info(
-    exc_info: bool
-    | BaseException
-    | tuple[type[BaseException], BaseException, TracebackType | None],
+    exc_info: ExcInfo,
 ) -> bool | tuple[type[BaseException], BaseException, TracebackType | None]:
     if isinstance(exc_info, BaseException):
         return (type(exc_info), exc_info, exc_info.__traceback__)

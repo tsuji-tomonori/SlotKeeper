@@ -163,6 +163,7 @@ API_TARGETS: tuple[E2eTarget, ...] = (
     E2eTarget("API_C", "API C", ("published_api", "runtime_callable")),
 )
 
+
 def target_component_variant_id(
     component: str,
     action: str,
@@ -251,8 +252,7 @@ def action_targets(
         for api in apis
         for project_id in [project.target_id if project is not None else None]
         for api_id in [api.target_id if api is not None else None]
-        if target_allowed(project_id, policy, "project")
-        and target_allowed(api_id, policy, "api")
+        if target_allowed(project_id, policy, "project") and target_allowed(api_id, policy, "api")
     )
 
 
@@ -293,10 +293,9 @@ def standalone_case_enabled(
     case_generation = as_mapping(action.get("case_generation"))
     for case in as_sequence(case_generation.get("standalone_cases")):
         case_mapping = as_mapping(case)
-        if (
-            scalar_text(case_mapping.get("state")) == scalar_text(state.get("id"))
-            and scalar_text(case_mapping.get("data")) == scalar_text(data_profile.get("id"))
-        ):
+        if scalar_text(case_mapping.get("state")) == scalar_text(state.get("id")) and scalar_text(
+            case_mapping.get("data")
+        ) == scalar_text(data_profile.get("id")):
             return True
     return False
 
@@ -341,8 +340,7 @@ def build_component_variants() -> tuple[E2eComponentVariant, ...]:
         actions = [as_mapping(action) for action in as_sequence(actions_doc.get("actions"))]
         states = [as_mapping(state) for state in as_sequence(states_doc.get("states"))]
         data_profiles = [
-            as_mapping(data_profile)
-            for data_profile in as_sequence(data_doc.get("data_profiles"))
+            as_mapping(data_profile) for data_profile in as_sequence(data_doc.get("data_profiles"))
         ]
         for action in actions:
             action_id = scalar_text(action.get("id"))
@@ -373,10 +371,7 @@ def build_component_variants() -> tuple[E2eComponentVariant, ...]:
 
 
 def default_project_variant(project_id: str) -> str:
-    return (
-        "project_workspace.create_project."
-        f"{project_id}.provisioned@project_default"
-    )
+    return f"project_workspace.create_project.{project_id}.provisioned@project_default"
 
 
 def default_api_variant(api_id: str) -> str:
@@ -385,8 +380,7 @@ def default_api_variant(api_id: str) -> str:
 
 def default_access_request_variant(project_id: str, api_id: str) -> str:
     return (
-        "access_request_workflow.submit_request."
-        f"{project_id}.{api_id}.submitted@request_both_auth"
+        f"access_request_workflow.submit_request.{project_id}.{api_id}.submitted@request_both_auth"
     )
 
 
@@ -458,9 +452,7 @@ def prerequisites_for_component_variant(variant: E2eComponentVariant) -> tuple[s
 
 def component_variant_title(variant: E2eComponentVariant) -> str:
     targets = " / ".join(
-        target
-        for target in (variant.project_id, variant.api_id)
-        if target is not None
+        target for target in (variant.project_id, variant.api_id) if target is not None
     )
     target_label = f"{targets} " if targets else ""
     return (

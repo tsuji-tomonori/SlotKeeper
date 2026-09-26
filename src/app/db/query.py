@@ -10,13 +10,14 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-SQL_VARIABLE_RE = re.compile(r"(?<![\w@:])@(?P<name>[A-Za-z_][A-Za-z0-9_]*)")
+# SQL正本はMySQLのユーザー変数と同じ @name 記法で束縛引数を書く。
+MYSQL_VARIABLE_RE = re.compile(r"(?<![\w@:])@(?P<name>[A-Za-z_][A-Za-z0-9_]*)")
 
 
 def load_sql(sql_path: Path) -> str:
     """SQL正本の@name placeholderをSQLAlchemyの:name bindへ変換する。"""
     sql = sql_path.read_text(encoding="utf-8")
-    return SQL_VARIABLE_RE.sub(r":\g<name>", sql)
+    return MYSQL_VARIABLE_RE.sub(r":\g<name>", sql)
 
 
 def _normalize_parameter(value: Any) -> Any:

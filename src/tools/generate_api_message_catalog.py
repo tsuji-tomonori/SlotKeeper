@@ -507,7 +507,7 @@ def default_log_context_schema() -> dict[str, str]:
 def normalize_log_context_schema(value: Any) -> dict[str, str]:
     if not isinstance(value, Mapping):
         return {}
-    context_schema = cast("Mapping[Any, Any]", value)
+    context_schema = cast("Mapping[Any, Any]", value)  # type: ignore[redundant-cast]
     schema: dict[str, str] = {}
     for raw_name, raw_definition in context_schema.items():
         name = str(raw_name).strip()

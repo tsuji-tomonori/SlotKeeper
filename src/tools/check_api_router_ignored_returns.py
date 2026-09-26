@@ -84,7 +84,7 @@ def check_api_router_ignored_returns(
             )
 
     for functions_path in sorted(
-        [*api_root.glob("*/*/functions.py"), *api_root.glob("projects/common.py")]
+        [*api_root.glob("*/*/functions.py"), *api_root.glob("*/common.py")]
     ):
         issues.extend(_function_side_effect_issues(functions_path))
     return sorted(issues)

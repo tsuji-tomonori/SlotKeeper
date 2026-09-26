@@ -108,7 +108,7 @@ def check_api_exception_summaries(
     integrations_root: Path = Path("src/app/integrations"),
 ) -> list[ApiExceptionSummaryIssue]:
     issues: list[ApiExceptionSummaryIssue] = []
-    for path in sorted([*api_root.glob("*/*/functions.py"), *api_root.glob("projects/common.py")]):
+    for path in sorted([*api_root.glob("*/*/functions.py"), *api_root.glob("*/common.py")]):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             if isinstance(node, ast.Raise):

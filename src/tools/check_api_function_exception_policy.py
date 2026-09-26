@@ -47,7 +47,7 @@ def check_api_function_exception_policy(
 
 
 def _target_paths(api_root: Path) -> list[Path]:
-    return sorted([*api_root.glob("*/*/functions.py"), *api_root.glob("projects/common.py")])
+    return sorted([*api_root.glob("*/*/functions.py"), *api_root.glob("*/common.py")])
 
 
 def _parent_map(tree: ast.AST) -> dict[ast.AST, ast.AST]:

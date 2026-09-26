@@ -63,8 +63,7 @@ def check_specs(root: Path = Path("docs/spec/50.e2e")) -> list[str]:
     ]
     required_paths.extend(flow_root / "cases" / case.filename for case in TARGET_CASES)
     required_paths.extend(
-        flow_root / "templates" / "steps" / f"{step.template}.manual.yaml"
-        for step in FLOW_STEPS
+        flow_root / "templates" / "steps" / f"{step.template}.manual.yaml" for step in FLOW_STEPS
     )
     required_paths.extend(
         flow_root / "components" / component_id / filename
@@ -151,9 +150,7 @@ def check_specs(root: Path = Path("docs/spec/50.e2e")) -> list[str]:
             for component_id in COMPONENT_IDS:
                 if component_id not in component_dimensions:
                     errors.append(f"matrix missing component dimension: {component_id}")
-            component_case_generation = as_mapping(
-                matrix_mapping.get("component_case_generation")
-            )
+            component_case_generation = as_mapping(matrix_mapping.get("component_case_generation"))
             strategies = {
                 strategy_mapping.get("id")
                 for strategy in as_list(component_case_generation.get("strategies"))
@@ -183,9 +180,7 @@ def check_specs(root: Path = Path("docs/spec/50.e2e")) -> list[str]:
     variant_ids = {variant.variant_id for variant in component_variants}
     covered_goal_variants = {target_case.goal_variant for target_case in TARGET_CASES}
     covered_selected_variants = {
-        variant_id
-        for target_case in TARGET_CASES
-        for variant_id in target_case.selected_variants
+        variant_id for target_case in TARGET_CASES for variant_id in target_case.selected_variants
     }
     missing_variants = sorted(variant_ids - covered_selected_variants)
     for variant_id in missing_variants:

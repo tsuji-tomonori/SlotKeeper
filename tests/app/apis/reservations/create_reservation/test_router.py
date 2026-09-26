@@ -14,12 +14,15 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.apis.base import sample_value
+from app.apis.common import IdentityGroup
 from app.apis.exceptions import ApiFunctionError
+from app.apis.reservations.common import ReservationStatus
 from app.apis.reservations.create_reservation.samples import (
     CREATE_RESERVATION_REQUEST_SAMPLE,
     CREATE_RESERVATION_RESPONSE_SAMPLE,
     CREATE_RESERVATION_STATUS_SAMPLES,
 )
+from app.apis.resources.common import ResourceKind
 from app.integrations.common_errors import ExternalApiError
 from tests.app.apis.router_db import RouterDbHarness
 from tests.conftest import FixedClock
@@ -153,8 +156,8 @@ def test_invalid_token_leaves_database(
     assert client.post("/reservations", json=booking, headers=wrong_client).status_code == 401
     forged = client.post(
         "/resources",
-        headers={**signed(), "X-Role": "admin"},
-        json={"name": "偽管理者", "description": "", "kind": "room"},
+        headers={**signed(), "X-Role": IdentityGroup.ADMIN},
+        json={"name": "偽管理者", "description": "", "kind": ResourceKind.ROOM},
     )
     assert forged.status_code == 403
     assert count_rows("reservations", "resource_id", booking["resourceId"]) == before
@@ -208,7 +211,7 @@ async def test_create_reservation_router_returns_sample_shaped_response_with_db(
 ) -> None:
     """Given 標本request When 予約作成 Then 標本と同じ形の応答を返し予約・履歴・成功記録・利用者を保存する。 [SLOT-AC01] [RULE-12-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     key = "router-sample-" + str(uuid4())
     response = await router_db_harness.client.post(
         "/reservations",
@@ -271,7 +274,7 @@ async def test_tc001_create_reservation_router_matches_unit_test_gen(
 ) -> None:
     """Given 成功済みの要求キー When 異なる入力で再送 Then 409で運用ログを出す。 [SLOT-AC09] [RULE-10-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     headers = {**router_auth_headers("alice"), "Idempotency-Key": "tc001-" + str(uuid4())}
     first = await router_db_harness.client.post(
         "/reservations", headers=headers, json=sample_request_for(resource["resourceId"])
@@ -304,7 +307,7 @@ async def test_tc002_create_reservation_router_matches_unit_test_gen(
 ) -> None:
     """Given 成功済みの要求キー When 同じ入力で再送 Then 201で元の応答を返し予約を増やさない。 [SLOT-AC07] [RULE-10-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     headers = {**router_auth_headers("alice"), "Idempotency-Key": "tc002-" + str(uuid4())}
     request = sample_request_for(resource["resourceId"])
     first = await router_db_harness.client.post("/reservations", headers=headers, json=request)
@@ -328,7 +331,7 @@ async def test_tc003_create_reservation_router_matches_unit_test_gen(
     """Given 無効化した資源 When 予約作成 Then 409で運用ログを出す。 [SLOT-AC05]"""
     _ = timer
     resource = await router_seed_resource(
-        router_db_harness, router_auth_headers("admin", True), active=False
+        router_db_harness, router_auth_headers("manager", True), active=False
     )
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.post(
@@ -358,7 +361,7 @@ async def test_tc004_create_reservation_router_matches_unit_test_gen(
 ) -> None:
     """Given 同じ時間帯の確定予約 When 予約作成 Then 409で運用ログを出す。 [SLOT-AC02]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     await router_seed_reservation(
         router_db_harness, router_auth_headers("bob"), resource["resourceId"]
     )
@@ -388,7 +391,7 @@ async def test_tc005_create_reservation_router_matches_unit_test_gen(
 ) -> None:
     """Given 空き枠 When 予約作成 Then 201で確定予約を返す。 [SLOT-AC01]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     response = await router_db_harness.client.post(
         "/reservations",
         headers={**router_auth_headers("alice"), "Idempotency-Key": "tc005-" + str(uuid4())},
@@ -396,7 +399,7 @@ async def test_tc005_create_reservation_router_matches_unit_test_gen(
     )
 
     assert response.status_code == 201, response.text
-    assert response.json()["status"] == "confirmed"
+    assert response.json()["status"] == ReservationStatus.CONFIRMED
 
 
 @pytest.mark.anyio

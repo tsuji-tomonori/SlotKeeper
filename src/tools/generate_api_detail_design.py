@@ -338,10 +338,10 @@ def expression_column_sources(
     for column in expression.find_all(exp.Column):
         if output_column is not None and column.name == output_column:
             continue
-        table = aliases.get(column.table or "")
-        if table is None and len(tables) == 1:
-            table = tables[0]
-        source = f"{table}.{column.name}" if table is not None else column.name
+        source_table = aliases.get(column.table or "")
+        if source_table is None and len(tables) == 1:
+            source_table = tables[0]
+        source = f"{source_table}.{column.name}" if source_table is not None else column.name
         if source not in sources:
             sources.append(source)
     return tuple(sources)
@@ -426,7 +426,7 @@ def sql_action_spec(path: Path) -> SqlSpec | None:
             column_params.append((column, sql_expression_source(value, output_column=column)))
         return SqlSpec(path.name, "作成", table_name(statement.this), tuple(column_params))
     if isinstance(statement, exp.Update):
-        column_params: list[tuple[str, SqlSourceValue]] = []
+        column_params = []
         for assignment in statement.expressions:
             if not isinstance(assignment, exp.EQ) or not isinstance(assignment.this, exp.Column):
                 continue

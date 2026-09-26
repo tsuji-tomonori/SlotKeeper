@@ -119,9 +119,7 @@ def check_case_evidences(root: Path = Path("docs/spec/50.e2e")) -> list[str]:
             )
             for ref in refs:
                 if ref not in valid_ids:
-                    errors.append(
-                        f"{target_case.case_id}: unknown evidence {component_id}.{ref}"
-                    )
+                    errors.append(f"{target_case.case_id}: unknown evidence {component_id}.{ref}")
         scenario_path = root / FLOW_ID / "cases" / target_case.filename
         if scenario_path.exists():
             scenario = scenario_path.read_text(encoding="utf-8")

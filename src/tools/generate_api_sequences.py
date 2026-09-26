@@ -1476,7 +1476,7 @@ def endpoint_sequence_tree(
             if assigned is not None and is_predicate_function(assigned):
                 assigned_predicates[statement.targets[0].id] = assigned
         if isinstance(statement, ast.Try):
-            nodes = [node for child in statement.body for node in statement_nodes(child)]
+            try_nodes = [node for child in statement.body for node in statement_nodes(child)]
             for handler in statement.handlers:
                 handler_nodes = [node for child in handler.body for node in statement_nodes(child)]
                 if excepts_router_handled_exceptions(handler):
@@ -1486,10 +1486,10 @@ def endpoint_sequence_tree(
                     handler_nodes.append(
                         ErrorReturnStep(HTTP_500_INTERNAL_SERVER_ERROR, "", ROUTER_ERROR_DETAIL)
                     )
-                    nodes.append(BranchBlock(ROUTER_ERROR_CONDITION, tuple(handler_nodes)))
+                    try_nodes.append(BranchBlock(ROUTER_ERROR_CONDITION, tuple(handler_nodes)))
                 else:
-                    nodes.extend(handler_nodes)
-            return nodes
+                    try_nodes.extend(handler_nodes)
+            return try_nodes
         if isinstance(statement, ast.If):
             nodes: list[SequenceNode] = []
             predicate = api_function_call_name(
@@ -1498,9 +1498,13 @@ def endpoint_sequence_tree(
                 and isinstance(statement.test.op, ast.Not)
                 else statement.test
             )
-            if predicate is not None and metadata.get(predicate, None) is not None:
-                if metadata[predicate].query_functions or metadata[predicate].errors:
-                    nodes.extend(step_nodes(predicate))
+            predicate_metadata = metadata.get(predicate) if predicate is not None else None
+            if (
+                predicate is not None
+                and predicate_metadata is not None
+                and (predicate_metadata.query_functions or predicate_metadata.errors)
+            ):
+                nodes.extend(step_nodes(predicate))
             condition = condition_label_from_test(
                 resolved_test(statement.test), metadata
             ) or ast.unparse(statement.test)
@@ -1630,7 +1634,8 @@ def render_sequence_tree_markdown(
             label = step.description if len(sql_steps) == 1 else sql_step.summary
             tables = ", ".join(sql_step.tables)
             lines.append(
-                f"{indent(depth)}API->>DB: {label}<br/>SQL {sql_step.filename}<br/>テーブル {tables}"
+                f"{indent(depth)}API->>DB: {label}"
+                f"<br/>SQL {sql_step.filename}<br/>テーブル {tables}"
             )
 
     for implicit in implicit_returns:

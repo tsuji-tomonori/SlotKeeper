@@ -8,6 +8,9 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
+from app.apis.common import IdentityGroup
+from app.apis.resources.common import ResourceKind
+
 os.environ.setdefault(
     "SLOT_DATABASE_URL", "postgresql+psycopg://slotkeeper:test-only@localhost:5432/slotkeeper_test"
 )
@@ -71,7 +74,7 @@ def signed(private_key: rsa.RSAPrivateKey) -> Iterator[Signer]:
             "aud": settings.client_id,
             "azp": settings.client_id,
             "typ": "Bearer",
-            "realm_access": {"roles": ["admin"] if admin else []},
+            "realm_access": {"roles": [IdentityGroup.ADMIN] if admin else []},
         }
         claims.update(overrides)
         return {"Authorization": "Bearer " + jwt.encode(claims, private_key, algorithm="RS256")}
@@ -116,8 +119,12 @@ def timer() -> Iterator[FixedClock]:
 def resource(database: None, client: TestClient, signed: Signer) -> dict[str, Any]:
     response = client.post(
         "/resources",
-        headers=signed("admin", True),
-        json={"name": "試験資源 " + str(uuid4()), "description": "合成データ", "kind": "room"},
+        headers=signed("manager", True),
+        json={
+            "name": "試験資源 " + str(uuid4()),
+            "description": "合成データ",
+            "kind": ResourceKind.ROOM,
+        },
     )
     assert response.status_code == 201, response.text
     body: dict[str, Any] = response.json()

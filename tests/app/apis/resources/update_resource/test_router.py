@@ -14,6 +14,8 @@ from fastapi.testclient import TestClient
 
 from app.apis.base import sample_value
 from app.apis.exceptions import ApiFunctionError
+from app.apis.reservations.common import ReservationStatus
+from app.apis.resources.common import ResourceKind
 from app.apis.resources.update_resource.samples import (
     UPDATE_RESOURCE_REQUEST_SAMPLE,
     UPDATE_RESOURCE_RESPONSE_SAMPLE,
@@ -37,7 +39,7 @@ def test_versions_and_inactive(
 ) -> None:
     """Given 古い資源版と無効資源 When 更新と作成 Then 409で先行更新維持。 [SLOT-AC05] [SLOT-AC11]"""
     url = "/resources/" + resource["resourceId"]
-    admin = signed("admin", True)
+    admin = signed("manager", True)
     assert (
         client.put(url, headers=admin, json=edit_payload(resource, active=False)).status_code == 200
     )
@@ -54,7 +56,7 @@ def test_future_prevents_disable(
     assert create_reservation(client, signed, booking).status_code == 201
     response = client.put(
         "/resources/" + resource["resourceId"],
-        headers=signed("admin", True),
+        headers=signed("manager", True),
         json=edit_payload(resource, active=False),
     )
     assert response.status_code == 409
@@ -75,7 +77,7 @@ def test_create_vs_disable(
         barrier.wait()
         return client.put(
             "/resources/" + resource["resourceId"],
-            headers=signed("admin", True),
+            headers=signed("manager", True),
             json=edit_payload(resource, active=False),
         )
 
@@ -98,12 +100,12 @@ def test_disable_after_start_keeps_record(
     timer.value = timer.value.replace(day=26, hour=1, minute=30)
     response = client.put(
         "/resources/" + resource["resourceId"],
-        headers=signed("admin", True),
+        headers=signed("manager", True),
         json=edit_payload(resource, active=False),
     )
     assert response.status_code == 200, response.text
     kept = client.get("/reservations/" + reservation["reservationId"], headers=signed()).json()
-    assert kept["reservation"]["status"] == "confirmed"
+    assert kept["reservation"]["status"] == ReservationStatus.CONFIRMED
     later = {**booking, "startAt": "2026-09-26T05:00:00Z", "endAt": "2026-09-26T06:00:00Z"}
     assert create_reservation(client, signed, later).status_code == 409
     future = client.get("/reservations?future=true&limit=100", headers=signed()).json()["items"]
@@ -112,8 +114,14 @@ def test_disable_after_start_keeps_record(
 
 def test_missing_resource_returns_404(client: TestClient, signed: Signer, database: None) -> None:
     """Given 存在しない資源 When 編集 Then 404で区別する。 [COM-03-AC]"""
-    edit = {"name": "なし", "description": "", "kind": "room", "active": True, "version": 1}
-    response = client.put("/resources/" + str(uuid4()), headers=signed("admin", True), json=edit)
+    edit = {
+        "name": "なし",
+        "description": "",
+        "kind": ResourceKind.ROOM,
+        "active": True,
+        "version": 1,
+    }
+    response = client.put("/resources/" + str(uuid4()), headers=signed("manager", True), json=edit)
     assert response.status_code == 404
     assert error_reason(response) == "resource_not_found"
 
@@ -128,10 +136,10 @@ async def test_update_resource_router_returns_sample_shaped_response_with_db(
 ) -> None:
     """Given 版1の資源 When 標本requestで編集 Then 標本と同じ形で版2の資源を返し保存する。 [SLOT-01-AC] [SLOT-AC11]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     response = await router_db_harness.client.put(
         "/resources/" + resource["resourceId"],
-        headers=router_auth_headers("admin", True),
+        headers=router_auth_headers("manager", True),
         json=sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE),
     )
 
@@ -170,7 +178,7 @@ async def test_update_resource_sample_request_emits_router_error_log_to_stdio(
         ),
         message_id="updateResource.router_api_function_error",
         catalog_id="M004",
-        headers=router_auth_headers("admin", True),
+        headers=router_auth_headers("manager", True),
     )
 
 
@@ -186,7 +194,7 @@ async def test_tc001_update_resource_router_matches_unit_test_gen(
 ) -> None:
     """Given 一般利用者 When 資源編集 Then 403で運用ログを出す。 [SLOT-01-AC] [COM-04-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.put(
             "/resources/" + resource["resourceId"],
@@ -212,11 +220,11 @@ async def test_tc002_update_resource_router_matches_unit_test_gen(
 ) -> None:
     """Given 版1の資源 When 版2を指定して編集 Then 409で運用ログを出す。 [SLOT-AC11]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.put(
             "/resources/" + resource["resourceId"],
-            headers=router_auth_headers("admin", True),
+            headers=router_auth_headers("manager", True),
             json={**sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE), "version": 2},
         )
 
@@ -241,14 +249,14 @@ async def test_tc003_update_resource_router_matches_unit_test_gen(
 ) -> None:
     """Given 将来予約のある資源 When 無効化 Then 409で運用ログを出す。 [SLOT-AC05] [RULE-08-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     await router_seed_reservation(
         router_db_harness, router_auth_headers("alice"), resource["resourceId"]
     )
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.put(
             "/resources/" + resource["resourceId"],
-            headers=router_auth_headers("admin", True),
+            headers=router_auth_headers("manager", True),
             json={**sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE), "active": False},
         )
 
@@ -270,10 +278,10 @@ async def test_tc004_update_resource_router_matches_unit_test_gen(
 ) -> None:
     """Given 将来予約のない資源 When 無効化 Then 200で無効な資源を返す。 [SLOT-01-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     response = await router_db_harness.client.put(
         "/resources/" + resource["resourceId"],
-        headers=router_auth_headers("admin", True),
+        headers=router_auth_headers("manager", True),
         json={**sample_value(UPDATE_RESOURCE_REQUEST_SAMPLE), "active": False},
     )
 
@@ -301,7 +309,7 @@ async def test_tc005_update_resource_router_matches_unit_test_gen(
         "app.apis.resources.update_resource.functions.update_resource_control_version",
         raise_expected_error,
     )
-    headers = router_auth_headers("admin", True)
+    headers = router_auth_headers("manager", True)
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.put(
             "/resources/" + str(uuid4()),
@@ -338,7 +346,7 @@ async def test_tc006_update_resource_router_matches_unit_test_gen(
         "app.apis.resources.update_resource.functions.update_resource_control_version",
         raise_expected_error,
     )
-    headers = router_auth_headers("admin", True)
+    headers = router_auth_headers("manager", True)
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.put(
             "/resources/" + str(uuid4()),
@@ -375,7 +383,7 @@ async def test_tc007_update_resource_router_matches_unit_test_gen(
         "app.apis.resources.update_resource.functions.update_resource_control_version",
         raise_expected_error,
     )
-    headers = router_auth_headers("admin", True)
+    headers = router_auth_headers("manager", True)
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.put(
             "/resources/" + str(uuid4()),

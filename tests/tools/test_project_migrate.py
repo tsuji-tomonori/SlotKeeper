@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import pytest
 
+from app.apis.resources.common import ResourceKind
 from tests.helpers import count_rows, db_connect
 
 pytestmark = pytest.mark.db
@@ -21,7 +22,7 @@ def test_migrate_and_seed_repeat(database: None) -> None:
             "INSERT INTO slotkeeper.resources"
             "(resource_id,name,description,kind,active,row_version,control_version)"
             " VALUES (%s,%s,'',%s,true,1,0)",
-            (marker, "保持確認 " + marker, "room"),
+            (marker, "保持確認 " + marker, ResourceKind.ROOM),
         )
     for _ in range(2):
         migrate()

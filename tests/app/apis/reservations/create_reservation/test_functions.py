@@ -8,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.apis.exceptions import ApiFunctionError
+from app.apis.reservations.common import ReservationStatus
 from app.apis.reservations.create_reservation import functions
 from app.apis.reservations.create_reservation.generated import queries
 from app.apis.reservations.create_reservation.schemas import CreateReservationRequest
@@ -112,7 +113,7 @@ def reservation_row(**overrides: object) -> queries.InsertReservationsRow:
         "start_at": NOW + timedelta(days=1),
         "end_at": NOW + timedelta(days=1, hours=1),
         "purpose": "会議",
-        "status": "confirmed",
+        "status": ReservationStatus.CONFIRMED,
         "row_version": 1,
     }
     values.update(overrides)

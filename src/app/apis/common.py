@@ -39,7 +39,7 @@ def _page_token_values(token: str) -> object:
     try:
         padded = token + "=" * (-len(token) % 4)
         return json.loads(base64.urlsafe_b64decode(padded.encode()))
-    except (binascii.Error, UnicodeDecodeError, ValueError):
+    except binascii.Error, UnicodeDecodeError, ValueError:
         return None
 
 

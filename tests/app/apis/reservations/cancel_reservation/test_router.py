@@ -20,6 +20,7 @@ from app.apis.reservations.cancel_reservation.samples import (
     CANCEL_RESERVATION_RESPONSE_SAMPLE,
     CANCEL_RESERVATION_STATUS_SAMPLES,
 )
+from app.apis.reservations.common import ReservationAction, ReservationStatus
 from app.integrations.common_errors import ExternalApiError
 from tests.app.apis.router_db import RouterDbHarness
 from tests.conftest import FixedClock
@@ -47,7 +48,7 @@ def test_privacy_and_cancel(
     ).json()["items"]
     assert all(set(row) == {"startAt", "endAt", "label"} for row in schedule)
     response = cancel(client, signed(), reservation_id, 1)
-    assert response.json()["status"] == "cancelled"
+    assert response.json()["status"] == ReservationStatus.CANCELLED
     assert (
         len(client.get("/reservations/" + reservation_id, headers=signed()).json()["events"]) == 2
     )
@@ -77,14 +78,14 @@ def test_admin_cancels_other_before_start(
 ) -> None:
     """Given Aの開始前予約 When 管理者が取消 Then 取消と履歴2件、開始後は管理者も拒否。 [SLOT-AC04] [SLOT-07-AC] [RULE-09-AC]"""
     reservation_id = create_reservation(client, signed, booking).json()["reservationId"]
-    admin = signed("admin", True)
+    admin = signed("manager", True)
     detail = client.get("/reservations/" + reservation_id, headers=admin)
     assert detail.status_code == 200
     assert detail.json()["reservation"]["purpose"] == booking["purpose"]
     timer.value += timedelta(minutes=5)
     assert cancel(client, admin, reservation_id, 1).status_code == 200
     events = client.get("/reservations/" + reservation_id, headers=signed()).json()["events"]
-    assert [e["action"] for e in events] == ["created", "cancelled"]
+    assert [e["action"] for e in events] == [ReservationAction.CREATED, ReservationAction.CANCELLED]
     started = create_reservation(
         client,
         signed,
@@ -143,7 +144,7 @@ async def seeded_reservation(
     router_seed_reservation: Callable[..., Any],
 ) -> dict[str, Any]:
     """aliceの開始前予約を1件用意する。"""
-    resource = await router_seed_resource(harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(harness, router_auth_headers("manager", True))
     reservation: dict[str, Any] = await router_seed_reservation(
         harness, router_auth_headers("alice"), resource["resourceId"]
     )
@@ -185,7 +186,7 @@ async def test_cancel_reservation_router_returns_sample_shaped_response_with_db(
     factory = router_db_harness.session_factory
     where = {"reservation_id": reservation["reservationId"]}
     row = await router_fetch_one(factory, "reservations", where)
-    assert row is not None and row["status"] == "cancelled"
+    assert row is not None and row["status"] == ReservationStatus.CANCELLED
     assert await router_count_rows(factory, "reservation_events", where) == 2
     resource_where = {"resource_id": reservation["resourceId"]}
     assert await router_count_rows(factory, "resources", resource_where) == 1
@@ -360,7 +361,7 @@ async def test_tc005_cancel_reservation_router_matches_unit_test_gen(
     )
 
     assert response.status_code == 200, response.text
-    assert response.json()["status"] == "cancelled"
+    assert response.json()["status"] == ReservationStatus.CANCELLED
 
 
 @pytest.mark.anyio

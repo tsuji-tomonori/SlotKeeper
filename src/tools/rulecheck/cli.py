@@ -99,7 +99,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args.rules_dir = args.rules_dir.resolve()
     args.checklist = getattr(args, "checklist", Path(".")).resolve()
     args.config = args.config.resolve() if getattr(args, "config", None) is not None else None
-    return args.func(args)
+    result: int = args.func(args)
+    return result
 
 
 if __name__ == "__main__":

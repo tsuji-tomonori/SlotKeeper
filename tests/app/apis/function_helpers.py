@@ -12,12 +12,13 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 
+from app.apis.common import IdentityGroup
 from app.apis.sequence_types import CallerIdentity
 
 NOW = datetime(2026, 9, 25, 0, 0, tzinfo=UTC)
 ALICE = CallerIdentity(principal_id="alice", groups=())
 BOB = CallerIdentity(principal_id="bob", groups=())
-ADMIN = CallerIdentity(principal_id="admin", groups=("admin",))
+ADMIN = CallerIdentity(principal_id="manager", groups=(IdentityGroup.ADMIN,))
 
 
 class FixedClock:

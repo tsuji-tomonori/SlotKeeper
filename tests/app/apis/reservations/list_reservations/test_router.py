@@ -102,7 +102,7 @@ async def test_list_reservations_router_returns_sample_shaped_response_with_db(
     """Given 利用者固有の予約1件 When 標本queryで一覧取得 Then 標本と同じ形で本人の予約だけを返す。 [SLOT-AC08]"""
     _ = timer
     principal = "list-sample-" + str(uuid4())
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     reservation = await router_seed_reservation(
         router_db_harness, router_auth_headers(principal), resource["resourceId"]
     )

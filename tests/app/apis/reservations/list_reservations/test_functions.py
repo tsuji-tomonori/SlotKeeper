@@ -7,6 +7,7 @@ from datetime import date, timedelta
 import pytest
 
 from app.apis.exceptions import ApiFunctionError
+from app.apis.reservations.common import ReservationStatus
 from app.apis.reservations.list_reservations import functions
 from app.apis.reservations.list_reservations.generated import queries
 from app.apis.reservations.list_reservations.schemas import ListReservationsQuery
@@ -30,7 +31,7 @@ def row(index: int) -> queries.SelectReservationsRow:
         start_at=NOW + timedelta(days=1, hours=index),
         end_at=NOW + timedelta(days=1, hours=index + 1),
         purpose="会議",
-        status="confirmed",
+        status=ReservationStatus.CONFIRMED,
         row_version=1,
     )
 

@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from app.apis.base import sample_value
 from app.apis.exceptions import ApiFunctionError
+from app.apis.reservations.common import ReservationAction
 from app.apis.reservations.get_reservation.samples import (
     GET_RESERVATION_RESPONSE_SAMPLE,
     GET_RESERVATION_STATUS_SAMPLES,
@@ -31,8 +32,8 @@ def test_owner_and_admin_view_history(
     reservation_id = create_reservation(client, signed, booking).json()["reservationId"]
     own = client.get("/reservations/" + reservation_id, headers=signed())
     assert own.status_code == 200
-    assert [e["action"] for e in own.json()["events"]] == ["created"]
-    admin = client.get("/reservations/" + reservation_id, headers=signed("admin", True))
+    assert [e["action"] for e in own.json()["events"]] == [ReservationAction.CREATED]
+    admin = client.get("/reservations/" + reservation_id, headers=signed("manager", True))
     assert admin.json()["reservation"]["purpose"] == booking["purpose"]
     other = client.get("/reservations/" + reservation_id, headers=signed("bob"))
     assert other.status_code == 403
@@ -59,7 +60,7 @@ async def test_get_reservation_router_returns_sample_shaped_response_with_db(
 ) -> None:
     """Given aliceの予約 When 本人が詳細取得 Then 標本と同じ形で予約と作成履歴を返す。 [SLOT-07-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     reservation = await router_seed_reservation(
         router_db_harness, router_auth_headers("alice"), resource["resourceId"]
     )
@@ -116,7 +117,7 @@ async def test_tc001_get_reservation_router_matches_unit_test_gen(
 ) -> None:
     """Given aliceの予約 When bobが詳細取得 Then 403で運用ログを出す。 [SLOT-07-AC] [COM-04-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     reservation = await router_seed_reservation(
         router_db_harness, router_auth_headers("alice"), resource["resourceId"]
     )
@@ -145,13 +146,13 @@ async def test_tc002_get_reservation_router_matches_unit_test_gen(
 ) -> None:
     """Given aliceの予約 When 管理者が詳細取得 Then 200で目的を含む詳細を返す。 [SLOT-07-AC] [RULE-09-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     reservation = await router_seed_reservation(
         router_db_harness, router_auth_headers("alice"), resource["resourceId"]
     )
     response = await router_db_harness.client.get(
         "/reservations/" + reservation["reservationId"],
-        headers=router_auth_headers("admin", True),
+        headers=router_auth_headers("manager", True),
     )
 
     assert response.status_code == 200, response.text

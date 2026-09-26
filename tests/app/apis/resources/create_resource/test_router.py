@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from app.apis.base import sample_value
 from app.apis.exceptions import ApiFunctionError
+from app.apis.resources.common import ResourceKind
 from app.apis.resources.create_resource.samples import (
     CREATE_RESOURCE_REQUEST_SAMPLE,
     CREATE_RESOURCE_RESPONSE_SAMPLE,
@@ -35,13 +36,15 @@ def test_admin_creates_active_resource(client: TestClient, signed: Signer, datab
     """Given 管理者 When 前後空白つきの資源名で登録 Then 201で空白を除き有効な初期版を返す。 [SLOT-01-AC] [RULE-14-AC]"""
     response = client.post(
         "/resources",
-        json={"name": "  会議室 登録確認  ", "description": "", "kind": "equipment"},
-        headers=signed("admin", True),
+        json={"name": "  会議室 登録確認  ", "description": "", "kind": ResourceKind.EQUIPMENT},
+        headers=signed("manager", True),
     )
     assert response.status_code == 201, response.text
     body = response.json()
     assert body["name"] == "会議室 登録確認"
-    assert body["active"] is True and body["version"] == 1 and body["kind"] == "equipment"
+    assert (
+        body["active"] is True and body["version"] == 1 and body["kind"] == ResourceKind.EQUIPMENT
+    )
 
 
 @pytest.mark.anyio
@@ -53,7 +56,7 @@ async def test_create_resource_router_returns_sample_shaped_response_with_db(
     """Given 管理者 When 標本requestで資源登録 Then 標本と同じ形の応答を返し資源を保存する。 [SLOT-01-AC]"""
     response = await router_db_harness.client.post(
         "/resources",
-        headers=router_auth_headers("admin", True),
+        headers=router_auth_headers("manager", True),
         json=sample_value(CREATE_RESOURCE_REQUEST_SAMPLE),
     )
 
@@ -88,7 +91,7 @@ async def test_create_resource_sample_request_emits_router_error_log_to_stdio(
         patch_target="app.apis.resources.create_resource.functions.save_resource",
         message_id="createResource.router_api_function_error",
         catalog_id="M002",
-        headers=router_auth_headers("admin", True),
+        headers=router_auth_headers("manager", True),
     )
 
 
@@ -123,7 +126,7 @@ async def test_tc002_create_resource_router_matches_unit_test_gen(
     """Given 管理者 When 資源登録 Then 201で有効な資源を返す。 [SLOT-01-AC]"""
     response = await router_db_harness.client.post(
         "/resources",
-        headers=router_auth_headers("admin", True),
+        headers=router_auth_headers("manager", True),
         json=sample_value(CREATE_RESOURCE_REQUEST_SAMPLE),
     )
 
@@ -151,7 +154,7 @@ async def test_tc003_create_resource_router_matches_unit_test_gen(
         "app.apis.resources.create_resource.functions.save_resource",
         raise_expected_error,
     )
-    headers = router_auth_headers("admin", True)
+    headers = router_auth_headers("manager", True)
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.post(
             "/resources", headers=headers, json=sample_value(CREATE_RESOURCE_REQUEST_SAMPLE)
@@ -186,7 +189,7 @@ async def test_tc004_create_resource_router_matches_unit_test_gen(
         "app.apis.resources.create_resource.functions.save_resource",
         raise_expected_error,
     )
-    headers = router_auth_headers("admin", True)
+    headers = router_auth_headers("manager", True)
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.post(
             "/resources", headers=headers, json=sample_value(CREATE_RESOURCE_REQUEST_SAMPLE)
@@ -221,7 +224,7 @@ async def test_tc005_create_resource_router_matches_unit_test_gen(
         "app.apis.resources.create_resource.functions.save_resource",
         raise_expected_error,
     )
-    headers = router_auth_headers("admin", True)
+    headers = router_auth_headers("manager", True)
     with capture_router_logs(capsys) as find_log_event:
         response = await router_db_harness.client.post(
             "/resources", headers=headers, json=sample_value(CREATE_RESOURCE_REQUEST_SAMPLE)

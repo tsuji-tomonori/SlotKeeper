@@ -34,7 +34,7 @@ def test_schedule_hides_other_details(
     assert others[0]["label"] == "予約済み"
     own = client.get(url, headers=signed()).json()["items"]
     assert own[0]["reservation"]["purpose"] == booking["purpose"]
-    admin = client.get(url, headers=signed("admin", True)).json()["items"]
+    admin = client.get(url, headers=signed("manager", True)).json()["items"]
     assert admin[0]["reservation"]["ownerPrincipalId"] == "alice"
 
 
@@ -58,7 +58,7 @@ async def test_get_resource_schedule_router_returns_sample_shaped_response_with_
 ) -> None:
     """Given aliceとbobの予約 When aliceが標本queryで予約表取得 Then 標本と同じ形で自分の詳細だけを返す。 [SLOT-02-AC] [RULE-09-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     own = await router_seed_reservation(
         router_db_harness, router_auth_headers("alice"), resource["resourceId"]
     )
@@ -123,7 +123,7 @@ async def test_tc001_get_resource_schedule_router_matches_unit_test_gen(
 ) -> None:
     """Given 予約のない資源 When 予約表取得 Then 200で空の予約表を返す。 [SLOT-02-AC]"""
     _ = timer
-    resource = await router_seed_resource(router_db_harness, router_auth_headers("admin", True))
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     response = await router_db_harness.client.get(
         "/resources/" + resource["resourceId"] + "/schedule",
         headers=router_auth_headers("alice"),

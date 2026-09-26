@@ -7,21 +7,30 @@ from app.core.config import Settings
 from app.integrations.identity.schemas import AccessTokenRejectedError, VerifiedPrincipal
 
 
+def _cognito_roles(claims: Mapping[str, Any], config: Settings) -> object:
+    """Cognito access tokenの用途とclientを検証し、groupを返す。"""
+    if claims.get("token_use") != "access" or claims.get("client_id") != config.client_id:
+        raise AccessTokenRejectedError("invalid_token")
+    return claims.get("cognito:groups", [])
+
+
+def _oidc_roles(claims: Mapping[str, Any], config: Settings) -> object:
+    """ローカルOIDC access tokenのclientと種別を検証し、realm roleを返す。"""
+    if claims.get("azp") != config.client_id or claims.get("typ") != "Bearer":
+        raise AccessTokenRejectedError("invalid_token")
+    realm_access: object = claims.get("realm_access", {})
+    if not isinstance(realm_access, dict):
+        return None
+    return cast(dict[str, object], realm_access).get("roles", [])
+
+
 def to_verified_principal(claims: Mapping[str, Any], config: Settings) -> VerifiedPrincipal:
     """CognitoとローカルOIDCのclaimを共通の利用者へ変換し、用途とclientを検証する。"""
-    if config.auth_mode == "cognito":
-        if claims.get("token_use") != "access" or claims.get("client_id") != config.client_id:
-            raise AccessTokenRejectedError("invalid_token")
-        roles: object = claims.get("cognito:groups", [])
-    else:
-        if claims.get("azp") != config.client_id or claims.get("typ") != "Bearer":
-            raise AccessTokenRejectedError("invalid_token")
-        realm_access: object = claims.get("realm_access", {})
-        roles = (
-            cast(dict[str, object], realm_access).get("roles", [])
-            if isinstance(realm_access, dict)
-            else None
-        )
+    roles = (
+        _cognito_roles(claims, config)
+        if config.auth_mode == "cognito"
+        else _oidc_roles(claims, config)
+    )
     subject = claims.get("sub")
     if not isinstance(subject, str) or not subject or not isinstance(roles, list):
         raise AccessTokenRejectedError("invalid_token")

@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 
 from app.apis.exceptions import ApiFunctionError
 from app.apis.responses import ErrorBody, ErrorDetail, ErrorResponse
-from app.apis.sequence_types import CallerIdentity, RequestContext
+from app.apis.sequence_types import CallerIdentity
 from app.core.logging import current_log_context
 from app.integrations.common_errors import (
     ExternalApiConflictError,
@@ -53,12 +53,12 @@ def api_error_response(
     body = ErrorResponse(
         error=ErrorBody(
             code=_error_code(status_code),
-            message=_client_action_message(status_code, detail),
+            message=client_action_message(status_code, detail),
             details=[
                 ErrorDetail(
                     reason=detail,
                     status_code=status_code,
-                    retryable=_is_retryable_status(status_code),
+                    retryable=is_retryable_status(status_code),
                     reference=trace_id,
                     resource=resource,
                 )
@@ -115,7 +115,6 @@ def router_log_context(
     status_code: int,
     detail: str,
     caller: CallerIdentity | None = None,
-    request_context: RequestContext | None = None,
     resource: dict[str, Any] | None = None,
     error: BaseException | None = None,
 ) -> dict[str, Any]:
@@ -129,13 +128,6 @@ def router_log_context(
     }
     if caller is not None:
         context["actorPrincipalId"] = caller.principal_id
-    if request_context is not None:
-        context["traceId"] = request_context.correlation_id
-        context["request"] = {
-            "sourceIp": request_context.source_ip,
-            "userAgent": request_context.user_agent,
-            "actorType": request_context.actor_type,
-        }
     if resource:
         context["resource"] = resource
     if error is not None:
@@ -187,58 +179,59 @@ def _error_code(status_code: int) -> str:
     return error_code_for_status(status_code)
 
 
-def _client_action_message(status_code: int, detail: str) -> str:
-    if status_code == status.HTTP_400_BAD_REQUEST:
-        return f"リクエスト内容を修正して再送してください。理由: {detail}"
-    if status_code == status.HTTP_401_UNAUTHORIZED:
-        return "認証情報を確認し、有効な認証情報で再送してください。"
-    if status_code == status.HTTP_403_FORBIDDEN:
-        return "操作権限を確認し、必要な権限を持つ利用者で再送してください。"
-    if status_code == status.HTTP_404_NOT_FOUND:
-        return "指定したリソースIDが正しいか確認してから再送してください。"
-    if status_code == status.HTTP_409_CONFLICT:
-        return (
-            f"リソースの最新状態またはIdempotency-Keyを確認してから再送してください。理由: {detail}"
-        )
-    if status_code == status.HTTP_422_UNPROCESSABLE_CONTENT:
-        return "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。"
-    if status_code == status.HTTP_429_TOO_MANY_REQUESTS:
-        return "呼び出し頻度を下げ、時間をおいてから再送してください。"
-    if status_code == status.HTTP_502_BAD_GATEWAY:
-        return (
-            "外部サービス連携で失敗しました。時間をおいて再送し、"
-            "解消しない場合は追跡IDを添えて問い合わせてください。"
-        )
-    if status_code == status.HTTP_503_SERVICE_UNAVAILABLE:
-        return "一時的に処理できません。時間をおいて同じリクエストを再送してください。"
-    return "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。"
-
-
-def _is_retryable_status(status_code: int) -> bool:
-    return status_code in {
+ERROR_CODES: dict[int, str] = {
+    status.HTTP_400_BAD_REQUEST: "BAD_REQUEST",
+    status.HTTP_401_UNAUTHORIZED: "UNAUTHORIZED",
+    status.HTTP_403_FORBIDDEN: "FORBIDDEN",
+    status.HTTP_404_NOT_FOUND: "NOT_FOUND",
+    status.HTTP_409_CONFLICT: "CONFLICT",
+    status.HTTP_422_UNPROCESSABLE_CONTENT: "VALIDATION_ERROR",
+    status.HTTP_429_TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS",
+    status.HTTP_502_BAD_GATEWAY: "BAD_GATEWAY",
+    status.HTTP_503_SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
+}
+CLIENT_ACTION_MESSAGES: dict[int, str] = {
+    status.HTTP_400_BAD_REQUEST: "リクエスト内容を修正して再送してください。理由: {detail}",
+    status.HTTP_401_UNAUTHORIZED: "認証情報を確認し、有効な認証情報で再送してください。",
+    status.HTTP_403_FORBIDDEN: "操作権限を確認し、必要な権限を持つ利用者で再送してください。",
+    status.HTTP_404_NOT_FOUND: "指定したリソースIDが正しいか確認してから再送してください。",
+    status.HTTP_409_CONFLICT: (
+        "リソースの最新状態またはIdempotency-Keyを確認してから再送してください。理由: {detail}"
+    ),
+    status.HTTP_422_UNPROCESSABLE_CONTENT: (
+        "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。"
+    ),
+    status.HTTP_429_TOO_MANY_REQUESTS: "呼び出し頻度を下げ、時間をおいてから再送してください。",
+    status.HTTP_502_BAD_GATEWAY: (
+        "外部サービス連携で失敗しました。時間をおいて再送し、"
+        "解消しない場合は追跡IDを添えて問い合わせてください。"
+    ),
+    status.HTTP_503_SERVICE_UNAVAILABLE: (
+        "一時的に処理できません。時間をおいて同じリクエストを再送してください。"
+    ),
+}
+DEFAULT_CLIENT_ACTION_MESSAGE = "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。"
+RETRYABLE_STATUSES = frozenset(
+    {
         status.HTTP_429_TOO_MANY_REQUESTS,
         status.HTTP_502_BAD_GATEWAY,
         status.HTTP_503_SERVICE_UNAVAILABLE,
     }
+)
+
+
+def client_action_message(status_code: int, detail: str) -> str:
+    """利用者が次に確認・修正・再試行すべき内容をstatusごとに返す。"""
+    return CLIENT_ACTION_MESSAGES.get(status_code, DEFAULT_CLIENT_ACTION_MESSAGE).format(
+        detail=detail
+    )
+
+
+def is_retryable_status(status_code: int) -> bool:
+    """同じリクエストの再送で解消する可能性があるstatusかを返す。"""
+    return status_code in RETRYABLE_STATUSES
 
 
 def error_code_for_status(status_code: int) -> str:
-    if status_code == status.HTTP_400_BAD_REQUEST:
-        return "BAD_REQUEST"
-    if status_code == status.HTTP_401_UNAUTHORIZED:
-        return "UNAUTHORIZED"
-    if status_code == status.HTTP_403_FORBIDDEN:
-        return "FORBIDDEN"
-    if status_code == status.HTTP_404_NOT_FOUND:
-        return "NOT_FOUND"
-    if status_code == status.HTTP_409_CONFLICT:
-        return "CONFLICT"
-    if status_code == status.HTTP_422_UNPROCESSABLE_CONTENT:
-        return "VALIDATION_ERROR"
-    if status_code == status.HTTP_429_TOO_MANY_REQUESTS:
-        return "TOO_MANY_REQUESTS"
-    if status_code == status.HTTP_502_BAD_GATEWAY:
-        return "BAD_GATEWAY"
-    if status_code == status.HTTP_503_SERVICE_UNAVAILABLE:
-        return "SERVICE_UNAVAILABLE"
-    return "INTERNAL_SERVER_ERROR"
+    """HTTP statusを機械判定用のエラーコードへ変換する。"""
+    return ERROR_CODES.get(status_code, "INTERNAL_SERVER_ERROR")

@@ -5,7 +5,9 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from app.apis.common import IdentityGroup
 from app.apis.exceptions import ApiFunctionError
+from app.apis.resources.common import ResourceKind
 from app.apis.resources.create_resource import functions
 from app.apis.resources.create_resource.generated import queries
 from app.apis.resources.create_resource.schemas import CreateResourceRequest
@@ -31,7 +33,7 @@ def test_description_limit() -> None:
 async def test_only_admin_manages_resources() -> None:
     """Given 一般利用者と管理者 When 資源管理権限を判定 Then 管理者だけ許可する。 [SLOT-01-AC] [COM-04-AC]"""
     user = CallerIdentity(principal_id="alice", groups=())
-    admin = CallerIdentity(principal_id="admin", groups=("admin",))
+    admin = CallerIdentity(principal_id="manager", groups=(IdentityGroup.ADMIN,))
     assert not await functions.has_resource_management_permission(user)
     assert await functions.has_resource_management_permission(admin)
 
@@ -44,7 +46,7 @@ async def test_save_resource_and_builders(monkeypatch: pytest.MonkeyPatch) -> No
         resource_id="resource",
         name="会議室",
         description="",
-        kind="room",
+        kind=ResourceKind.ROOM,
         active=True,
         row_version=1,
     )

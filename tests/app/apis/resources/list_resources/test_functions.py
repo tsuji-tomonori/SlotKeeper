@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.apis.exceptions import ApiFunctionError
+from app.apis.resources.common import ResourceKind
 from app.apis.resources.list_resources import functions
 from app.apis.resources.list_resources.generated import queries
 from app.apis.resources.list_resources.schemas import ListResourcesQuery
@@ -18,7 +19,7 @@ def row(name: str, resource_id: str) -> queries.SelectResourcesRow:
         resource_id=resource_id,
         name=name,
         description="",
-        kind="room",
+        kind=ResourceKind.ROOM,
         active=True,
         row_version=1,
     )

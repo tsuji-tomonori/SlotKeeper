@@ -578,9 +578,7 @@ def render_coverage_summary(variants: Sequence[E2eComponentVariant]) -> list[str
         "|---|---:|---:|---:|---:|",
     ]
     covered_variants = {
-        variant_id
-        for target_case in TARGET_CASES
-        for variant_id in target_case.selected_variants
+        variant_id for target_case in TARGET_CASES for variant_id in target_case.selected_variants
     }
     for component in COMPONENT_IDS:
         component_variants = [
@@ -588,14 +586,10 @@ def render_coverage_summary(variants: Sequence[E2eComponentVariant]) -> list[str
         ]
         covered = [variant for variant in component_variants if variant in covered_variants]
         component_cases = [
-            target_case
-            for target_case in TARGET_CASES
-            if target_case.goal_component == component
+            target_case for target_case in TARGET_CASES if target_case.goal_component == component
         ]
         coverage = (
-            f"{len(covered) / len(component_variants) * 100:.1f}%"
-            if component_variants
-            else "-"
+            f"{len(covered) / len(component_variants) * 100:.1f}%" if component_variants else "-"
         )
         lines.append(
             f"| `{component}` | {len(component_variants)} | {len(covered)} | "

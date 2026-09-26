@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.apis.exceptions import ApiFunctionError
+from app.apis.resources.common import ResourceKind
 from app.apis.resources.update_resource import functions
 from app.apis.resources.update_resource.generated import queries
 from app.apis.resources.update_resource.schemas import UpdateResourceRequest
@@ -60,7 +61,7 @@ async def test_update_resource_and_builders(monkeypatch: pytest.MonkeyPatch) -> 
         resource_id="resource",
         name="会議室",
         description="",
-        kind="room",
+        kind=ResourceKind.ROOM,
         active=False,
         row_version=2,
     )

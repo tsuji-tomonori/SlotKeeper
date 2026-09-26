@@ -10,6 +10,7 @@ import httpx
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.apis.resources.common import ResourceKind
 from app.core.config import settings
 from app.db.session import create_async_db_engine, create_session_factory
 from app.main import app
@@ -89,7 +90,11 @@ async def seed_resource(
     created = await harness.client.post(
         "/resources",
         headers=dict(admin_headers),
-        json={"name": name or "router試験 " + str(uuid4()), "description": "", "kind": "room"},
+        json={
+            "name": name or "router試験 " + str(uuid4()),
+            "description": "",
+            "kind": ResourceKind.ROOM,
+        },
     )
     assert created.status_code == 201, created.text
     resource: dict[str, Any] = created.json()
