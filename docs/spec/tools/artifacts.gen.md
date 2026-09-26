@@ -6,7 +6,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `generate_queries` | codegen | `src/app/apis/*/*/sql/*.sql`<br>`src/db/ddl.sql` | `src/app/apis/*/*/generated/queries.py`<br>`src/app/apis/*/*/queries.py` | yes | yes |
 | `generate_api_pytest_cases` | codegen | `docs/spec/40.apis/*/*/unit-test_gen.md` | `tests/generated/test_*_*.py` | yes | yes |
-| `generate_openapi_if_specs` | docs | `app.main:create_app().openapi()`<br>`src/app/apis/*/*/samples.py` | `docs/spec/40.apis/*/*/if_gen.md` | yes | yes |
+| `generate_openapi_if_specs` | docs | `app.main:create_app().openapi()`<br>`src/app/apis/*/*/samples.py` | `docs/spec/40.apis/*/*/interface_gen.md` | yes | yes |
 | `generate_api_list` | docs | `app.main:create_app().openapi()` | `docs/spec/40.apis/apis_list_gen.md` | yes | yes |
 | `generate_api_sequences` | docs | `src/app/apis/*/*/router.py`<br>`src/app/apis/*/*/functions.py`<br>`src/app/apis/*/*/generated/queries.py`<br>`src/app/apis/*/*/sql/*.sql` | `docs/spec/40.apis/*/*/sequence_gen.md` | yes | yes |
 | `generate_query_specs` | docs | `src/app/apis/*/*/sql/*.sql`<br>`src/db/ddl.sql` | `docs/spec/40.apis/*/*/query_gen.md` | yes | yes |
@@ -14,9 +14,10 @@
 | `generate_api_unit_test_factors` | docs | `src/app/apis/*/*/router.py`<br>`src/app/apis/*/*/functions.py` | `docs/spec/40.apis/*/*/unit-test_gen.md` | yes | yes |
 | `generate_api_message_catalog` | docs | `src/app/apis/*/*/router.py`<br>`src/app/apis/*/*/functions.py` | `docs/spec/40.apis/*/*/messages_gen.md`<br>`docs/spec/40.apis/messages_index_gen.md` | yes | yes |
 | `generate_e2e_case_list` | docs | `docs/spec/50.e2e/*/targets/**/*.manual.yaml`<br>`docs/spec/50.e2e/*/components/**/*.manual.yaml`<br>`docs/spec/50.e2e/*/rules/*.manual.yaml` | `docs/spec/50.e2e/*/case-list_gen.md`<br>`docs/spec/50.e2e/*/pruned-cases_gen.csv` | yes | yes |
-| `generate_e2e_scenarios` | docs | `docs/spec/50.e2e/*/case-list_gen.md`<br>`docs/spec/50.e2e/*/targets/**/*.manual.yaml`<br>`docs/spec/50.e2e/*/components/**/*.manual.yaml`<br>`docs/spec/50.e2e/*/steps/management_api/*.manual.yaml`<br>`docs/spec/50.e2e/*/steps/runtime_api/*.manual.yaml`<br>`docs/spec/50.e2e/*/templates/**/*.manual.yaml` | `docs/spec/50.e2e/*/cases/*.gen.md` | yes | yes |
+| `generate_e2e_scenarios` | docs | `docs/spec/50.e2e/*/case-list_gen.md`<br>`docs/spec/50.e2e/*/targets/**/*.manual.yaml`<br>`docs/spec/50.e2e/*/components/**/*.manual.yaml`<br>`docs/spec/50.e2e/*/steps/*/*.manual.yaml`<br>`docs/spec/50.e2e/*/templates/**/*.manual.yaml` | `docs/spec/50.e2e/*/cases/*.gen.md` | yes | yes |
 | `generate_db_crud` | docs | `src/app/apis/*/*/sql/*.sql`<br>`src/db/ddl.sql` | `docs/spec/30.crud/db_crud.gen.csv` | yes | yes |
 | `generate_external_crud` | docs | `src/app/apis/*/*/functions.py`<br>`src/app/integrations` | `docs/spec/30.crud/*_crud.gen.csv` | yes | yes |
+| `generate_db_table_specs` | docs | `src/db/ddl.sql` | `docs/spec/20.db/tables/*.gen.md` | yes | yes |
 | `generate_db_er_diagram` | docs | `src/db/ddl.sql` | `docs/spec/20.db/er.gen.md` | yes | yes |
 | `check_api_status_samples` | lint | `src/app/apis/*/*/router.py`<br>`src/app/apis/*/*/samples.py`<br>`app.main:create_app().openapi()` | `stdout` | yes | yes |
 | `check_api_contracts` | lint | `src/app/apis/*/*/contract.py`<br>`src/app/apis/*/*/router.py` | `stdout` | yes | yes |

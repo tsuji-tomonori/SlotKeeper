@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -452,6 +453,8 @@ def sql_action_spec(path: Path) -> SqlSpec | None:
 
 
 def query_specs(queries_path: Path) -> dict[str, QuerySpec]:
+    if not queries_path.exists():
+        return {}
     tree = ast.parse(queries_path.read_text(encoding="utf-8"), filename=str(queries_path))
     specs: dict[str, QuerySpec] = {}
     for node in tree.body:
@@ -1153,10 +1156,17 @@ def render_detail_design_markdown(doc: ApiDetailDesign) -> str:
     lines.extend(["", "## 3. 正常系リソース変更", ""])
     if not doc.resource_changes and not doc.external_inputs:
         lines.append("_正常系で作成/更新/削除するリソースはありません。_")
+    heading_counts = Counter((change.table, change.action) for change in doc.resource_changes)
     for change in doc.resource_changes:
+        # 同じテーブルへの同じ操作が複数SQLにある場合だけ、見出しをSQL名で区別する。
+        suffix = (
+            f" (`{change.sql_filename}`)"
+            if heading_counts[(change.table, change.action)] > 1
+            else ""
+        )
         lines.extend(
             [
-                f"### DB `{change.table}` {change.action}",
+                f"### DB `{change.table}` {change.action}{suffix}",
                 "",
                 f"- SQL: `{change.sql_filename}`",
                 f"- 目的: {markdown_escape(change.summary)}",

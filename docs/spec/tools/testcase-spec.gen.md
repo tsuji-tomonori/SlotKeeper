@@ -32,6 +32,7 @@
 | `generate_e2e_scenarios` | required | required | required | required |
 | `generate_db_crud` | required | required | required | required |
 | `generate_external_crud` | required | required | required | required |
+| `generate_db_table_specs` | required | required | required | required |
 | `generate_db_er_diagram` | required | required | required | required |
 | `check_api_status_samples` | required | required | required | required |
 | `check_api_contracts` | required | required | required | required |

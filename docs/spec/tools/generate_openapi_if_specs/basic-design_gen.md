@@ -15,7 +15,7 @@ FastAPI OpenAPI と samples から API IF 仕様を生成する。
 | 種別 | 内容 |
 | :--- | :--- |
 | 入力 | `app.main:create_app().openapi()`<br>`src/app/apis/*/*/samples.py` |
-| 出力 | `docs/spec/40.apis/*/*/if_gen.md` |
+| 出力 | `docs/spec/40.apis/*/*/interface_gen.md` |
 | check mode | 対応 |
 | CI実行 | 安全 |
 

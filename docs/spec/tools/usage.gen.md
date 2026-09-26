@@ -117,6 +117,14 @@ functions.py の integration port 呼び出しから外部サービス CRUD 表�
 uv run python -m tools.generate_external_crud
 ```
 
+### `generate_db_table_specs`
+
+DDL からテーブル定義書を生成する。
+
+```bash
+uv run python -m tools.generate_db_table_specs
+```
+
 ### `generate_db_er_diagram`
 
 DDL から ER 図を生成する。

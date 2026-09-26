@@ -594,9 +594,9 @@ def test_sample_renderers_format_curl_and_json() -> None:
 
 
 def test_operation_output_path_falls_back_to_default() -> None:
-    assert operation_output_path(Path("out"), {}) == Path("out/default/api/if_gen.md")
+    assert operation_output_path(Path("out"), {}) == Path("out/default/api/interface_gen.md")
     assert operation_output_path(Path("out"), {"summary": "Some API"}) == Path(
-        "out/default/some_api/if_gen.md"
+        "out/default/some_api/interface_gen.md"
     )
 
 
@@ -731,13 +731,13 @@ def test_iter_operations_and_output_path() -> None:
     _path, _method, operation = operations[0]
 
     assert operation_output_path(Path("docs/spec/40.apis"), operation) == (
-        Path("docs/spec/40.apis/admin_users/delete_admin_user/if_gen.md")
+        Path("docs/spec/40.apis/admin_users/delete_admin_user/interface_gen.md")
     )
     assert operation_output_path(
         Path("docs/spec/40.apis"),
         operation,
         {"deleteAdminUser": Path("admin/delete_user")},
-    ) == Path("docs/spec/40.apis/admin/delete_user/if_gen.md")
+    ) == Path("docs/spec/40.apis/admin/delete_user/interface_gen.md")
 
 
 def test_generate_from_openapi_writes_files(tmp_path: Path) -> None:
@@ -753,7 +753,7 @@ def test_generate_from_openapi_writes_files(tmp_path: Path) -> None:
         },
     )
 
-    assert written == [tmp_path / "admin" / "delete_user" / "if_gen.md"]
+    assert written == [tmp_path / "admin" / "delete_user" / "interface_gen.md"]
     content = written[0].read_text(encoding="utf-8")
     assert content.startswith("# DELETE /admin/users/{userId}")
     assert '"reason": "不要"' in content
@@ -792,8 +792,8 @@ def test_arg_parser_defaults_and_main_output(
     main()
 
     assert capsys.readouterr().out == "Generated 1 IF spec files.\n"
-    assert (tmp_path / "admin" / "delete_user" / "if_gen.md").exists()
-    assert '"ok": true' in (tmp_path / "admin" / "delete_user" / "if_gen.md").read_text(
+    assert (tmp_path / "admin" / "delete_user" / "interface_gen.md").exists()
+    assert '"ok": true' in (tmp_path / "admin" / "delete_user" / "interface_gen.md").read_text(
         encoding="utf-8"
     )
 

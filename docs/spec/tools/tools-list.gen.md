@@ -17,6 +17,7 @@
 | `generate_e2e_scenarios` | E2Eケース一覧とstep templateからテストケースごとのシナリオMarkdownを生成する。 |
 | `generate_db_crud` | API 配下 SQL と DDL から DB CRUD 表を生成する。 |
 | `generate_external_crud` | functions.py の integration port 呼び出しから外部サービス CRUD 表を生成する。 |
+| `generate_db_table_specs` | DDL からテーブル定義書を生成する。 |
 | `generate_db_er_diagram` | DDL から ER 図を生成する。 |
 | `check_api_status_samples` | router の declared status と samples/OpenAPI example の整合を検査する。 |
 | `check_api_contracts` | operation contract.py と router operation_id / docs slug の整合を検査する。 |

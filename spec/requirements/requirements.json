@@ -14,7 +14,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-01",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "幅390pxと1280pxで主要操作ができ、ラベル、入力エラー、キーボード操作、可視フォーカスを備える。ページ全体に不要な横スクロールを出さない",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -29,7 +29,7 @@
       "title": "幅390pxと1280pxで主要操作ができ、ラベル、入力エラー、キーボード操作、可視フォーカスを備える。ページ全体に不要な横スクロールを出さない",
       "traces": {
         "design": [
-          "docs/design/generated/FRONTEND.md"
+          "docs/spec/60.frontend/frontend.gen.md"
         ],
         "implementation": [
           "frontend/src/App.tsx",
@@ -68,7 +68,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-02",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "確定済みのデータは再起動後も残る。失敗操作で部分更新を残さない",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -83,17 +83,19 @@
       "title": "確定済みのデータは再起動後も残る。失敗操作で部分更新を残さない",
       "traces": {
         "design": [
-          "docs/design/generated/DATA.md"
+          "docs/spec/20.db/er.gen.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/db.py",
-          "tools/project/migrate.py"
+          "src/app/db/session.py",
+          "src/tools/project/migrate.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/create_reservation/test_router.py",
+          "tests/test_db_session.py",
+          "tests/tools/test_project_migrate.py"
         ]
       },
       "type": "functional",
@@ -114,7 +116,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-03",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "入力をサーバー側でも検証する。入力不正は422を基本とし、未認証401、権限不足403、対象なし404、業務・版競合409を区別する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -129,20 +131,29 @@
       "title": "入力をサーバー側でも検証する。入力不正は422を基本とし、未認証401、権限不足403、対象なし404、業務・版競合409を区別する",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/app.py",
-          "backend/src/slotkeeper/domain.py"
+          "src/app/main.py",
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_domain.py",
-          "backend/tests/test_auth.py",
-          "backend/tests/test_reservations.py",
-          "backend/tests/test_operations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py",
+          "tests/app/apis/reservations/get_reservation/test_router.py",
+          "tests/app/apis/reservations/list_reservations/test_functions.py",
+          "tests/app/apis/resources/create_resource/test_functions.py",
+          "tests/app/apis/resources/get_resource_schedule/test_functions.py",
+          "tests/app/apis/resources/get_resource_schedule/test_router.py",
+          "tests/app/apis/resources/list_resources/test_functions.py",
+          "tests/app/apis/resources/update_resource/test_router.py",
+          "tests/app/apis/test_deps.py",
+          "tests/test_api_error_responses.py"
         ]
       },
       "type": "functional",
@@ -163,7 +174,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-04",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "サーバー側で本人と権限を判定する。UIの表示制御だけで権限を守らない",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -178,19 +189,26 @@
       "title": "サーバー側で本人と権限を判定する。UIの表示制御だけで権限を守らない",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/auth.py",
-          "backend/src/slotkeeper/domain.py"
+          "src/app/apis/deps.py",
+          "src/app/integrations/identity/jwt_provider/client.py",
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_auth.py",
-          "backend/tests/test_reservations.py",
-          "e2e/app.spec.ts"
+          "e2e/app.spec.ts",
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/reservations/get_reservation/test_functions.py",
+          "tests/app/apis/reservations/get_reservation/test_router.py",
+          "tests/app/apis/resources/create_resource/test_functions.py",
+          "tests/app/apis/resources/create_resource/test_router.py",
+          "tests/app/apis/resources/update_resource/test_router.py",
+          "tests/app/apis/test_deps.py"
         ]
       },
       "type": "functional",
@@ -211,7 +229,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-05",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "起動・seed・リセット・全検証をCompose経由で再現できる。seedの乱数と評価用時刻を固定できる",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -226,18 +244,18 @@
       "title": "起動・seed・リセット・全検証をCompose経由で再現できる。seedの乱数と評価用時刻を固定できる",
       "traces": {
         "design": [
-          "docs/OPERATIONS.md"
+          "docs/spec/10.architecture/operations.manual.md"
         ],
         "implementation": [
           "compose.yaml",
-          "tools/project/migrate.py",
-          "tools/project/verify.py"
+          "src/tools/project/migrate.py",
+          "src/tools/project/verify.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/tools/test_project_migrate.py"
         ]
       },
       "type": "functional",
@@ -258,7 +276,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-06",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "資源編集・予約取消等の同時更新で変更を消失させない。古い版は409とし再取得を案内する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -273,18 +291,23 @@
       "title": "資源編集・予約取消等の同時更新で変更を消失させない。古い版は409とし再取得を案内する",
       "traces": {
         "design": [
-          "docs/design/generated/api/resources/resources_update/index.md",
-          "docs/design/generated/api/reservations/reservations_cancel/index.md"
+          "docs/spec/40.apis/resources/update_resource/index.md",
+          "docs/spec/40.apis/reservations/cancel_reservation/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/resources_update/endpoint.py",
-          "backend/src/slotkeeper/operations/reservations_cancel/endpoint.py"
+          "src/app/apis/resources/update_resource/router.py",
+          "src/app/apis/resources/update_resource/functions.py",
+          "src/app/apis/reservations/cancel_reservation/router.py",
+          "src/app/apis/reservations/cancel_reservation/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_functions.py",
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/resources/update_resource/test_functions.py",
+          "tests/app/apis/resources/update_resource/test_router.py"
         ]
       },
       "type": "functional",
@@ -305,7 +328,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-07",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "要求ID、操作、結果、所要時間を構造化ログに残す。認証情報・予約目的・生の例外本文を無条件に記録しない",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -320,16 +343,26 @@
       "title": "要求ID、操作、結果、所要時間を構造化ログに残す。認証情報・予約目的・生の例外本文を無条件に記録しない",
       "traces": {
         "design": [
-          "docs/design/generated/api/reservations/reservations_create/messages.md"
+          "docs/spec/40.apis/reservations/create_reservation/messages_gen.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/app.py"
+          "src/app/main.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_operations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py",
+          "tests/app/apis/reservations/get_reservation/test_router.py",
+          "tests/app/apis/reservations/list_reservations/test_router.py",
+          "tests/app/apis/resources/create_resource/test_router.py",
+          "tests/app/apis/resources/get_resource_schedule/test_router.py",
+          "tests/app/apis/resources/list_resources/test_router.py",
+          "tests/app/apis/resources/update_resource/test_router.py",
+          "tests/app/apis/system/health/test_functions.py",
+          "tests/app/apis/system/health/test_router.py",
+          "tests/test_operational_logging.py"
         ]
       },
       "type": "functional",
@@ -350,7 +383,7 @@
       "action": "provide",
       "category": "functional",
       "id": "COM-08",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "空、読込み中、入力不正、通信失敗、権限不足、競合、成功をUIで区別し、利用者が次の操作を判断できる",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -365,7 +398,7 @@
       "title": "空、読込み中、入力不正、通信失敗、権限不足、競合、成功をUIで区別し、利用者が次の操作を判断できる",
       "traces": {
         "design": [
-          "docs/design/generated/FRONTEND.md"
+          "docs/spec/60.frontend/frontend.gen.md"
         ],
         "implementation": [
           "frontend/src/logic.ts",
@@ -402,7 +435,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-01",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "管理者が資源を登録・編集・無効化できる。無効資源への新規予約は禁止する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -417,19 +450,28 @@
       "title": "管理者が資源を登録・編集・無効化できる。無効資源への新規予約は禁止する",
       "traces": {
         "design": [
-          "docs/design/generated/api/resources/index.md"
+          "docs/spec/40.apis/resources/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/resources_create/endpoint.py",
-          "backend/src/slotkeeper/operations/resources_update/endpoint.py",
-          "backend/src/slotkeeper/operations/resources_list/endpoint.py"
+          "src/app/apis/resources/create_resource/router.py",
+          "src/app/apis/resources/create_resource/functions.py",
+          "src/app/apis/resources/update_resource/router.py",
+          "src/app/apis/resources/update_resource/functions.py",
+          "src/app/apis/resources/list_resources/router.py",
+          "src/app/apis/resources/list_resources/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_auth.py",
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py",
+          "tests/app/apis/resources/create_resource/test_functions.py",
+          "tests/app/apis/resources/create_resource/test_router.py",
+          "tests/app/apis/resources/list_resources/test_functions.py",
+          "tests/app/apis/resources/list_resources/test_router.py",
+          "tests/app/apis/resources/update_resource/test_functions.py",
+          "tests/app/apis/resources/update_resource/test_router.py"
         ]
       },
       "type": "functional",
@@ -450,7 +492,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-02",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "資源と日付を指定して、その日の予約済み時間帯を確認できる",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -465,17 +507,20 @@
       "title": "資源と日付を指定して、その日の予約済み時間帯を確認できる",
       "traces": {
         "design": [
-          "docs/design/generated/api/resources/schedule/index.md"
+          "docs/spec/40.apis/resources/get_resource_schedule/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/schedule/endpoint.py"
+          "src/app/apis/resources/get_resource_schedule/router.py",
+          "src/app/apis/resources/get_resource_schedule/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py",
-          "e2e/app.spec.ts"
+          "e2e/app.spec.ts",
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/resources/get_resource_schedule/test_functions.py",
+          "tests/app/apis/resources/get_resource_schedule/test_router.py"
         ]
       },
       "type": "functional",
@@ -502,7 +547,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-03",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "資源、開始・終了、目的を指定して、自分名義の予約を作成できる",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -517,19 +562,20 @@
       "title": "資源、開始・終了、目的を指定して、自分名義の予約を作成できる",
       "traces": {
         "design": [
-          "docs/design/generated/api/reservations/reservations_create/index.md"
+          "docs/spec/40.apis/reservations/create_reservation/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py",
-          "backend/src/slotkeeper/domain.py"
+          "src/app/apis/reservations/create_reservation/router.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/common.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py",
-          "backend/tests/test_domain.py",
-          "e2e/app.spec.ts"
+          "e2e/app.spec.ts",
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py"
         ]
       },
       "type": "functional",
@@ -562,7 +608,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-04",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "同一資源の予約済み時間と重なる予約の確定を拒否する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -577,20 +623,23 @@
       "title": "同一資源の予約済み時間と重なる予約の確定を拒否する",
       "traces": {
         "design": [
-          "docs/design/generated/api/reservations/reservations_create/sequence.md",
-          "docs/design/generated/DATA.md"
+          "docs/spec/40.apis/reservations/create_reservation/sequence_gen.md",
+          "docs/spec/20.db/er.gen.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py",
-          "backend/src/slotkeeper/operations/reservations_create/sql/control.sql",
-          "backend/src/slotkeeper/db.py"
+          "src/app/apis/reservations/create_reservation/router.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/sql/002_update_resources_control_version.sql",
+          "src/app/db/session.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py",
-          "backend/tests/test_operations.py"
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py",
+          "tests/app/apis/resources/update_resource/test_router.py",
+          "tests/test_db_session.py"
         ]
       },
       "type": "functional",
@@ -617,7 +666,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-05",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "本人または管理者が、開始前の予約を取消できる",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -632,17 +681,19 @@
       "title": "本人または管理者が、開始前の予約を取消できる",
       "traces": {
         "design": [
-          "docs/design/generated/api/reservations/reservations_cancel/index.md"
+          "docs/spec/40.apis/reservations/cancel_reservation/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/reservations_cancel/endpoint.py"
+          "src/app/apis/reservations/cancel_reservation/router.py",
+          "src/app/apis/reservations/cancel_reservation/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py",
-          "e2e/app.spec.ts"
+          "e2e/app.spec.ts",
+          "tests/app/apis/reservations/cancel_reservation/test_functions.py",
+          "tests/app/apis/reservations/cancel_reservation/test_router.py"
         ]
       },
       "type": "functional",
@@ -663,7 +714,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-06",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "自分の予約を日付・状態で絞り込める",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -678,16 +729,19 @@
       "title": "自分の予約を日付・状態で絞り込める",
       "traces": {
         "design": [
-          "docs/design/generated/api/reservations/reservations_list/index.md"
+          "docs/spec/40.apis/reservations/list_reservations/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/reservations_list/endpoint.py"
+          "src/app/apis/reservations/list_reservations/router.py",
+          "src/app/apis/reservations/list_reservations/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/reservations/list_reservations/test_functions.py",
+          "tests/app/apis/reservations/list_reservations/test_router.py"
         ]
       },
       "type": "functional",
@@ -708,7 +762,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-07",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "作成・取消の履歴を残し、権限のある利用者が詳細画面から確認できる",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -723,17 +777,20 @@
       "title": "作成・取消の履歴を残し、権限のある利用者が詳細画面から確認できる",
       "traces": {
         "design": [
-          "docs/design/generated/api/reservations/reservations_get/index.md"
+          "docs/spec/40.apis/reservations/get_reservation/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/reservations_get/endpoint.py"
+          "src/app/apis/reservations/get_reservation/router.py",
+          "src/app/apis/reservations/get_reservation/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py",
-          "e2e/app.spec.ts"
+          "e2e/app.spec.ts",
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/reservations/get_reservation/test_functions.py",
+          "tests/app/apis/reservations/get_reservation/test_router.py"
         ]
       },
       "type": "functional",
@@ -772,7 +829,7 @@
       "action": "provide",
       "category": "functional",
       "id": "SLOT-08",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "要求の再送を識別し、予約と履歴を二重に作らない",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -787,20 +844,21 @@
       "title": "要求の再送を識別し、予約と履歴を二重に作らない",
       "traces": {
         "design": [
-          "docs/design/generated/api/reservations/reservations_create/sequence.md"
+          "docs/spec/40.apis/reservations/create_reservation/sequence_gen.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py",
-          "backend/src/slotkeeper/operations/reservations_create/sql/replay.sql",
-          "backend/src/slotkeeper/operations/reservations_create/sql/record.sql"
+          "src/app/apis/reservations/create_reservation/router.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/sql/001_select_idempotency_records.sql",
+          "src/app/apis/reservations/create_reservation/sql/006_insert_reservations.sql"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py",
-          "backend/tests/test_domain.py",
-          "backend/tests/test_operations.py"
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py",
+          "tests/test_db_session.py"
         ]
       },
       "type": "functional",
@@ -821,7 +879,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-STACK",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "Astro静的フロントとFastAPIを使用する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -836,12 +894,12 @@
       "title": "Astro静的フロントとFastAPIを使用する",
       "traces": {
         "design": [
-          "docs/design/generated/OVERVIEW.md"
+          "docs/spec/10.architecture/architecture.manual.md"
         ],
         "implementation": [
           "frontend/astro.config.mjs",
-          "backend/src/slotkeeper/app.py",
-          "tools/frontend.mjs"
+          "src/app/main.py",
+          "src/tools/frontend.mjs"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
@@ -866,7 +924,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-DB",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "DSQLとPostgreSQLで共通の予約不変条件を守る",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -881,19 +939,18 @@
       "title": "DSQLとPostgreSQLで共通の予約不変条件を守る",
       "traces": {
         "design": [
-          "docs/design/generated/DATA.md"
+          "docs/spec/20.db/er.gen.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/db.py",
-          "tools/project/queries.py",
-          "tools/project/migrate.py"
+          "src/app/db/session.py",
+          "src/tools/generate_queries.py",
+          "src/tools/project/migrate.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py",
-          "backend/tests/test_operations.py"
+          "tests/test_db_session.py"
         ]
       },
       "type": "constraint",
@@ -914,7 +971,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-AUTH",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "署名、issuer、client、用途、期限を検査する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -929,19 +986,20 @@
       "title": "署名、issuer、client、用途、期限を検査する",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/auth.py",
+          "src/app/apis/deps.py",
+          "src/app/integrations/identity/jwt_provider/client.py",
           "frontend/src/auth.ts"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_auth.py",
-          "backend/tests/test_reservations.py",
-          "backend/tests/test_operations.py"
+          "tests/app/apis/reservations/create_reservation/test_router.py",
+          "tests/app/apis/test_deps.py",
+          "tests/integrations/test_identity_provider.py"
         ]
       },
       "type": "constraint",
@@ -962,7 +1020,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-LAMBDA",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "依存を含むLinux用Lambda ZIPを作成する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -977,17 +1035,17 @@
       "title": "依存を含むLinux用Lambda ZIPを作成する",
       "traces": {
         "design": [
-          "docs/design/generated/INFRA.md"
+          "docs/spec/70.infra/infra.gen.md"
         ],
         "implementation": [
-          "tools/project/package_lambda.py",
-          "backend/src/slotkeeper/app.py"
+          "src/tools/project/package_lambda.py",
+          "src/app/main.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_lambda.py"
+          "tests/test_lambda_handler.py"
         ]
       },
       "type": "constraint",
@@ -1008,7 +1066,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-INFRA",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "Python CDKで常設サーバーを持たない構成を合成する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1023,7 +1081,7 @@
       "title": "Python CDKで常設サーバーを持たない構成を合成する",
       "traces": {
         "design": [
-          "docs/design/generated/INFRA.md"
+          "docs/spec/70.infra/infra.gen.md"
         ],
         "implementation": [
           "infra/stack.py",
@@ -1033,7 +1091,7 @@
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "infra/tests/test_stack.py"
+          "tests/infra/test_stack.py"
         ]
       },
       "type": "constraint",
@@ -1054,7 +1112,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-COMPOSE",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "GitとDocker Composeだけで起動と全検証を行える",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1069,12 +1127,12 @@
       "title": "GitとDocker Composeだけで起動と全検証を行える",
       "traces": {
         "design": [
-          "docs/OPERATIONS.md"
+          "docs/spec/10.architecture/operations.manual.md"
         ],
         "implementation": [
           "compose.yaml",
           "Dockerfile",
-          "tools/project/verify.py"
+          "src/tools/project/verify.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
@@ -1099,7 +1157,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-DESIGN",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "実装から6帳票、DB、CRUD、画面、infraを決定的に生成する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1114,17 +1172,17 @@
       "title": "実装から6帳票、DB、CRUD、画面、infraを決定的に生成する",
       "traces": {
         "design": [
-          "docs/design/generated/report.json"
+          "docs/spec/40.apis/report.json"
         ],
         "implementation": [
-          "tools/project/design.py",
+          "src/tools/project/design.py",
           ".dev-standard/design.json"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "tools/tests/test_guards.py"
+          "tests/tools/test_project_guards.py"
         ]
       },
       "type": "constraint",
@@ -1145,7 +1203,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-PORTAL",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "同一revisionとrunの実測結果と設計をPagesへ集約する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1160,10 +1218,10 @@
       "title": "同一revisionとrunの実測結果と設計をPagesへ集約する",
       "traces": {
         "design": [
-          "docs/design/generated/OVERVIEW.md"
+          "docs/spec/10.architecture/architecture.manual.md"
         ],
         "implementation": [
-          "tools/project/evidence.py",
+          "src/tools/project/evidence.py",
           "portal/src/layouts/Layout.astro"
         ],
         "standards": [
@@ -1191,7 +1249,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-PERF",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "指定負荷とデータ量でAPI別の性能を測定する",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1206,10 +1264,10 @@
       "title": "指定負荷とデータ量でAPI別の性能を測定する",
       "traces": {
         "design": [
-          "docs/design/generated/OVERVIEW.md"
+          "docs/spec/10.architecture/architecture.manual.md"
         ],
         "implementation": [
-          "tools/project/perf.py"
+          "src/tools/project/perf.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
@@ -1234,7 +1292,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-QUALITY",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "型、lint、実DB、ブラウザ、負例検査の失敗を隠さない",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1249,18 +1307,18 @@
       "title": "型、lint、実DB、ブラウザ、負例検査の失敗を隠さない",
       "traces": {
         "design": [
-          "docs/design/generated/TESTS.md"
+          "docs/spec/80.trace/tests.gen.md"
         ],
         "implementation": [
-          "tools/project/evidence.py",
-          "tools/project/collector.py",
-          "tools/project/verify.py"
+          "src/tools/project/evidence.py",
+          "src/tools/project/collector.py",
+          "src/tools/project/verify.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "tools/tests/test_guards.py"
+          "tests/tools/test_project_guards.py"
         ]
       },
       "type": "constraint",
@@ -1281,7 +1339,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "TECH-PRIVACY",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "公開allowlistに秘密や生ログを含めない",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1296,16 +1354,18 @@
       "title": "公開allowlistに秘密や生ログを含めない",
       "traces": {
         "design": [
-          "docs/design/generated/OVERVIEW.md"
+          "docs/spec/10.architecture/architecture.manual.md"
         ],
         "implementation": [
-          "tools/project/evidence.py"
+          "src/tools/project/evidence.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "tools/tests/test_guards.py"
+          "tests/app/apis/system/health/test_functions.py",
+          "tests/app/apis/system/health/test_router.py",
+          "tests/tools/test_project_guards.py"
         ]
       },
       "type": "constraint",
@@ -1326,7 +1386,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-01",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "予約区間は `[開始, 終了)` とします。10:00〜11:00と11:00〜12:00は重複しません。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1341,17 +1401,19 @@
       "title": "予約区間は `[開始, 終了)` とします。10:00〜11:00と11:00〜12:00は重複しません。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1372,7 +1434,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-02",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "開始・終了は15分刻み、予約時間は15分以上4時間以下です。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1387,17 +1449,19 @@
       "title": "開始・終了は15分刻み、予約時間は15分以上4時間以下です。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_domain.py"
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1418,7 +1482,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-03",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "開始は現在より後、かつ現在から30日以内です。終了は開始と同じ日本時間の日付内にしてください。翌日00:00を終了とする予約も、この初期版では対象外です。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1433,17 +1497,18 @@
       "title": "開始は現在より後、かつ現在から30日以内です。終了は開始と同じ日本時間の日付内にしてください。翌日00:00を終了とする予約も、この初期版では対象外です。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_domain.py"
+          "tests/app/apis/reservations/create_reservation/test_functions.py"
         ]
       },
       "type": "constraint",
@@ -1464,7 +1529,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-04",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "保存時刻はUTCと対応付け、表示・入力はAsia/Tokyoとします。現在時刻は差替え可能なClockから取得します。公開APIで任意に現在時刻を上書きできないようにしてください。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1479,18 +1544,20 @@
       "title": "保存時刻はUTCと対応付け、表示・入力はAsia/Tokyoとします。現在時刻は差替え可能なClockから取得します。公開APIで任意に現在時刻を上書きできないようにしてください。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
           "frontend/src/logic.ts"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_operations.py",
-          "frontend/tests/logic.test.ts"
+          "frontend/tests/logic.test.ts",
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/test_api_error_responses.py"
         ]
       },
       "type": "constraint",
@@ -1511,7 +1578,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-05",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "予約状態は `confirmed → cancelled` です。終了済みかどうかは時刻から判定し、状態として二重管理しません。予約日時の直接編集は提供しません。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1526,18 +1593,18 @@
       "title": "予約状態は `confirmed → cancelled` です。終了済みかどうかは時刻から判定し、状態として二重管理しません。予約日時の直接編集は提供しません。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_operations.py",
-          "backend/tests/test_reservations.py"
+          "tests/test_api_error_responses.py"
         ]
       },
       "type": "constraint",
@@ -1558,7 +1625,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-06",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "取消済み予約は重複判定から除きます。取消の確定と同時に、その枠を再予約できる状態へ戻します。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1573,17 +1640,19 @@
       "title": "取消済み予約は重複判定から除きます。取消の確定と同時に、その枠を再予約できる状態へ戻します。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_functions.py",
+          "tests/app/apis/reservations/cancel_reservation/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1604,7 +1673,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-07",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "既定の「将来予約」は `confirmed AND start_at > now` とします。開始済み予約の途中で資源が無効化されても、既存予約の記録は維持します。新規予約は拒否します。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1619,17 +1688,19 @@
       "title": "既定の「将来予約」は `confirmed AND start_at > now` とします。開始済み予約の途中で資源が無効化されても、既存予約の記録は維持します。新規予約は拒否します。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/resources_update/endpoint.py",
-          "backend/src/slotkeeper/operations/reservations_list/sql/select_page.sql"
+          "src/app/apis/resources/update_resource/router.py",
+          "src/app/apis/resources/update_resource/functions.py",
+          "src/app/apis/reservations/list_reservations/sql/001_select_reservations.sql"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/list_reservations/test_router.py",
+          "tests/app/apis/resources/update_resource/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1650,7 +1721,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-08",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "将来予約のある資源を無効化できません。予約作成と無効化が競合しても、無効資源に将来予約を残してはいけません。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1665,17 +1736,19 @@
       "title": "将来予約のある資源を無効化できません。予約作成と無効化が競合しても、無効資源に将来予約を残してはいけません。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/resources/update_resource/test_functions.py",
+          "tests/app/apis/resources/update_resource/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1696,7 +1769,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-09",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "一般利用者には他人の目的・利用者識別情報・履歴を返しません。共有予約表では時間帯と「予約済み」を表示します。管理者は取消業務に必要な情報を閲覧できます。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1711,17 +1784,23 @@
       "title": "一般利用者には他人の目的・利用者識別情報・履歴を返しません。共有予約表では時間帯と「予約済み」を表示します。管理者は取消業務に必要な情報を閲覧できます。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/operations/schedule/endpoint.py",
-          "backend/src/slotkeeper/domain.py"
+          "src/app/apis/resources/get_resource_schedule/router.py",
+          "src/app/apis/resources/get_resource_schedule/functions.py",
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/reservations/get_reservation/test_functions.py",
+          "tests/app/apis/reservations/get_reservation/test_router.py",
+          "tests/app/apis/resources/get_resource_schedule/test_functions.py",
+          "tests/app/apis/resources/get_resource_schedule/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1742,7 +1821,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-10",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "予約作成の要求キーは利用者単位で24時間有効です。同じキー・同じ正規化入力には元の成功応答を返し、異なる入力は409とします。有効期限後は新規要求として通常の重複判定を行います。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1757,17 +1836,19 @@
       "title": "予約作成の要求キーは利用者単位で24時間有効です。同じキー・同じ正規化入力には元の成功応答を返し、異なる入力は409とします。有効期限後は新規要求として通常の重複判定を行います。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1788,7 +1869,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-11",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "成功済み要求の再送は、元の予約が開始・取消済みになっていても元の作成結果を返します。再送照合より先に現在時刻で新規予約の入力検証をしないでください。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1803,17 +1884,18 @@
       "title": "成功済み要求の再送は、元の予約が開始・取消済みになっていても元の作成結果を返します。再送照合より先に現在時刻で新規予約の入力検証をしないでください。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/create_reservation/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1834,7 +1916,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-12",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "予約・履歴・要求キーの成功記録は、同一トランザクションで確定します。取消と取消履歴も一体で確定します。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1849,17 +1931,21 @@
       "title": "予約・履歴・要求キーの成功記録は、同一トランザクションで確定します。取消と取消履歴も一体で確定します。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_functions.py",
+          "tests/app/apis/reservations/cancel_reservation/test_router.py",
+          "tests/app/apis/reservations/create_reservation/test_functions.py",
+          "tests/app/apis/reservations/create_reservation/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1880,7 +1966,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-13",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "取消済み予約への取消は409とします。履歴を追加しません。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1895,17 +1981,18 @@
       "title": "取消済み予約への取消は409とします。履歴を追加しません。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/cancel_reservation/test_router.py"
         ]
       },
       "type": "constraint",
@@ -1926,7 +2013,7 @@
       "action": "provide",
       "category": "nonfunctional",
       "id": "RULE-14",
-      "last_changed_by": "trace-completion",
+      "last_changed_by": "lazunex-alignment",
       "object": "資源名は空白除去後1〜100文字、説明は0〜1,000文字、予約目的は1〜200文字とします。一覧はページングし、順序と同順位時のID順を固定します。",
       "rationale": "利用者が指定した初回受入の永続義務",
       "retirement_reason": "",
@@ -1941,18 +2028,23 @@
       "title": "資源名は空白除去後1〜100文字、説明は0〜1,000文字、予約目的は1〜200文字とします。一覧はページングし、順序と同順位時のID順を固定します。",
       "traces": {
         "design": [
-          "docs/design/generated/api/index.md"
+          "docs/spec/40.apis/index.md"
         ],
         "implementation": [
-          "backend/src/slotkeeper/domain.py",
-          "backend/src/slotkeeper/operations/reservations_create/endpoint.py"
+          "src/app/apis/common.py",
+          "src/app/apis/reservations/create_reservation/functions.py",
+          "src/app/apis/reservations/create_reservation/router.py"
         ],
         "standards": [
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "backend/tests/test_domain.py",
-          "backend/tests/test_reservations.py"
+          "tests/app/apis/reservations/list_reservations/test_functions.py",
+          "tests/app/apis/reservations/list_reservations/test_router.py",
+          "tests/app/apis/resources/create_resource/test_functions.py",
+          "tests/app/apis/resources/create_resource/test_router.py",
+          "tests/app/apis/resources/list_resources/test_functions.py",
+          "tests/app/apis/resources/list_resources/test_router.py"
         ]
       },
       "type": "constraint",

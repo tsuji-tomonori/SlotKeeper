@@ -28,6 +28,7 @@ flowchart TD
   generate_db_crud[generate_db_crud]
   generate_queries --> generate_db_crud
   generate_external_crud[generate_external_crud]
+  generate_db_table_specs[generate_db_table_specs]
   generate_db_er_diagram[generate_db_er_diagram]
   check_api_status_samples[check_api_status_samples]
   generate_openapi_if_specs --> check_api_status_samples

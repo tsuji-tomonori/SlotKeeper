@@ -1,0 +1,399 @@
+{
+  "no_access": {
+    "health": "DBと外部サービスへアクセスせず稼働状態だけを返す"
+  },
+  "operations": [
+    "cancelReservation",
+    "createReservation",
+    "createResource",
+    "getReservation",
+    "getResourceSchedule",
+    "health",
+    "listReservations",
+    "listResources",
+    "updateResource"
+  ],
+  "rows": [
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 66,
+          "path": "src/app/apis/reservations/cancel_reservation/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "cancelReservation",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "C"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/cancel_reservation/sql/004_insert_reservation_events.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "cancelReservation",
+      "resource": "slotkeeper.reservation_events"
+    },
+    {
+      "access": [
+        "R",
+        "U"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/cancel_reservation/sql/001_select_reservations.sql",
+          "role": "read"
+        },
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/cancel_reservation/sql/003_update_reservations.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "cancelReservation",
+      "resource": "slotkeeper.reservations"
+    },
+    {
+      "access": [
+        "U"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/cancel_reservation/sql/002_update_resources_control_version.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "cancelReservation",
+      "resource": "slotkeeper.resources"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 57,
+          "path": "src/app/apis/reservations/create_reservation/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "createReservation",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "C",
+        "R",
+        "D"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/001_select_idempotency_records.sql",
+          "role": "read"
+        },
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/004_delete_idempotency_records.sql",
+          "role": "write"
+        },
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/008_insert_idempotency_records.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "createReservation",
+      "resource": "slotkeeper.idempotency_records"
+    },
+    {
+      "access": [
+        "C"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/007_insert_reservation_events.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "createReservation",
+      "resource": "slotkeeper.reservation_events"
+    },
+    {
+      "access": [
+        "C",
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/003_select_reservations.sql",
+          "role": "read"
+        },
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/006_insert_reservations.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "createReservation",
+      "resource": "slotkeeper.reservations"
+    },
+    {
+      "access": [
+        "U"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/002_update_resources_control_version.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "createReservation",
+      "resource": "slotkeeper.resources"
+    },
+    {
+      "access": [
+        "C"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/create_reservation/sql/005_insert_users.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "createReservation",
+      "resource": "slotkeeper.users"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 49,
+          "path": "src/app/apis/resources/create_resource/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "createResource",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "C"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/resources/create_resource/sql/001_insert_resources.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "createResource",
+      "resource": "slotkeeper.resources"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 52,
+          "path": "src/app/apis/reservations/get_reservation/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "getReservation",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/get_reservation/sql/002_select_reservation_events.sql",
+          "role": "read"
+        }
+      ],
+      "operation": "getReservation",
+      "resource": "slotkeeper.reservation_events"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/get_reservation/sql/001_select_reservations.sql",
+          "role": "read"
+        }
+      ],
+      "operation": "getReservation",
+      "resource": "slotkeeper.reservations"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 59,
+          "path": "src/app/apis/resources/get_resource_schedule/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "getResourceSchedule",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/resources/get_resource_schedule/sql/002_select_reservations.sql",
+          "role": "read"
+        }
+      ],
+      "operation": "getResourceSchedule",
+      "resource": "slotkeeper.reservations"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/resources/get_resource_schedule/sql/001_select_resources.sql",
+          "role": "read"
+        }
+      ],
+      "operation": "getResourceSchedule",
+      "resource": "slotkeeper.resources"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 40,
+          "path": "src/app/apis/reservations/list_reservations/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "listReservations",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/reservations/list_reservations/sql/001_select_reservations.sql",
+          "role": "read"
+        }
+      ],
+      "operation": "listReservations",
+      "resource": "slotkeeper.reservations"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 37,
+          "path": "src/app/apis/resources/list_resources/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "listResources",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/resources/list_resources/sql/001_select_resources.sql",
+          "role": "read"
+        }
+      ],
+      "operation": "listResources",
+      "resource": "slotkeeper.resources"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 64,
+          "path": "src/app/apis/resources/update_resource/router.py",
+          "role": "read"
+        }
+      ],
+      "operation": "updateResource",
+      "resource": "identity.jwks_signing_key"
+    },
+    {
+      "access": [
+        "R"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/resources/update_resource/sql/002_select_reservations.sql",
+          "role": "read"
+        }
+      ],
+      "operation": "updateResource",
+      "resource": "slotkeeper.reservations"
+    },
+    {
+      "access": [
+        "U"
+      ],
+      "evidence": [
+        {
+          "line": 1,
+          "path": "src/app/apis/resources/update_resource/sql/001_update_resources_control_version.sql",
+          "role": "write"
+        },
+        {
+          "line": 1,
+          "path": "src/app/apis/resources/update_resource/sql/003_update_resources.sql",
+          "role": "write"
+        }
+      ],
+      "operation": "updateResource",
+      "resource": "slotkeeper.resources"
+    }
+  ],
+  "schema_version": 1,
+  "unresolved": []
+}

@@ -808,10 +808,10 @@ def operation_output_path(
 ) -> Path:
     operation_id = str(operation.get("operationId") or operation.get("summary") or "api")
     if operation_paths is not None and operation_id in operation_paths:
-        return output_dir / operation_paths[operation_id] / "if_gen.md"
+        return output_dir / operation_paths[operation_id] / "interface_gen.md"
     tags = as_list(operation.get("tags"))
     tag = str(tags[0]) if tags else "default"
-    return output_dir / snake_case(tag) / snake_case(operation_id) / "if_gen.md"
+    return output_dir / snake_case(tag) / snake_case(operation_id) / "interface_gen.md"
 
 
 def iter_operations(openapi: JsonObject) -> list[tuple[str, str, JsonObject]]:

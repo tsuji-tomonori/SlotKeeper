@@ -1,728 +1,943 @@
 {
   "api": {
     "api_indexes": {
-      "health": "docs/design/generated/api/system/health/index.md",
-      "reservations_cancel": "docs/design/generated/api/reservations/reservations_cancel/index.md",
-      "reservations_create": "docs/design/generated/api/reservations/reservations_create/index.md",
-      "reservations_get": "docs/design/generated/api/reservations/reservations_get/index.md",
-      "reservations_list": "docs/design/generated/api/reservations/reservations_list/index.md",
-      "resources_create": "docs/design/generated/api/resources/resources_create/index.md",
-      "resources_list": "docs/design/generated/api/resources/resources_list/index.md",
-      "resources_update": "docs/design/generated/api/resources/resources_update/index.md",
-      "schedule": "docs/design/generated/api/resources/schedule/index.md"
+      "cancelReservation": "docs/spec/40.apis/reservations/cancel_reservation/index.md",
+      "createReservation": "docs/spec/40.apis/reservations/create_reservation/index.md",
+      "createResource": "docs/spec/40.apis/resources/create_resource/index.md",
+      "getReservation": "docs/spec/40.apis/reservations/get_reservation/index.md",
+      "getResourceSchedule": "docs/spec/40.apis/resources/get_resource_schedule/index.md",
+      "health": "docs/spec/40.apis/system/health/index.md",
+      "listReservations": "docs/spec/40.apis/reservations/list_reservations/index.md",
+      "listResources": "docs/spec/40.apis/resources/list_resources/index.md",
+      "updateResource": "docs/spec/40.apis/resources/update_resource/index.md"
     },
     "group_indexes": {
-      "reservations": "docs/design/generated/api/reservations/index.md",
-      "resources": "docs/design/generated/api/resources/index.md",
-      "system": "docs/design/generated/api/system/index.md"
+      "reservations": "docs/spec/40.apis/reservations/index.md",
+      "resources": "docs/spec/40.apis/resources/index.md",
+      "system": "docs/spec/40.apis/system/index.md"
     },
-    "index": "docs/design/generated/api/index.md",
-    "operation_inventory": "docs/design/generated/operations.json",
+    "index": "docs/spec/40.apis/index.md",
+    "operation_inventory": "docs/spec/40.apis/operations.json",
     "operations": [
+      {
+        "api": "cancel_reservation",
+        "documents": {
+          "detail-design": "docs/spec/40.apis/reservations/cancel_reservation/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/reservations/cancel_reservation/interface_gen.md",
+          "messages": "docs/spec/40.apis/reservations/cancel_reservation/messages_gen.md",
+          "query": "docs/spec/40.apis/reservations/cancel_reservation/query_gen.md",
+          "sequence": "docs/spec/40.apis/reservations/cancel_reservation/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/reservations/cancel_reservation/unit-test_gen.md"
+        },
+        "group": "reservations",
+        "id": "cancelReservation",
+        "sections": {
+          "cases": [
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004",
+            "TC005",
+            "TC006",
+            "TC007",
+            "TC008"
+          ],
+          "factors": [
+            "F01 条件分岐",
+            "F02 条件分岐",
+            "F03 条件分岐",
+            "F04 条件分岐",
+            "F05 例外処理"
+          ],
+          "messages": [
+            "`M001` `cancelReservation.caller_cannot_cancel_reservation`",
+            "`M002` `cancelReservation.stale_reservation_version`",
+            "`M003` `cancelReservation.reservation_already_cancelled`",
+            "`M004` `cancelReservation.reservation_already_started`",
+            "`M005` `cancelReservation.router_api_function_error`"
+          ],
+          "queries": [
+            "001_select_reservations.sql",
+            "002_update_resources_control_version.sql",
+            "003_update_reservations.sql",
+            "004_insert_reservation_events.sql"
+          ],
+          "request_bodies": [
+            "Request body `CancelReservationRequest`"
+          ],
+          "resource_changes": [
+            "DB `resources` 更新",
+            "DB `reservations` 更新",
+            "DB `reservation_events` 作成"
+          ],
+          "responses": [
+            "`200` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`403` 呼び出し元が予約者本人でも管理者でもない場合。",
+            "`404` 指定された予約が存在しない場合。",
+            "`409` 予約の版が古い、取消済み、または開始済みの場合。",
+            "`422` pathまたはbodyがOpenAPIスキーマの型や制約に一致しない場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
+          ],
+          "samples": [
+            "HTTP 200",
+            "HTTP 401",
+            "HTTP 403",
+            "HTTP 404",
+            "HTTP 409",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
+          ]
+        }
+      },
+      {
+        "api": "create_reservation",
+        "documents": {
+          "detail-design": "docs/spec/40.apis/reservations/create_reservation/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/reservations/create_reservation/interface_gen.md",
+          "messages": "docs/spec/40.apis/reservations/create_reservation/messages_gen.md",
+          "query": "docs/spec/40.apis/reservations/create_reservation/query_gen.md",
+          "sequence": "docs/spec/40.apis/reservations/create_reservation/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/reservations/create_reservation/unit-test_gen.md"
+        },
+        "group": "reservations",
+        "id": "createReservation",
+        "sections": {
+          "cases": [
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004",
+            "TC005",
+            "TC006",
+            "TC007",
+            "TC008"
+          ],
+          "factors": [
+            "F01 条件分岐",
+            "F02 条件分岐",
+            "F03 条件分岐",
+            "F04 条件分岐",
+            "F05 例外処理"
+          ],
+          "messages": [
+            "`M001` `createReservation.idempotency_key_reused`",
+            "`M002` `createReservation.resource_inactive`",
+            "`M003` `createReservation.slot_taken`",
+            "`M004` `createReservation.router_api_function_error`"
+          ],
+          "queries": [
+            "001_select_idempotency_records.sql",
+            "002_update_resources_control_version.sql",
+            "003_select_reservations.sql",
+            "004_delete_idempotency_records.sql",
+            "005_insert_users.sql",
+            "006_insert_reservations.sql",
+            "007_insert_reservation_events.sql",
+            "008_insert_idempotency_records.sql"
+          ],
+          "request_bodies": [
+            "Request body `CreateReservationRequest`"
+          ],
+          "resource_changes": [
+            "DB `resources` 更新",
+            "DB `idempotency_records` 削除",
+            "DB `users` 作成",
+            "DB `reservations` 作成",
+            "DB `reservation_events` 作成",
+            "DB `idempotency_records` 作成"
+          ],
+          "responses": [
+            "`201` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`404` 予約対象の資源が存在しない場合。",
+            "`409` 予約枠が重なる、資源が無効、または同じIdempotency-Keyで異なる入力を送った場合。",
+            "`422` bodyまたはheaderが型や制約に一致しない、または予約時刻の規則に反する場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
+          ],
+          "samples": [
+            "HTTP 201",
+            "HTTP 401",
+            "HTTP 404",
+            "HTTP 409",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
+          ]
+        }
+      },
+      {
+        "api": "create_resource",
+        "documents": {
+          "detail-design": "docs/spec/40.apis/resources/create_resource/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/resources/create_resource/interface_gen.md",
+          "messages": "docs/spec/40.apis/resources/create_resource/messages_gen.md",
+          "query": "docs/spec/40.apis/resources/create_resource/query_gen.md",
+          "sequence": "docs/spec/40.apis/resources/create_resource/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/resources/create_resource/unit-test_gen.md"
+        },
+        "group": "resources",
+        "id": "createResource",
+        "sections": {
+          "cases": [
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004",
+            "TC005"
+          ],
+          "factors": [
+            "F01 条件分岐",
+            "F02 例外処理"
+          ],
+          "messages": [
+            "`M001` `createResource.caller_cannot_manage_resources`",
+            "`M002` `createResource.router_api_function_error`"
+          ],
+          "queries": [
+            "001_insert_resources.sql"
+          ],
+          "request_bodies": [
+            "Request body `CreateResourceRequest`"
+          ],
+          "resource_changes": [
+            "DB `resources` 作成"
+          ],
+          "responses": [
+            "`201` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`403` 呼び出し元が資源を管理できる管理者でない場合。",
+            "`422` bodyがOpenAPIスキーマの型や制約に一致しない場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
+          ],
+          "samples": [
+            "HTTP 201",
+            "HTTP 401",
+            "HTTP 403",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
+          ]
+        }
+      },
+      {
+        "api": "get_reservation",
+        "documents": {
+          "detail-design": "docs/spec/40.apis/reservations/get_reservation/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/reservations/get_reservation/interface_gen.md",
+          "messages": "docs/spec/40.apis/reservations/get_reservation/messages_gen.md",
+          "query": "docs/spec/40.apis/reservations/get_reservation/query_gen.md",
+          "sequence": "docs/spec/40.apis/reservations/get_reservation/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/reservations/get_reservation/unit-test_gen.md"
+        },
+        "group": "reservations",
+        "id": "getReservation",
+        "non_applicable": {
+          "request_bodies": "Request body はありません。",
+          "resource_changes": "正常系で作成/更新/削除するリソースはありません。"
+        },
+        "sections": {
+          "cases": [
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004",
+            "TC005"
+          ],
+          "factors": [
+            "F01 条件分岐",
+            "F02 例外処理"
+          ],
+          "messages": [
+            "`M001` `getReservation.caller_cannot_view_reservation`",
+            "`M002` `getReservation.router_api_function_error`"
+          ],
+          "queries": [
+            "001_select_reservations.sql",
+            "002_select_reservation_events.sql"
+          ],
+          "request_bodies": [],
+          "resource_changes": [],
+          "responses": [
+            "`200` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`403` 呼び出し元が予約者本人でも管理者でもない場合。",
+            "`404` 指定された予約が存在しない場合。",
+            "`422` pathがOpenAPIスキーマの型や制約に一致しない場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
+          ],
+          "samples": [
+            "HTTP 200",
+            "HTTP 401",
+            "HTTP 403",
+            "HTTP 404",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
+          ]
+        }
+      },
+      {
+        "api": "get_resource_schedule",
+        "documents": {
+          "detail-design": "docs/spec/40.apis/resources/get_resource_schedule/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/resources/get_resource_schedule/interface_gen.md",
+          "messages": "docs/spec/40.apis/resources/get_resource_schedule/messages_gen.md",
+          "query": "docs/spec/40.apis/resources/get_resource_schedule/query_gen.md",
+          "sequence": "docs/spec/40.apis/resources/get_resource_schedule/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/resources/get_resource_schedule/unit-test_gen.md"
+        },
+        "group": "resources",
+        "id": "getResourceSchedule",
+        "non_applicable": {
+          "request_bodies": "Request body はありません。",
+          "resource_changes": "正常系で作成/更新/削除するリソースはありません。"
+        },
+        "sections": {
+          "cases": [
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004"
+          ],
+          "factors": [
+            "F01 例外処理"
+          ],
+          "messages": [
+            "`M001` `getResourceSchedule.router_api_function_error`"
+          ],
+          "queries": [
+            "001_select_resources.sql",
+            "002_select_reservations.sql"
+          ],
+          "request_bodies": [],
+          "resource_changes": [],
+          "responses": [
+            "`200` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`404` 指定された資源が存在しない場合。",
+            "`422` pathまたはqueryが型や制約に一致しない、または継続tokenが不正な場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
+          ],
+          "samples": [
+            "HTTP 200",
+            "HTTP 401",
+            "HTTP 404",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
+          ]
+        }
+      },
       {
         "api": "health",
         "documents": {
-          "detail-design": "docs/design/generated/api/system/health/detail-design.md",
-          "interface": "docs/design/generated/api/system/health/interface.md",
-          "messages": "docs/design/generated/api/system/health/messages.md",
-          "query": "docs/design/generated/api/system/health/query.md",
-          "sequence": "docs/design/generated/api/system/health/sequence.md",
-          "unit-test": "docs/design/generated/api/system/health/unit-test.md"
+          "detail-design": "docs/spec/40.apis/system/health/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/system/health/interface_gen.md",
+          "messages": "docs/spec/40.apis/system/health/messages_gen.md",
+          "query": "docs/spec/40.apis/system/health/query_gen.md",
+          "sequence": "docs/spec/40.apis/system/health/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/system/health/unit-test_gen.md"
         },
         "group": "system",
         "id": "health",
         "non_applicable": {
-          "queries": "DBアクセスがない"
+          "queries": "このAPIが実行するSQLはありません。",
+          "request_bodies": "Request body はありません。",
+          "resource_changes": "正常系で作成/更新/削除するリソースはありません。"
         },
         "sections": {
           "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id"
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004"
           ],
           "factors": [
-            "入力・権限・状態・競合"
+            "F01 例外処理"
           ],
           "messages": [
-            "request_result"
+            "`M001` `health.router_api_function_error`"
           ],
           "queries": [],
+          "request_bodies": [],
+          "resource_changes": [],
           "responses": [
-            "200",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
+            "`200` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合に返します。",
+            "`422` path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。"
           ],
           "samples": [
-            "公開契約"
+            "HTTP 200",
+            "HTTP 429",
+            "HTTP 500"
           ]
         }
       },
       {
-        "api": "reservations_cancel",
+        "api": "list_reservations",
         "documents": {
-          "detail-design": "docs/design/generated/api/reservations/reservations_cancel/detail-design.md",
-          "interface": "docs/design/generated/api/reservations/reservations_cancel/interface.md",
-          "messages": "docs/design/generated/api/reservations/reservations_cancel/messages.md",
-          "query": "docs/design/generated/api/reservations/reservations_cancel/query.md",
-          "sequence": "docs/design/generated/api/reservations/reservations_cancel/sequence.md",
-          "unit-test": "docs/design/generated/api/reservations/reservations_cancel/unit-test.md"
+          "detail-design": "docs/spec/40.apis/reservations/list_reservations/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/reservations/list_reservations/interface_gen.md",
+          "messages": "docs/spec/40.apis/reservations/list_reservations/messages_gen.md",
+          "query": "docs/spec/40.apis/reservations/list_reservations/query_gen.md",
+          "sequence": "docs/spec/40.apis/reservations/list_reservations/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/reservations/list_reservations/unit-test_gen.md"
         },
         "group": "reservations",
-        "id": "reservations_cancel",
-        "sections": {
-          "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
-            "backend/tests/test_reservations.py::test_privacy_and_cancel",
-            "backend/tests/test_reservations.py::test_replay_before_validation",
-            "backend/tests/test_reservations.py::test_replay_after_start",
-            "backend/tests/test_reservations.py::test_versions_and_inactive",
-            "backend/tests/test_reservations.py::test_future_prevents_disable",
-            "backend/tests/test_reservations.py::test_cancel_boundaries",
-            "backend/tests/test_reservations.py::test_twenty_concurrent",
-            "backend/tests/test_reservations.py::test_same_key_concurrent",
-            "backend/tests/test_reservations.py::test_create_vs_disable",
-            "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
-            "backend/tests/test_reservations.py::test_repeatable_read",
-            "backend/tests/test_reservations.py::test_list_filters_only_own",
-            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
-            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
-            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
-            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
-            "backend/tests/test_reservations.py::test_resource_paging_order"
-          ],
-          "factors": [
-            "入力・権限・状態・競合"
-          ],
-          "messages": [
-            "request_result"
-          ],
-          "queries": [
-            "cancel",
-            "control",
-            "event",
-            "get"
-          ],
-          "responses": [
-            "200",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
-          ],
-          "samples": [
-            "公開契約"
-          ]
-        }
-      },
-      {
-        "api": "reservations_create",
-        "documents": {
-          "detail-design": "docs/design/generated/api/reservations/reservations_create/detail-design.md",
-          "interface": "docs/design/generated/api/reservations/reservations_create/interface.md",
-          "messages": "docs/design/generated/api/reservations/reservations_create/messages.md",
-          "query": "docs/design/generated/api/reservations/reservations_create/query.md",
-          "sequence": "docs/design/generated/api/reservations/reservations_create/sequence.md",
-          "unit-test": "docs/design/generated/api/reservations/reservations_create/unit-test.md"
+        "id": "listReservations",
+        "non_applicable": {
+          "request_bodies": "Request body はありません。",
+          "resource_changes": "正常系で作成/更新/削除するリソースはありません。"
         },
-        "group": "reservations",
-        "id": "reservations_create",
         "sections": {
           "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
-            "backend/tests/test_reservations.py::test_privacy_and_cancel",
-            "backend/tests/test_reservations.py::test_replay_before_validation",
-            "backend/tests/test_reservations.py::test_replay_after_start",
-            "backend/tests/test_reservations.py::test_versions_and_inactive",
-            "backend/tests/test_reservations.py::test_future_prevents_disable",
-            "backend/tests/test_reservations.py::test_cancel_boundaries",
-            "backend/tests/test_reservations.py::test_twenty_concurrent",
-            "backend/tests/test_reservations.py::test_same_key_concurrent",
-            "backend/tests/test_reservations.py::test_create_vs_disable",
-            "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
-            "backend/tests/test_reservations.py::test_repeatable_read",
-            "backend/tests/test_reservations.py::test_list_filters_only_own",
-            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
-            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
-            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
-            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
-            "backend/tests/test_reservations.py::test_resource_paging_order"
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004"
           ],
           "factors": [
-            "入力・権限・状態・競合"
+            "F01 例外処理"
           ],
           "messages": [
-            "request_result"
+            "`M001` `listReservations.router_api_function_error`"
           ],
           "queries": [
-            "control",
-            "create",
-            "event",
-            "expire",
-            "overlap",
-            "record",
-            "replay",
-            "user"
+            "001_select_reservations.sql"
           ],
+          "request_bodies": [],
+          "resource_changes": [],
           "responses": [
-            "201",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
+            "`200` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`422` queryがOpenAPIスキーマの型や制約に一致しない、または継続tokenが不正な場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
           ],
           "samples": [
-            "公開契約"
+            "HTTP 200",
+            "HTTP 401",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
           ]
         }
       },
       {
-        "api": "reservations_get",
+        "api": "list_resources",
         "documents": {
-          "detail-design": "docs/design/generated/api/reservations/reservations_get/detail-design.md",
-          "interface": "docs/design/generated/api/reservations/reservations_get/interface.md",
-          "messages": "docs/design/generated/api/reservations/reservations_get/messages.md",
-          "query": "docs/design/generated/api/reservations/reservations_get/query.md",
-          "sequence": "docs/design/generated/api/reservations/reservations_get/sequence.md",
-          "unit-test": "docs/design/generated/api/reservations/reservations_get/unit-test.md"
-        },
-        "group": "reservations",
-        "id": "reservations_get",
-        "sections": {
-          "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
-            "backend/tests/test_reservations.py::test_privacy_and_cancel",
-            "backend/tests/test_reservations.py::test_replay_before_validation",
-            "backend/tests/test_reservations.py::test_replay_after_start",
-            "backend/tests/test_reservations.py::test_versions_and_inactive",
-            "backend/tests/test_reservations.py::test_future_prevents_disable",
-            "backend/tests/test_reservations.py::test_cancel_boundaries",
-            "backend/tests/test_reservations.py::test_twenty_concurrent",
-            "backend/tests/test_reservations.py::test_same_key_concurrent",
-            "backend/tests/test_reservations.py::test_create_vs_disable",
-            "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
-            "backend/tests/test_reservations.py::test_repeatable_read",
-            "backend/tests/test_reservations.py::test_list_filters_only_own",
-            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
-            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
-            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
-            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
-            "backend/tests/test_reservations.py::test_resource_paging_order"
-          ],
-          "factors": [
-            "入力・権限・状態・競合"
-          ],
-          "messages": [
-            "request_result"
-          ],
-          "queries": [
-            "events",
-            "get"
-          ],
-          "responses": [
-            "200",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
-          ],
-          "samples": [
-            "公開契約"
-          ]
-        }
-      },
-      {
-        "api": "reservations_list",
-        "documents": {
-          "detail-design": "docs/design/generated/api/reservations/reservations_list/detail-design.md",
-          "interface": "docs/design/generated/api/reservations/reservations_list/interface.md",
-          "messages": "docs/design/generated/api/reservations/reservations_list/messages.md",
-          "query": "docs/design/generated/api/reservations/reservations_list/query.md",
-          "sequence": "docs/design/generated/api/reservations/reservations_list/sequence.md",
-          "unit-test": "docs/design/generated/api/reservations/reservations_list/unit-test.md"
-        },
-        "group": "reservations",
-        "id": "reservations_list",
-        "sections": {
-          "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
-            "backend/tests/test_reservations.py::test_privacy_and_cancel",
-            "backend/tests/test_reservations.py::test_replay_before_validation",
-            "backend/tests/test_reservations.py::test_replay_after_start",
-            "backend/tests/test_reservations.py::test_versions_and_inactive",
-            "backend/tests/test_reservations.py::test_future_prevents_disable",
-            "backend/tests/test_reservations.py::test_cancel_boundaries",
-            "backend/tests/test_reservations.py::test_twenty_concurrent",
-            "backend/tests/test_reservations.py::test_same_key_concurrent",
-            "backend/tests/test_reservations.py::test_create_vs_disable",
-            "backend/tests/test_reservations.py::test_rollback_at_event",
-            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
-            "backend/tests/test_reservations.py::test_repeatable_read",
-            "backend/tests/test_reservations.py::test_list_filters_only_own",
-            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
-            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
-            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
-            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
-            "backend/tests/test_reservations.py::test_resource_paging_order"
-          ],
-          "factors": [
-            "入力・権限・状態・競合"
-          ],
-          "messages": [
-            "request_result"
-          ],
-          "queries": [
-            "select_page"
-          ],
-          "responses": [
-            "200",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
-          ],
-          "samples": [
-            "公開契約"
-          ]
-        }
-      },
-      {
-        "api": "resources_create",
-        "documents": {
-          "detail-design": "docs/design/generated/api/resources/resources_create/detail-design.md",
-          "interface": "docs/design/generated/api/resources/resources_create/interface.md",
-          "messages": "docs/design/generated/api/resources/resources_create/messages.md",
-          "query": "docs/design/generated/api/resources/resources_create/query.md",
-          "sequence": "docs/design/generated/api/resources/resources_create/sequence.md",
-          "unit-test": "docs/design/generated/api/resources/resources_create/unit-test.md"
+          "detail-design": "docs/spec/40.apis/resources/list_resources/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/resources/list_resources/interface_gen.md",
+          "messages": "docs/spec/40.apis/resources/list_resources/messages_gen.md",
+          "query": "docs/spec/40.apis/resources/list_resources/query_gen.md",
+          "sequence": "docs/spec/40.apis/resources/list_resources/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/resources/list_resources/unit-test_gen.md"
         },
         "group": "resources",
-        "id": "resources_create",
+        "id": "listResources",
+        "non_applicable": {
+          "request_bodies": "Request body はありません。",
+          "resource_changes": "正常系で作成/更新/削除するリソースはありません。"
+        },
         "sections": {
           "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_domain.py::test_resource_input",
-            "backend/tests/test_reservations.py::test_resource_paging_order"
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004"
           ],
           "factors": [
-            "入力・権限・状態・競合"
+            "F01 例外処理"
           ],
           "messages": [
-            "request_result"
+            "`M001` `listResources.router_api_function_error`"
           ],
           "queries": [
-            "create"
+            "001_select_resources.sql"
           ],
+          "request_bodies": [],
+          "resource_changes": [],
           "responses": [
-            "201",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
+            "`200` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`422` queryがOpenAPIスキーマの型や制約に一致しない、または継続tokenが不正な場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
           ],
           "samples": [
-            "公開契約"
+            "HTTP 200",
+            "HTTP 401",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
           ]
         }
       },
       {
-        "api": "resources_list",
+        "api": "update_resource",
         "documents": {
-          "detail-design": "docs/design/generated/api/resources/resources_list/detail-design.md",
-          "interface": "docs/design/generated/api/resources/resources_list/interface.md",
-          "messages": "docs/design/generated/api/resources/resources_list/messages.md",
-          "query": "docs/design/generated/api/resources/resources_list/query.md",
-          "sequence": "docs/design/generated/api/resources/resources_list/sequence.md",
-          "unit-test": "docs/design/generated/api/resources/resources_list/unit-test.md"
+          "detail-design": "docs/spec/40.apis/resources/update_resource/detail-design_gen.md",
+          "interface": "docs/spec/40.apis/resources/update_resource/interface_gen.md",
+          "messages": "docs/spec/40.apis/resources/update_resource/messages_gen.md",
+          "query": "docs/spec/40.apis/resources/update_resource/query_gen.md",
+          "sequence": "docs/spec/40.apis/resources/update_resource/sequence_gen.md",
+          "unit-test": "docs/spec/40.apis/resources/update_resource/unit-test_gen.md"
         },
         "group": "resources",
-        "id": "resources_list",
+        "id": "updateResource",
         "sections": {
           "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_domain.py::test_resource_input",
-            "backend/tests/test_reservations.py::test_resource_paging_order"
+            "TC001",
+            "TC002",
+            "TC003",
+            "TC004",
+            "TC005",
+            "TC006",
+            "TC007"
           ],
           "factors": [
-            "入力・権限・状態・競合"
+            "F01 条件分岐",
+            "F02 条件分岐",
+            "F03 条件分岐",
+            "F04 例外処理"
           ],
           "messages": [
-            "request_result"
+            "`M001` `updateResource.caller_cannot_manage_resources`",
+            "`M002` `updateResource.stale_resource_version`",
+            "`M003` `updateResource.future_reservations_exist`",
+            "`M004` `updateResource.router_api_function_error`"
           ],
           "queries": [
-            "select_page"
+            "001_update_resources_control_version.sql",
+            "002_select_reservations.sql",
+            "003_update_resources.sql"
+          ],
+          "request_bodies": [
+            "Request body `UpdateResourceRequest`"
+          ],
+          "resource_changes": [
+            "DB `resources` 更新 (`001_update_resources_control_version.sql`)",
+            "DB `resources` 更新 (`003_update_resources.sql`)"
           ],
           "responses": [
-            "200",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
+            "`200` Successful Response",
+            "`401` 認証情報が未指定、期限切れ、または検証できない場合。",
+            "`403` 呼び出し元が資源を管理できる管理者でない場合。",
+            "`404` 指定された資源が存在しない場合。",
+            "`409` 資源の公開版が古い、または無効化する資源に将来予約がある場合。",
+            "`422` pathまたはbodyがOpenAPIスキーマの型や制約に一致しない場合。",
+            "`429` 呼び出し頻度が許可された上限を超えた場合。",
+            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
+            "`503` DBの競合や接続障害が再試行上限を超えた場合。"
           ],
           "samples": [
-            "公開契約"
-          ]
-        }
-      },
-      {
-        "api": "resources_update",
-        "documents": {
-          "detail-design": "docs/design/generated/api/resources/resources_update/detail-design.md",
-          "interface": "docs/design/generated/api/resources/resources_update/interface.md",
-          "messages": "docs/design/generated/api/resources/resources_update/messages.md",
-          "query": "docs/design/generated/api/resources/resources_update/query.md",
-          "sequence": "docs/design/generated/api/resources/resources_update/sequence.md",
-          "unit-test": "docs/design/generated/api/resources/resources_update/unit-test.md"
-        },
-        "group": "resources",
-        "id": "resources_update",
-        "sections": {
-          "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id",
-            "backend/tests/test_domain.py::test_resource_input",
-            "backend/tests/test_reservations.py::test_resource_paging_order"
-          ],
-          "factors": [
-            "入力・権限・状態・競合"
-          ],
-          "messages": [
-            "request_result"
-          ],
-          "queries": [
-            "control",
-            "future",
-            "update"
-          ],
-          "responses": [
-            "200",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
-          ],
-          "samples": [
-            "公開契約"
-          ]
-        }
-      },
-      {
-        "api": "schedule",
-        "documents": {
-          "detail-design": "docs/design/generated/api/resources/schedule/detail-design.md",
-          "interface": "docs/design/generated/api/resources/schedule/interface.md",
-          "messages": "docs/design/generated/api/resources/schedule/messages.md",
-          "query": "docs/design/generated/api/resources/schedule/query.md",
-          "sequence": "docs/design/generated/api/resources/schedule/sequence.md",
-          "unit-test": "docs/design/generated/api/resources/schedule/unit-test.md"
-        },
-        "group": "resources",
-        "id": "schedule",
-        "sections": {
-          "cases": [
-            "backend/tests/test_auth.py::test_bad_claims",
-            "backend/tests/test_auth.py::test_bad_signature",
-            "backend/tests/test_auth.py::test_anonymous_and_health",
-            "backend/tests/test_auth.py::test_user_cannot_create_resource",
-            "backend/tests/test_auth.py::test_cognito_access_and_id"
-          ],
-          "factors": [
-            "入力・権限・状態・競合"
-          ],
-          "messages": [
-            "request_result"
-          ],
-          "queries": [
-            "bookings",
-            "resource"
-          ],
-          "responses": [
-            "200",
-            "401",
-            "403",
-            "404",
-            "409",
-            "422",
-            "503"
-          ],
-          "samples": [
-            "公開契約"
+            "HTTP 200",
+            "HTTP 401",
+            "HTTP 403",
+            "HTTP 404",
+            "HTTP 409",
+            "HTTP 422",
+            "HTTP 429",
+            "HTTP 500",
+            "HTTP 503"
           ]
         }
       }
     ],
-    "profile": ".agents/skills/generate-implementation-design/assets/api-document-profile-v1.json",
-    "root": "docs/design/generated/api"
+    "profile": ".dev-standard/api-document-profile.json",
+    "root": "docs/spec/40.apis"
   },
   "applicable_requirement_ids": [
     "TECH-DESIGN"
   ],
   "capabilities": {
-    "implementation": {
+    "api": {
       "check": [
         "python",
-        "tools/project/design.py",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "api",
         "--check"
       ],
       "generate": [
         "python",
-        "tools/project/design.py"
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "api"
       ],
-      "output_root": "docs/design/generated",
+      "output_root": "docs/spec/40.apis",
       "outputs": [
-        "docs/design/generated/DATA.md",
-        "docs/design/generated/FRONTEND.md",
-        "docs/design/generated/INFRA.md",
-        "docs/design/generated/OVERVIEW.md",
-        "docs/design/generated/TESTS.md",
-        "docs/design/generated/TRACE.md",
-        "docs/design/generated/api/index.md",
-        "docs/design/generated/api/reservations/index.md",
-        "docs/design/generated/api/reservations/reservations_cancel/detail-design.md",
-        "docs/design/generated/api/reservations/reservations_cancel/index.md",
-        "docs/design/generated/api/reservations/reservations_cancel/interface.md",
-        "docs/design/generated/api/reservations/reservations_cancel/messages.md",
-        "docs/design/generated/api/reservations/reservations_cancel/query.md",
-        "docs/design/generated/api/reservations/reservations_cancel/sequence.md",
-        "docs/design/generated/api/reservations/reservations_cancel/unit-test.md",
-        "docs/design/generated/api/reservations/reservations_create/detail-design.md",
-        "docs/design/generated/api/reservations/reservations_create/index.md",
-        "docs/design/generated/api/reservations/reservations_create/interface.md",
-        "docs/design/generated/api/reservations/reservations_create/messages.md",
-        "docs/design/generated/api/reservations/reservations_create/query.md",
-        "docs/design/generated/api/reservations/reservations_create/sequence.md",
-        "docs/design/generated/api/reservations/reservations_create/unit-test.md",
-        "docs/design/generated/api/reservations/reservations_get/detail-design.md",
-        "docs/design/generated/api/reservations/reservations_get/index.md",
-        "docs/design/generated/api/reservations/reservations_get/interface.md",
-        "docs/design/generated/api/reservations/reservations_get/messages.md",
-        "docs/design/generated/api/reservations/reservations_get/query.md",
-        "docs/design/generated/api/reservations/reservations_get/sequence.md",
-        "docs/design/generated/api/reservations/reservations_get/unit-test.md",
-        "docs/design/generated/api/reservations/reservations_list/detail-design.md",
-        "docs/design/generated/api/reservations/reservations_list/index.md",
-        "docs/design/generated/api/reservations/reservations_list/interface.md",
-        "docs/design/generated/api/reservations/reservations_list/messages.md",
-        "docs/design/generated/api/reservations/reservations_list/query.md",
-        "docs/design/generated/api/reservations/reservations_list/sequence.md",
-        "docs/design/generated/api/reservations/reservations_list/unit-test.md",
-        "docs/design/generated/api/resources/index.md",
-        "docs/design/generated/api/resources/resources_create/detail-design.md",
-        "docs/design/generated/api/resources/resources_create/index.md",
-        "docs/design/generated/api/resources/resources_create/interface.md",
-        "docs/design/generated/api/resources/resources_create/messages.md",
-        "docs/design/generated/api/resources/resources_create/query.md",
-        "docs/design/generated/api/resources/resources_create/sequence.md",
-        "docs/design/generated/api/resources/resources_create/unit-test.md",
-        "docs/design/generated/api/resources/resources_list/detail-design.md",
-        "docs/design/generated/api/resources/resources_list/index.md",
-        "docs/design/generated/api/resources/resources_list/interface.md",
-        "docs/design/generated/api/resources/resources_list/messages.md",
-        "docs/design/generated/api/resources/resources_list/query.md",
-        "docs/design/generated/api/resources/resources_list/sequence.md",
-        "docs/design/generated/api/resources/resources_list/unit-test.md",
-        "docs/design/generated/api/resources/resources_update/detail-design.md",
-        "docs/design/generated/api/resources/resources_update/index.md",
-        "docs/design/generated/api/resources/resources_update/interface.md",
-        "docs/design/generated/api/resources/resources_update/messages.md",
-        "docs/design/generated/api/resources/resources_update/query.md",
-        "docs/design/generated/api/resources/resources_update/sequence.md",
-        "docs/design/generated/api/resources/resources_update/unit-test.md",
-        "docs/design/generated/api/resources/schedule/detail-design.md",
-        "docs/design/generated/api/resources/schedule/index.md",
-        "docs/design/generated/api/resources/schedule/interface.md",
-        "docs/design/generated/api/resources/schedule/messages.md",
-        "docs/design/generated/api/resources/schedule/query.md",
-        "docs/design/generated/api/resources/schedule/sequence.md",
-        "docs/design/generated/api/resources/schedule/unit-test.md",
-        "docs/design/generated/api/system/health/detail-design.md",
-        "docs/design/generated/api/system/health/index.md",
-        "docs/design/generated/api/system/health/interface.md",
-        "docs/design/generated/api/system/health/messages.md",
-        "docs/design/generated/api/system/health/query.md",
-        "docs/design/generated/api/system/health/sequence.md",
-        "docs/design/generated/api/system/health/unit-test.md",
-        "docs/design/generated/api/system/index.md",
-        "docs/design/generated/crud/diagram.md",
-        "docs/design/generated/crud/evidence.json",
-        "docs/design/generated/crud/matrix.csv",
-        "docs/design/generated/crud/matrix.md",
-        "docs/design/generated/crud/model.json",
-        "docs/design/generated/database.json",
-        "docs/design/generated/infra.json",
-        "docs/design/generated/openapi.json",
-        "docs/design/generated/operations.json",
-        "docs/design/generated/report.json",
-        "docs/design/generated/sources.json",
-        "docs/design/generated/trace.json"
+        "docs/spec/40.apis/apis_list_gen.md",
+        "docs/spec/40.apis/index.md",
+        "docs/spec/40.apis/messages_index_gen.md",
+        "docs/spec/40.apis/openapi.json",
+        "docs/spec/40.apis/operations.json",
+        "docs/spec/40.apis/report.json",
+        "docs/spec/40.apis/reservations/cancel_reservation/detail-design_gen.md",
+        "docs/spec/40.apis/reservations/cancel_reservation/index.md",
+        "docs/spec/40.apis/reservations/cancel_reservation/interface_gen.md",
+        "docs/spec/40.apis/reservations/cancel_reservation/messages_gen.md",
+        "docs/spec/40.apis/reservations/cancel_reservation/query_gen.md",
+        "docs/spec/40.apis/reservations/cancel_reservation/sequence_gen.md",
+        "docs/spec/40.apis/reservations/cancel_reservation/unit-test_gen.md",
+        "docs/spec/40.apis/reservations/create_reservation/detail-design_gen.md",
+        "docs/spec/40.apis/reservations/create_reservation/index.md",
+        "docs/spec/40.apis/reservations/create_reservation/interface_gen.md",
+        "docs/spec/40.apis/reservations/create_reservation/messages_gen.md",
+        "docs/spec/40.apis/reservations/create_reservation/query_gen.md",
+        "docs/spec/40.apis/reservations/create_reservation/sequence_gen.md",
+        "docs/spec/40.apis/reservations/create_reservation/unit-test_gen.md",
+        "docs/spec/40.apis/reservations/get_reservation/detail-design_gen.md",
+        "docs/spec/40.apis/reservations/get_reservation/index.md",
+        "docs/spec/40.apis/reservations/get_reservation/interface_gen.md",
+        "docs/spec/40.apis/reservations/get_reservation/messages_gen.md",
+        "docs/spec/40.apis/reservations/get_reservation/query_gen.md",
+        "docs/spec/40.apis/reservations/get_reservation/sequence_gen.md",
+        "docs/spec/40.apis/reservations/get_reservation/unit-test_gen.md",
+        "docs/spec/40.apis/reservations/index.md",
+        "docs/spec/40.apis/reservations/list_reservations/detail-design_gen.md",
+        "docs/spec/40.apis/reservations/list_reservations/index.md",
+        "docs/spec/40.apis/reservations/list_reservations/interface_gen.md",
+        "docs/spec/40.apis/reservations/list_reservations/messages_gen.md",
+        "docs/spec/40.apis/reservations/list_reservations/query_gen.md",
+        "docs/spec/40.apis/reservations/list_reservations/sequence_gen.md",
+        "docs/spec/40.apis/reservations/list_reservations/unit-test_gen.md",
+        "docs/spec/40.apis/resources/create_resource/detail-design_gen.md",
+        "docs/spec/40.apis/resources/create_resource/index.md",
+        "docs/spec/40.apis/resources/create_resource/interface_gen.md",
+        "docs/spec/40.apis/resources/create_resource/messages_gen.md",
+        "docs/spec/40.apis/resources/create_resource/query_gen.md",
+        "docs/spec/40.apis/resources/create_resource/sequence_gen.md",
+        "docs/spec/40.apis/resources/create_resource/unit-test_gen.md",
+        "docs/spec/40.apis/resources/get_resource_schedule/detail-design_gen.md",
+        "docs/spec/40.apis/resources/get_resource_schedule/index.md",
+        "docs/spec/40.apis/resources/get_resource_schedule/interface_gen.md",
+        "docs/spec/40.apis/resources/get_resource_schedule/messages_gen.md",
+        "docs/spec/40.apis/resources/get_resource_schedule/query_gen.md",
+        "docs/spec/40.apis/resources/get_resource_schedule/sequence_gen.md",
+        "docs/spec/40.apis/resources/get_resource_schedule/unit-test_gen.md",
+        "docs/spec/40.apis/resources/index.md",
+        "docs/spec/40.apis/resources/list_resources/detail-design_gen.md",
+        "docs/spec/40.apis/resources/list_resources/index.md",
+        "docs/spec/40.apis/resources/list_resources/interface_gen.md",
+        "docs/spec/40.apis/resources/list_resources/messages_gen.md",
+        "docs/spec/40.apis/resources/list_resources/query_gen.md",
+        "docs/spec/40.apis/resources/list_resources/sequence_gen.md",
+        "docs/spec/40.apis/resources/list_resources/unit-test_gen.md",
+        "docs/spec/40.apis/resources/update_resource/detail-design_gen.md",
+        "docs/spec/40.apis/resources/update_resource/index.md",
+        "docs/spec/40.apis/resources/update_resource/interface_gen.md",
+        "docs/spec/40.apis/resources/update_resource/messages_gen.md",
+        "docs/spec/40.apis/resources/update_resource/query_gen.md",
+        "docs/spec/40.apis/resources/update_resource/sequence_gen.md",
+        "docs/spec/40.apis/resources/update_resource/unit-test_gen.md",
+        "docs/spec/40.apis/system/health/detail-design_gen.md",
+        "docs/spec/40.apis/system/health/index.md",
+        "docs/spec/40.apis/system/health/interface_gen.md",
+        "docs/spec/40.apis/system/health/messages_gen.md",
+        "docs/spec/40.apis/system/health/query_gen.md",
+        "docs/spec/40.apis/system/health/sequence_gen.md",
+        "docs/spec/40.apis/system/health/unit-test_gen.md",
+        "docs/spec/40.apis/system/index.md"
       ],
-      "report": "docs/design/generated/report.json",
+      "report": "docs/spec/40.apis/report.json",
       "requirement_ids": [
         "TECH-DESIGN"
       ],
       "sources": [
-        "backend/indexes.sql",
-        "backend/logical-relations.json",
-        "backend/schema-labels.json",
-        "backend/schema.sql",
-        "backend/src/slotkeeper/__init__.py",
-        "backend/src/slotkeeper/app.py",
-        "backend/src/slotkeeper/auth.py",
-        "backend/src/slotkeeper/db.py",
-        "backend/src/slotkeeper/domain.py",
-        "backend/src/slotkeeper/operations/__init__.py",
-        "backend/src/slotkeeper/operations/reservations_cancel/__init__.py",
-        "backend/src/slotkeeper/operations/reservations_cancel/endpoint.py",
-        "backend/src/slotkeeper/operations/reservations_cancel/queries.py",
-        "backend/src/slotkeeper/operations/reservations_cancel/sql/cancel.sql",
-        "backend/src/slotkeeper/operations/reservations_cancel/sql/control.sql",
-        "backend/src/slotkeeper/operations/reservations_cancel/sql/event.sql",
-        "backend/src/slotkeeper/operations/reservations_cancel/sql/get.sql",
-        "backend/src/slotkeeper/operations/reservations_create/__init__.py",
-        "backend/src/slotkeeper/operations/reservations_create/endpoint.py",
-        "backend/src/slotkeeper/operations/reservations_create/queries.py",
-        "backend/src/slotkeeper/operations/reservations_create/sql/control.sql",
-        "backend/src/slotkeeper/operations/reservations_create/sql/create.sql",
-        "backend/src/slotkeeper/operations/reservations_create/sql/event.sql",
-        "backend/src/slotkeeper/operations/reservations_create/sql/expire.sql",
-        "backend/src/slotkeeper/operations/reservations_create/sql/overlap.sql",
-        "backend/src/slotkeeper/operations/reservations_create/sql/record.sql",
-        "backend/src/slotkeeper/operations/reservations_create/sql/replay.sql",
-        "backend/src/slotkeeper/operations/reservations_create/sql/user.sql",
-        "backend/src/slotkeeper/operations/reservations_get/__init__.py",
-        "backend/src/slotkeeper/operations/reservations_get/endpoint.py",
-        "backend/src/slotkeeper/operations/reservations_get/queries.py",
-        "backend/src/slotkeeper/operations/reservations_get/sql/events.sql",
-        "backend/src/slotkeeper/operations/reservations_get/sql/get.sql",
-        "backend/src/slotkeeper/operations/reservations_list/__init__.py",
-        "backend/src/slotkeeper/operations/reservations_list/endpoint.py",
-        "backend/src/slotkeeper/operations/reservations_list/queries.py",
-        "backend/src/slotkeeper/operations/reservations_list/sql/select_page.sql",
-        "backend/src/slotkeeper/operations/resources_create/__init__.py",
-        "backend/src/slotkeeper/operations/resources_create/endpoint.py",
-        "backend/src/slotkeeper/operations/resources_create/queries.py",
-        "backend/src/slotkeeper/operations/resources_create/sql/create.sql",
-        "backend/src/slotkeeper/operations/resources_list/__init__.py",
-        "backend/src/slotkeeper/operations/resources_list/endpoint.py",
-        "backend/src/slotkeeper/operations/resources_list/queries.py",
-        "backend/src/slotkeeper/operations/resources_list/sql/select_page.sql",
-        "backend/src/slotkeeper/operations/resources_update/__init__.py",
-        "backend/src/slotkeeper/operations/resources_update/endpoint.py",
-        "backend/src/slotkeeper/operations/resources_update/queries.py",
-        "backend/src/slotkeeper/operations/resources_update/sql/control.sql",
-        "backend/src/slotkeeper/operations/resources_update/sql/future.sql",
-        "backend/src/slotkeeper/operations/resources_update/sql/update.sql",
-        "backend/src/slotkeeper/operations/schedule/__init__.py",
-        "backend/src/slotkeeper/operations/schedule/endpoint.py",
-        "backend/src/slotkeeper/operations/schedule/queries.py",
-        "backend/src/slotkeeper/operations/schedule/sql/bookings.sql",
-        "backend/src/slotkeeper/operations/schedule/sql/resource.sql",
-        "backend/src/slotkeeper/query_models.py",
-        "backend/src/slotkeeper/settings.py",
-        "backend/tests/conftest.py",
-        "backend/tests/test_auth.py",
-        "backend/tests/test_domain.py",
-        "backend/tests/test_lambda.py",
-        "backend/tests/test_operations.py",
-        "backend/tests/test_reservations.py",
-        "compose.yaml",
-        "e2e/app.spec.ts",
-        "e2e/forward.ts",
-        "e2e/playwright.config.ts",
-        "e2e/portal-remote.config.ts",
-        "e2e/portal.config.ts",
-        "e2e/portal.spec.ts",
-        "frontend/src/App.tsx",
-        "frontend/src/auth.ts",
-        "frontend/src/generated/api.ts",
-        "frontend/src/logic.ts",
-        "frontend/src/pages/index.astro",
-        "frontend/src/style.css",
-        "infra/__init__.py",
-        "infra/app.py",
-        "infra/config.py",
-        "infra/environments/dev.json",
-        "infra/environments/prod.json",
-        "infra/stack.py",
-        "infra/tests/test_stack.py",
-        "package.json",
-        "pyproject.toml",
-        "tools/project/__init__.py",
-        "tools/project/cloud.py",
-        "tools/project/collector.py",
-        "tools/project/deploy.py",
-        "tools/project/design.py",
-        "tools/project/evidence.py",
-        "tools/project/migrate.py",
-        "tools/project/package_lambda.py",
-        "tools/project/perf.py",
-        "tools/project/queries.py",
-        "tools/project/sql_contract.py",
-        "tools/project/verify.py",
-        "tools/tests/test_guards.py"
+        "src/app",
+        "src/db/ddl.sql",
+        "src/tools",
+        ".dev-standard/api-document-profile.json"
+      ],
+      "status": "required"
+    },
+    "crud": {
+      "check": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "crud",
+        "--check"
+      ],
+      "generate": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "crud"
+      ],
+      "output_root": "docs/spec/30.crud",
+      "outputs": [
+        "docs/spec/30.crud/db_crud.gen.csv",
+        "docs/spec/30.crud/dev-standard/diagram.md",
+        "docs/spec/30.crud/dev-standard/evidence.json",
+        "docs/spec/30.crud/dev-standard/matrix.csv",
+        "docs/spec/30.crud/dev-standard/matrix.md",
+        "docs/spec/30.crud/dev-standard/model.json",
+        "docs/spec/30.crud/identity_crud.gen.csv",
+        "docs/spec/30.crud/index.md",
+        "docs/spec/30.crud/report.json"
+      ],
+      "report": "docs/spec/30.crud/report.json",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "sources": [
+        "src/app/apis",
+        "src/db/ddl.sql",
+        "src/tools/generate_db_crud.py",
+        "src/tools/generate_external_crud.py"
+      ],
+      "status": "required"
+    },
+    "data": {
+      "check": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "data",
+        "--check"
+      ],
+      "generate": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "data"
+      ],
+      "output_root": "docs/spec/20.db",
+      "outputs": [
+        "docs/spec/20.db/er.gen.md",
+        "docs/spec/20.db/report.json",
+        "docs/spec/20.db/tables/idempotency_records.gen.md",
+        "docs/spec/20.db/tables/reservation_events.gen.md",
+        "docs/spec/20.db/tables/reservations.gen.md",
+        "docs/spec/20.db/tables/resources.gen.md",
+        "docs/spec/20.db/tables/users.gen.md"
+      ],
+      "report": "docs/spec/20.db/report.json",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "sources": [
+        "src/db/ddl.sql",
+        "src/tools/generate_db_table_specs.py",
+        "src/tools/generate_db_er_diagram.py"
+      ],
+      "status": "required"
+    },
+    "frontend": {
+      "check": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "frontend",
+        "--check"
+      ],
+      "generate": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "frontend"
+      ],
+      "output_root": "docs/spec/60.frontend",
+      "outputs": [
+        "docs/spec/60.frontend/frontend.gen.md",
+        "docs/spec/60.frontend/report.json"
+      ],
+      "report": "docs/spec/60.frontend/report.json",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "sources": [
+        "frontend/src"
+      ],
+      "status": "required"
+    },
+    "infra": {
+      "check": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "infra",
+        "--check"
+      ],
+      "generate": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "infra"
+      ],
+      "output_root": "docs/spec/70.infra",
+      "outputs": [
+        "docs/spec/70.infra/infra.gen.md",
+        "docs/spec/70.infra/report.json",
+        "docs/spec/70.infra/template.json"
+      ],
+      "report": "docs/spec/70.infra/report.json",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "sources": [
+        "infra",
+        "artifacts/lambda.zip"
+      ],
+      "status": "required"
+    },
+    "tools": {
+      "check": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "tools",
+        "--check"
+      ],
+      "generate": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "tools"
+      ],
+      "output_root": "docs/spec/tools",
+      "outputs": [
+        "docs/spec/tools/artifacts.gen.md",
+        "docs/spec/tools/check_api_contracts/basic-design_gen.md",
+        "docs/spec/tools/check_api_contracts/unit-test-spec_gen.md",
+        "docs/spec/tools/check_api_mermaid_sequences/basic-design_gen.md",
+        "docs/spec/tools/check_api_mermaid_sequences/unit-test-spec_gen.md",
+        "docs/spec/tools/check_api_router_unit_test_factors/basic-design_gen.md",
+        "docs/spec/tools/check_api_router_unit_test_factors/unit-test-spec_gen.md",
+        "docs/spec/tools/check_api_sequence_success_responses/basic-design_gen.md",
+        "docs/spec/tools/check_api_sequence_success_responses/unit-test-spec_gen.md",
+        "docs/spec/tools/check_api_status_samples/basic-design_gen.md",
+        "docs/spec/tools/check_api_status_samples/unit-test-spec_gen.md",
+        "docs/spec/tools/check_e2e_specs/basic-design_gen.md",
+        "docs/spec/tools/check_e2e_specs/unit-test-spec_gen.md",
+        "docs/spec/tools/execution-flow.gen.md",
+        "docs/spec/tools/generate_api_detail_design/basic-design_gen.md",
+        "docs/spec/tools/generate_api_detail_design/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_api_list/basic-design_gen.md",
+        "docs/spec/tools/generate_api_list/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_api_message_catalog/basic-design_gen.md",
+        "docs/spec/tools/generate_api_message_catalog/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_api_pytest_cases/basic-design_gen.md",
+        "docs/spec/tools/generate_api_pytest_cases/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_api_sequences/basic-design_gen.md",
+        "docs/spec/tools/generate_api_sequences/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_api_unit_test_factors/basic-design_gen.md",
+        "docs/spec/tools/generate_api_unit_test_factors/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_db_crud/basic-design_gen.md",
+        "docs/spec/tools/generate_db_crud/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_db_er_diagram/basic-design_gen.md",
+        "docs/spec/tools/generate_db_er_diagram/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_db_table_specs/basic-design_gen.md",
+        "docs/spec/tools/generate_db_table_specs/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_e2e_case_list/basic-design_gen.md",
+        "docs/spec/tools/generate_e2e_case_list/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_e2e_scenarios/basic-design_gen.md",
+        "docs/spec/tools/generate_e2e_scenarios/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_external_crud/basic-design_gen.md",
+        "docs/spec/tools/generate_external_crud/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_openapi_if_specs/basic-design_gen.md",
+        "docs/spec/tools/generate_openapi_if_specs/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_queries/basic-design_gen.md",
+        "docs/spec/tools/generate_queries/unit-test-spec_gen.md",
+        "docs/spec/tools/generate_query_specs/basic-design_gen.md",
+        "docs/spec/tools/generate_query_specs/unit-test-spec_gen.md",
+        "docs/spec/tools/report.json",
+        "docs/spec/tools/testcase-spec.gen.md",
+        "docs/spec/tools/tools-list.gen.md",
+        "docs/spec/tools/usage.gen.md"
+      ],
+      "report": "docs/spec/tools/report.json",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "sources": [
+        "src/app_tool",
+        "src/tools"
+      ],
+      "status": "required"
+    },
+    "trace": {
+      "check": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "trace",
+        "--check"
+      ],
+      "generate": [
+        "python",
+        "-B",
+        "src/tools/project/design.py",
+        "--target",
+        "trace"
+      ],
+      "output_root": "docs/spec/80.trace",
+      "outputs": [
+        "docs/spec/80.trace/index.md",
+        "docs/spec/80.trace/report.json",
+        "docs/spec/80.trace/tests.gen.md",
+        "docs/spec/80.trace/trace.gen.md",
+        "docs/spec/80.trace/trace.json"
+      ],
+      "report": "docs/spec/80.trace/report.json",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "sources": [
+        "spec/requirements/requirements.json",
+        "tests",
+        "frontend/tests",
+        "e2e",
+        "src/tools/project/verify.py"
       ],
       "status": "required"
     }
   },
   "crud": {
-    "csv": "docs/design/generated/crud/matrix.csv",
-    "diagram": "docs/design/generated/crud/diagram.md",
-    "evidence": "docs/design/generated/crud/evidence.json",
-    "model": "docs/design/generated/crud/model.json",
-    "table": "docs/design/generated/crud/matrix.md"
+    "csv": "docs/spec/30.crud/dev-standard/matrix.csv",
+    "diagram": "docs/spec/30.crud/dev-standard/diagram.md",
+    "evidence": "docs/spec/30.crud/dev-standard/evidence.json",
+    "model": "docs/spec/30.crud/dev-standard/model.json",
+    "table": "docs/spec/30.crud/dev-standard/matrix.md"
   },
   "reference_inventories": [
     ".dev-standard/reference-adoption.json"
@@ -732,25 +947,38 @@
   "surfaces": {
     "api": {
       "capabilities": [
-        "implementation"
+        "api"
       ],
       "status": "required"
     },
     "data": {
       "capabilities": [
-        "implementation"
+        "data",
+        "crud"
       ],
       "status": "required"
     },
     "frontend": {
       "capabilities": [
-        "implementation"
+        "frontend"
       ],
       "status": "required"
     },
     "infra": {
       "capabilities": [
-        "implementation"
+        "infra"
+      ],
+      "status": "required"
+    },
+    "tooling": {
+      "capabilities": [
+        "tools"
+      ],
+      "status": "required"
+    },
+    "trace": {
+      "capabilities": [
+        "trace"
       ],
       "status": "required"
     }

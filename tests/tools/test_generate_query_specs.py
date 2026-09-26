@@ -530,8 +530,8 @@ def test_arg_parser_defaults() -> None:
 
 
 def test_render_query_markdown_handles_no_sql_specs() -> None:
-    from tools.generate_query_specs import ApiQueryDoc
+    from tools.generate_query_specs import NO_SQL_TEXT, ApiQueryDoc
 
     assert render_query_markdown(ApiQueryDoc("projects", "empty", [])) == (
-        f"{GENERATED_COMMENT}\n\n# empty query\n"
+        f"{GENERATED_COMMENT}\n\n# empty query\n\n{NO_SQL_TEXT}\n"
     )

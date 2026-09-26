@@ -65,7 +65,7 @@ SlotKeeperは、幅390pxと1280pxで主要操作ができ、ラベル、入力�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -77,7 +77,7 @@ SlotKeeperは、幅390pxと1280pxで主要操作ができ、ラベル、入力�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/FRONTEND.md"]</code>
+- 設計: <code>["docs/spec/60.frontend/frontend.gen.md"]</code>
 - 実装: <code>["frontend/src/App.tsx","frontend/src/style.css","frontend/src/logic.ts"]</code>
 - テスト: <code>["e2e/app.spec.ts","frontend/tests/logic.test.ts"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
@@ -97,7 +97,7 @@ SlotKeeperは、確定済みのデータは再起動後も残る。失敗操作�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -111,9 +111,9 @@ SlotKeeperは、確定済みのデータは再起動後も残る。失敗操作�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/DATA.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/db.py","tools/project/migrate.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/20.db/er.gen.md"]</code>
+- 実装: <code>["src/app/db/session.py","src/tools/project/migrate.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_router.py","tests/test_db_session.py","tests/tools/test_project_migrate.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -131,7 +131,7 @@ SlotKeeperは、入力をサーバー側でも検証する。入力不正は422�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -143,9 +143,9 @@ SlotKeeperは、入力をサーバー側でも検証する。入力不正は422�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/app.py","backend/src/slotkeeper/domain.py"]</code>
-- テスト: <code>["backend/tests/test_domain.py","backend/tests/test_auth.py","backend/tests/test_reservations.py","backend/tests/test_operations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/main.py","src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py","tests/app/apis/reservations/get_reservation/test_router.py","tests/app/apis/reservations/list_reservations/test_functions.py","tests/app/apis/resources/create_resource/test_functions.py","tests/app/apis/resources/get_resource_schedule/test_functions.py","tests/app/apis/resources/get_resource_schedule/test_router.py","tests/app/apis/resources/list_resources/test_functions.py","tests/app/apis/resources/update_resource/test_router.py","tests/app/apis/test_deps.py","tests/test_api_error_responses.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -163,7 +163,7 @@ SlotKeeperは、サーバー側で本人と権限を判定する。UIの表示�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -175,9 +175,9 @@ SlotKeeperは、サーバー側で本人と権限を判定する。UIの表示�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/auth.py","backend/src/slotkeeper/domain.py"]</code>
-- テスト: <code>["backend/tests/test_auth.py","backend/tests/test_reservations.py","e2e/app.spec.ts"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/deps.py","src/app/integrations/identity/jwt_provider/client.py","src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py"]</code>
+- テスト: <code>["e2e/app.spec.ts","tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/get_reservation/test_functions.py","tests/app/apis/reservations/get_reservation/test_router.py","tests/app/apis/resources/create_resource/test_functions.py","tests/app/apis/resources/create_resource/test_router.py","tests/app/apis/resources/update_resource/test_router.py","tests/app/apis/test_deps.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -195,7 +195,7 @@ SlotKeeperは、起動・seed・リセット・全検証をCompose経由で再�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -207,9 +207,9 @@ SlotKeeperは、起動・seed・リセット・全検証をCompose経由で再�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/OPERATIONS.md"]</code>
-- 実装: <code>["compose.yaml","tools/project/migrate.py","tools/project/verify.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/10.architecture/operations.manual.md"]</code>
+- 実装: <code>["compose.yaml","src/tools/project/migrate.py","src/tools/project/verify.py"]</code>
+- テスト: <code>["tests/tools/test_project_migrate.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -227,7 +227,7 @@ SlotKeeperは、資源編集・予約取消等の同時更新で変更を消失�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -239,9 +239,9 @@ SlotKeeperは、資源編集・予約取消等の同時更新で変更を消失�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/resources/resources_update/index.md","docs/design/generated/api/reservations/reservations_cancel/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/resources_update/endpoint.py","backend/src/slotkeeper/operations/reservations_cancel/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/resources/update_resource/index.md","docs/spec/40.apis/reservations/cancel_reservation/index.md"]</code>
+- 実装: <code>["src/app/apis/resources/update_resource/router.py","src/app/apis/resources/update_resource/functions.py","src/app/apis/reservations/cancel_reservation/router.py","src/app/apis/reservations/cancel_reservation/functions.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_functions.py","tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/resources/update_resource/test_functions.py","tests/app/apis/resources/update_resource/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -259,7 +259,7 @@ SlotKeeperは、要求ID、操作、結果、所要時間を構造化ログに�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -271,9 +271,9 @@ SlotKeeperは、要求ID、操作、結果、所要時間を構造化ログに�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/reservations/reservations_create/messages.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/app.py"]</code>
-- テスト: <code>["backend/tests/test_operations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/reservations/create_reservation/messages_gen.md"]</code>
+- 実装: <code>["src/app/main.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/create_reservation/test_router.py","tests/app/apis/reservations/get_reservation/test_router.py","tests/app/apis/reservations/list_reservations/test_router.py","tests/app/apis/resources/create_resource/test_router.py","tests/app/apis/resources/get_resource_schedule/test_router.py","tests/app/apis/resources/list_resources/test_router.py","tests/app/apis/resources/update_resource/test_router.py","tests/app/apis/system/health/test_functions.py","tests/app/apis/system/health/test_router.py","tests/test_operational_logging.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -291,7 +291,7 @@ SlotKeeperは、空、読込み中、入力不正、通信失敗、権限不足�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -303,7 +303,7 @@ SlotKeeperは、空、読込み中、入力不正、通信失敗、権限不足�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/FRONTEND.md"]</code>
+- 設計: <code>["docs/spec/60.frontend/frontend.gen.md"]</code>
 - 実装: <code>["frontend/src/logic.ts","frontend/src/App.tsx"]</code>
 - テスト: <code>["frontend/tests/logic.test.ts"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
@@ -323,7 +323,7 @@ SlotKeeperは、管理者が資源を登録・編集・無効化できる。無�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -337,9 +337,9 @@ SlotKeeperは、管理者が資源を登録・編集・無効化できる。無�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/resources/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/resources_create/endpoint.py","backend/src/slotkeeper/operations/resources_update/endpoint.py","backend/src/slotkeeper/operations/resources_list/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_auth.py","backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/resources/index.md"]</code>
+- 実装: <code>["src/app/apis/resources/create_resource/router.py","src/app/apis/resources/create_resource/functions.py","src/app/apis/resources/update_resource/router.py","src/app/apis/resources/update_resource/functions.py","src/app/apis/resources/list_resources/router.py","src/app/apis/resources/list_resources/functions.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py","tests/app/apis/resources/create_resource/test_functions.py","tests/app/apis/resources/create_resource/test_router.py","tests/app/apis/resources/list_resources/test_functions.py","tests/app/apis/resources/list_resources/test_router.py","tests/app/apis/resources/update_resource/test_functions.py","tests/app/apis/resources/update_resource/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -357,7 +357,7 @@ SlotKeeperは、資源と日付を指定して、その日の予約済み時間�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -369,9 +369,9 @@ SlotKeeperは、資源と日付を指定して、その日の予約済み時間�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/resources/schedule/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/schedule/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py","e2e/app.spec.ts"]</code>
+- 設計: <code>["docs/spec/40.apis/resources/get_resource_schedule/index.md"]</code>
+- 実装: <code>["src/app/apis/resources/get_resource_schedule/router.py","src/app/apis/resources/get_resource_schedule/functions.py"]</code>
+- テスト: <code>["e2e/app.spec.ts","tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/resources/get_resource_schedule/test_functions.py","tests/app/apis/resources/get_resource_schedule/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -389,7 +389,7 @@ SlotKeeperは、資源、開始・終了、目的を指定して、自分名義�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -403,9 +403,9 @@ SlotKeeperは、資源、開始・終了、目的を指定して、自分名義�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/reservations/reservations_create/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/reservations_create/endpoint.py","backend/src/slotkeeper/domain.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py","backend/tests/test_domain.py","e2e/app.spec.ts"]</code>
+- 設計: <code>["docs/spec/40.apis/reservations/create_reservation/index.md"]</code>
+- 実装: <code>["src/app/apis/reservations/create_reservation/router.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/common.py"]</code>
+- テスト: <code>["e2e/app.spec.ts","tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -423,7 +423,7 @@ SlotKeeperは、同一資源の予約済み時間と重なる予約の確定を�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -439,9 +439,9 @@ SlotKeeperは、同一資源の予約済み時間と重なる予約の確定を�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/reservations/reservations_create/sequence.md","docs/design/generated/DATA.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/reservations_create/endpoint.py","backend/src/slotkeeper/operations/reservations_create/sql/control.sql","backend/src/slotkeeper/db.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py","backend/tests/test_operations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/reservations/create_reservation/sequence_gen.md","docs/spec/20.db/er.gen.md"]</code>
+- 実装: <code>["src/app/apis/reservations/create_reservation/router.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/sql/002_update_resources_control_version.sql","src/app/db/session.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py","tests/app/apis/resources/update_resource/test_router.py","tests/test_db_session.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -459,7 +459,7 @@ SlotKeeperは、本人または管理者が、開始前の予約を取消でき�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -473,9 +473,9 @@ SlotKeeperは、本人または管理者が、開始前の予約を取消でき�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/reservations/reservations_cancel/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/reservations_cancel/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py","e2e/app.spec.ts"]</code>
+- 設計: <code>["docs/spec/40.apis/reservations/cancel_reservation/index.md"]</code>
+- 実装: <code>["src/app/apis/reservations/cancel_reservation/router.py","src/app/apis/reservations/cancel_reservation/functions.py"]</code>
+- テスト: <code>["e2e/app.spec.ts","tests/app/apis/reservations/cancel_reservation/test_functions.py","tests/app/apis/reservations/cancel_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -493,7 +493,7 @@ SlotKeeperは、自分の予約を日付・状態で絞り込めるを**提供�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -505,9 +505,9 @@ SlotKeeperは、自分の予約を日付・状態で絞り込めるを**提供�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/reservations/reservations_list/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/reservations_list/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/reservations/list_reservations/index.md"]</code>
+- 実装: <code>["src/app/apis/reservations/list_reservations/router.py","src/app/apis/reservations/list_reservations/functions.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/list_reservations/test_functions.py","tests/app/apis/reservations/list_reservations/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -525,7 +525,7 @@ SlotKeeperは、作成・取消の履歴を残し、権限のある利用者が�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -537,9 +537,9 @@ SlotKeeperは、作成・取消の履歴を残し、権限のある利用者が�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/reservations/reservations_get/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/reservations_get/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py","e2e/app.spec.ts"]</code>
+- 設計: <code>["docs/spec/40.apis/reservations/get_reservation/index.md"]</code>
+- 実装: <code>["src/app/apis/reservations/get_reservation/router.py","src/app/apis/reservations/get_reservation/functions.py"]</code>
+- テスト: <code>["e2e/app.spec.ts","tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/get_reservation/test_functions.py","tests/app/apis/reservations/get_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -557,7 +557,7 @@ SlotKeeperは、要求の再送を識別し、予約と履歴を二重に作ら�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `functional`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"functional"</code>
 
 受入条件:
@@ -575,9 +575,9 @@ SlotKeeperは、要求の再送を識別し、予約と履歴を二重に作ら�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/reservations/reservations_create/sequence.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/reservations_create/endpoint.py","backend/src/slotkeeper/operations/reservations_create/sql/replay.sql","backend/src/slotkeeper/operations/reservations_create/sql/record.sql"]</code>
-- テスト: <code>["backend/tests/test_reservations.py","backend/tests/test_domain.py","backend/tests/test_operations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/reservations/create_reservation/sequence_gen.md"]</code>
+- 実装: <code>["src/app/apis/reservations/create_reservation/router.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/sql/001_select_idempotency_records.sql","src/app/apis/reservations/create_reservation/sql/006_insert_reservations.sql"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py","tests/test_db_session.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -595,7 +595,7 @@ SlotKeeperは、Astro静的フロントとFastAPIを使用するを**提供す�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -607,8 +607,8 @@ SlotKeeperは、Astro静的フロントとFastAPIを使用するを**提供す�
 検証証跡: verify:astro, verify:frontend-build, verify:openapi-types
 検証(JSON Object): <code>{"evidence":"verify:astro, verify:frontend-build, verify:openapi-types","method":"check"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/OVERVIEW.md"]</code>
-- 実装: <code>["frontend/astro.config.mjs","backend/src/slotkeeper/app.py","tools/frontend.mjs"]</code>
+- 設計: <code>["docs/spec/10.architecture/architecture.manual.md"]</code>
+- 実装: <code>["frontend/astro.config.mjs","src/app/main.py","src/tools/frontend.mjs"]</code>
 - テスト: <code>[]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
@@ -627,7 +627,7 @@ SlotKeeperは、DSQLとPostgreSQLで共通の予約不変条件を守るを**提
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -639,9 +639,9 @@ SlotKeeperは、DSQLとPostgreSQLで共通の予約不変条件を守るを**提
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/DATA.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/db.py","tools/project/queries.py","tools/project/migrate.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py","backend/tests/test_operations.py"]</code>
+- 設計: <code>["docs/spec/20.db/er.gen.md"]</code>
+- 実装: <code>["src/app/db/session.py","src/tools/generate_queries.py","src/tools/project/migrate.py"]</code>
+- テスト: <code>["tests/test_db_session.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -659,7 +659,7 @@ SlotKeeperは、署名、issuer、client、用途、期限を検査するを**�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -671,9 +671,9 @@ SlotKeeperは、署名、issuer、client、用途、期限を検査するを**�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/auth.py","frontend/src/auth.ts"]</code>
-- テスト: <code>["backend/tests/test_auth.py","backend/tests/test_reservations.py","backend/tests/test_operations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/deps.py","src/app/integrations/identity/jwt_provider/client.py","frontend/src/auth.ts"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_router.py","tests/app/apis/test_deps.py","tests/integrations/test_identity_provider.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -691,7 +691,7 @@ SlotKeeperは、依存を含むLinux用Lambda ZIPを作成するを**提供す�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -703,9 +703,9 @@ SlotKeeperは、依存を含むLinux用Lambda ZIPを作成するを**提供す�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/INFRA.md"]</code>
-- 実装: <code>["tools/project/package_lambda.py","backend/src/slotkeeper/app.py"]</code>
-- テスト: <code>["backend/tests/test_lambda.py"]</code>
+- 設計: <code>["docs/spec/70.infra/infra.gen.md"]</code>
+- 実装: <code>["src/tools/project/package_lambda.py","src/app/main.py"]</code>
+- テスト: <code>["tests/test_lambda_handler.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -723,7 +723,7 @@ SlotKeeperは、Python CDKで常設サーバーを持たない構成を合成す
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -735,9 +735,9 @@ SlotKeeperは、Python CDKで常設サーバーを持たない構成を合成す
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/INFRA.md"]</code>
+- 設計: <code>["docs/spec/70.infra/infra.gen.md"]</code>
 - 実装: <code>["infra/stack.py","infra/app.py"]</code>
-- テスト: <code>["infra/tests/test_stack.py"]</code>
+- テスト: <code>["tests/infra/test_stack.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -755,7 +755,7 @@ SlotKeeperは、GitとDocker Composeだけで起動と全検証を行えるを**
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -767,8 +767,8 @@ SlotKeeperは、GitとDocker Composeだけで起動と全検証を行えるを**
 検証証跡: verify:package, verify:backend, verify:e2e, verify:portal-build
 検証(JSON Object): <code>{"evidence":"verify:package, verify:backend, verify:e2e, verify:portal-build","method":"check"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/OPERATIONS.md"]</code>
-- 実装: <code>["compose.yaml","Dockerfile","tools/project/verify.py"]</code>
+- 設計: <code>["docs/spec/10.architecture/operations.manual.md"]</code>
+- 実装: <code>["compose.yaml","Dockerfile","src/tools/project/verify.py"]</code>
 - テスト: <code>[]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
@@ -787,7 +787,7 @@ SlotKeeperは、実装から6帳票、DB、CRUD、画面、infraを決定的に�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -799,9 +799,9 @@ SlotKeeperは、実装から6帳票、DB、CRUD、画面、infraを決定的に�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/report.json"]</code>
-- 実装: <code>["tools/project/design.py",".dev-standard/design.json"]</code>
-- テスト: <code>["tools/tests/test_guards.py"]</code>
+- 設計: <code>["docs/spec/40.apis/report.json"]</code>
+- 実装: <code>["src/tools/project/design.py",".dev-standard/design.json"]</code>
+- テスト: <code>["tests/tools/test_project_guards.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -819,7 +819,7 @@ SlotKeeperは、同一revisionとrunの実測結果と設計をPagesへ集約す
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -831,8 +831,8 @@ SlotKeeperは、同一revisionとrunの実測結果と設計をPagesへ集約す
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/OVERVIEW.md"]</code>
-- 実装: <code>["tools/project/evidence.py","portal/src/layouts/Layout.astro"]</code>
+- 設計: <code>["docs/spec/10.architecture/architecture.manual.md"]</code>
+- 実装: <code>["src/tools/project/evidence.py","portal/src/layouts/Layout.astro"]</code>
 - テスト: <code>["e2e/portal.spec.ts"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
@@ -851,7 +851,7 @@ SlotKeeperは、指定負荷とデータ量でAPI別の性能を測定するを*
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -863,8 +863,8 @@ SlotKeeperは、指定負荷とデータ量でAPI別の性能を測定するを*
 検証証跡: verify:performance
 検証(JSON Object): <code>{"evidence":"verify:performance","method":"check"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/OVERVIEW.md"]</code>
-- 実装: <code>["tools/project/perf.py"]</code>
+- 設計: <code>["docs/spec/10.architecture/architecture.manual.md"]</code>
+- 実装: <code>["src/tools/project/perf.py"]</code>
 - テスト: <code>[]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
@@ -883,7 +883,7 @@ SlotKeeperは、型、lint、実DB、ブラウザ、負例検査の失敗を隠�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -895,9 +895,9 @@ SlotKeeperは、型、lint、実DB、ブラウザ、負例検査の失敗を隠�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/TESTS.md"]</code>
-- 実装: <code>["tools/project/evidence.py","tools/project/collector.py","tools/project/verify.py"]</code>
-- テスト: <code>["tools/tests/test_guards.py"]</code>
+- 設計: <code>["docs/spec/80.trace/tests.gen.md"]</code>
+- 実装: <code>["src/tools/project/evidence.py","src/tools/project/collector.py","src/tools/project/verify.py"]</code>
+- テスト: <code>["tests/tools/test_project_guards.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -915,7 +915,7 @@ SlotKeeperは、公開allowlistに秘密や生ログを含めないを**提供�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -927,9 +927,9 @@ SlotKeeperは、公開allowlistに秘密や生ログを含めないを**提供�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/OVERVIEW.md"]</code>
-- 実装: <code>["tools/project/evidence.py"]</code>
-- テスト: <code>["tools/tests/test_guards.py"]</code>
+- 設計: <code>["docs/spec/10.architecture/architecture.manual.md"]</code>
+- 実装: <code>["src/tools/project/evidence.py"]</code>
+- テスト: <code>["tests/app/apis/system/health/test_functions.py","tests/app/apis/system/health/test_router.py","tests/tools/test_project_guards.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -947,7 +947,7 @@ SlotKeeperは、予約区間は &#96;[開始, 終了)&#96; とします。10:00�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -959,9 +959,9 @@ SlotKeeperは、予約区間は &#96;[開始, 終了)&#96; とします。10:00�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -979,7 +979,7 @@ SlotKeeperは、開始・終了は15分刻み、予約時間は15分以上4時�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -991,9 +991,9 @@ SlotKeeperは、開始・終了は15分刻み、予約時間は15分以上4時�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_domain.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1011,7 +1011,7 @@ SlotKeeperは、開始は現在より後、かつ現在から30日以内です�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1023,9 +1023,9 @@ SlotKeeperは、開始は現在より後、かつ現在から30日以内です�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_domain.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_functions.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1043,7 +1043,7 @@ SlotKeeperは、保存時刻はUTCと対応付け、表示・入力はAsia/Tokyo
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1055,9 +1055,9 @@ SlotKeeperは、保存時刻はUTCと対応付け、表示・入力はAsia/Tokyo
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","frontend/src/logic.ts"]</code>
-- テスト: <code>["backend/tests/test_operations.py","frontend/tests/logic.test.ts"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","frontend/src/logic.ts"]</code>
+- テスト: <code>["frontend/tests/logic.test.ts","tests/app/apis/reservations/create_reservation/test_functions.py","tests/test_api_error_responses.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1075,7 +1075,7 @@ SlotKeeperは、予約状態は &#96;confirmed → cancelled&#96; です。終�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1087,9 +1087,9 @@ SlotKeeperは、予約状態は &#96;confirmed → cancelled&#96; です。終�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_operations.py","backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/test_api_error_responses.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1107,7 +1107,7 @@ SlotKeeperは、取消済み予約は重複判定から除きます。取消の�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1119,9 +1119,9 @@ SlotKeeperは、取消済み予約は重複判定から除きます。取消の�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_functions.py","tests/app/apis/reservations/cancel_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1139,7 +1139,7 @@ SlotKeeperは、既定の「将来予約」は &#96;confirmed AND start_at &gt; 
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1151,9 +1151,9 @@ SlotKeeperは、既定の「将来予約」は &#96;confirmed AND start_at &gt; 
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/resources_update/endpoint.py","backend/src/slotkeeper/operations/reservations_list/sql/select_page.sql"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/resources/update_resource/router.py","src/app/apis/resources/update_resource/functions.py","src/app/apis/reservations/list_reservations/sql/001_select_reservations.sql"]</code>
+- テスト: <code>["tests/app/apis/reservations/list_reservations/test_router.py","tests/app/apis/resources/update_resource/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1171,7 +1171,7 @@ SlotKeeperは、将来予約のある資源を無効化できません。予約�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1183,9 +1183,9 @@ SlotKeeperは、将来予約のある資源を無効化できません。予約�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/resources/update_resource/test_functions.py","tests/app/apis/resources/update_resource/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1203,7 +1203,7 @@ SlotKeeperは、一般利用者には他人の目的・利用者識別情報・�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1215,9 +1215,9 @@ SlotKeeperは、一般利用者には他人の目的・利用者識別情報・�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/operations/schedule/endpoint.py","backend/src/slotkeeper/domain.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/resources/get_resource_schedule/router.py","src/app/apis/resources/get_resource_schedule/functions.py","src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/get_reservation/test_functions.py","tests/app/apis/reservations/get_reservation/test_router.py","tests/app/apis/resources/get_resource_schedule/test_functions.py","tests/app/apis/resources/get_resource_schedule/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1235,7 +1235,7 @@ SlotKeeperは、予約作成の要求キーは利用者単位で24時間有効�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1247,9 +1247,9 @@ SlotKeeperは、予約作成の要求キーは利用者単位で24時間有効�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1267,7 +1267,7 @@ SlotKeeperは、成功済み要求の再送は、元の予約が開始・取消�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1279,9 +1279,9 @@ SlotKeeperは、成功済み要求の再送は、元の予約が開始・取消�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/create_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1299,7 +1299,7 @@ SlotKeeperは、予約・履歴・要求キーの成功記録は、同一トラ�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1311,9 +1311,9 @@ SlotKeeperは、予約・履歴・要求キーの成功記録は、同一トラ�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_functions.py","tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/create_reservation/test_functions.py","tests/app/apis/reservations/create_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1331,7 +1331,7 @@ SlotKeeperは、取消済み予約への取消は409とします。履歴を追�
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1343,9 +1343,9 @@ SlotKeeperは、取消済み予約への取消は409とします。履歴を追�
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -1363,7 +1363,7 @@ SlotKeeperは、資源名は空白除去後1〜100文字、説明は0〜1,000文
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
 項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"trace-completion"</code>
+変更識別子: <code>"lazunex-alignment"</code>
 分類: scope=<code>"product"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
@@ -1375,9 +1375,9 @@ SlotKeeperは、資源名は空白除去後1〜100文字、説明は0〜1,000文
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/design/generated/api/index.md"]</code>
-- 実装: <code>["backend/src/slotkeeper/domain.py","backend/src/slotkeeper/operations/reservations_create/endpoint.py"]</code>
-- テスト: <code>["backend/tests/test_domain.py","backend/tests/test_reservations.py"]</code>
+- 設計: <code>["docs/spec/40.apis/index.md"]</code>
+- 実装: <code>["src/app/apis/common.py","src/app/apis/reservations/create_reservation/functions.py","src/app/apis/reservations/create_reservation/router.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/list_reservations/test_functions.py","tests/app/apis/reservations/list_reservations/test_router.py","tests/app/apis/resources/create_resource/test_functions.py","tests/app/apis/resources/create_resource/test_router.py","tests/app/apis/resources/list_resources/test_functions.py","tests/app/apis/resources/list_resources/test_router.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>

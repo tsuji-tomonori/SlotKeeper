@@ -31,7 +31,7 @@
 
 ## 3. 正常系リソース変更
 
-### DB `resources` 更新
+### DB `resources` 更新 (`001_update_resources_control_version.sql`)
 
 - SQL: `001_update_resources_control_version.sql`
 - 目的: 同一資源の予約作成・取消と競合させるため、資源の内部制御版を進めて現在値を取得する。
@@ -40,7 +40,7 @@
 | --- | --- | --- | --- |
 | `control_version` | 同一資源の予約作成・取消・無効化を競合させる内部制御版。 | `control_version + 1` | SQL式: control_version + 1 |
 
-### DB `resources` 更新
+### DB `resources` 更新 (`003_update_resources.sql`)
 
 - SQL: `003_update_resources.sql`
 - 目的: 資源の名前・説明・種別・有効状態を更新し、公開版を1つ進める。
