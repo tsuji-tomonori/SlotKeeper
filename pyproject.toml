@@ -1,55 +1,111 @@
 [project]
 name = "slotkeeper"
 version = "0.1.0"
-requires-python = ">=3.12,<3.13"
-dependencies = ["fastapi>=0.121,<1", "uvicorn>=0.34,<1", "psycopg[binary]>=3.2,<4", "PyJWT[crypto]>=2.10,<3", "pydantic-settings>=2.7,<3", "mangum>=0.19,<1", "aurora-dsql-python-connector>=0.2", "httpx>=0.28,<1"]
+description = "会議室と備品の予約管理アプリ"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "anyio>=4.13.0",
+    "aurora-dsql-python-connector>=0.2",
+    "fastapi>=0.121,<1",
+    "httpx>=0.28,<1",
+    "mangum>=0.19,<1",
+    "psycopg[binary,pool]>=3.2,<4",
+    "pydantic-settings>=2.7,<3",
+    "PyJWT[crypto]>=2.10,<3",
+    "sqlalchemy[asyncio]>=2.0.50",
+    "uvicorn>=0.34,<1",
+]
+
+[project.scripts]
+app-docs = "app_tool.cli:docs_main"
+app-codegen = "app_tool.cli:codegen_main"
+app-archlint = "app_tool.cli:archlint_main"
+
 [dependency-groups]
 dev = [
-    "pytest>=8,<10",
-    "pytest-cov>=6,<8",
-    "ruff>=0.12",
-    "mypy>=1.15,<2",
-    "pyright>=1.1",
-    "sqlglot>=26",
     "aws-cdk-lib>=2.220,<3",
-    "constructs>=10,<11",
-    "cdk-nag>=2.35,<3",
-    "jsonschema>=4.23",
-    "types-jsonschema",
-    "defusedxml",
-    "types-defusedxml",
     "boto3-stubs-lite[cloudfront,cognito-idp,s3]==1.43.102",
+    "cdk-nag>=2.35,<3",
+    "constructs>=10,<11",
+    "defusedxml",
+    "httpx2",
+    "jsonschema>=4.23",
+    "mypy>=1.15",
+    "pyright>=1.1",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.15",
+    "sqlfluff>=4.2.1",
+    "sqlglot>=30.8.0",
+    "types-defusedxml",
+    "types-jsonschema",
 ]
+
 [tool.uv]
 package = false
+
 [tool.pytest.ini_options]
-pythonpath = ["backend/src", "."]
-testpaths = ["backend/tests", "infra/tests", "tools/tests"]
-markers = ["db: PostgreSQLとの実結合", "cloud: 実AWSで明示実行"]
-addopts = "--strict-markers"
-[tool.ruff]
-target-version = "py312"
-line-length = 100
-include = ["backend/**/*.py", "infra/**/*.py", "tools/project/**/*.py", "tools/tests/**/*.py"]
-[tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "B", "UP"]
-[tool.mypy]
-python_version = "3.12"
-strict = true
-mypy_path = ["backend/src", "."]
-files = ["backend/src", "infra", "tools/project"]
-[[tool.mypy.overrides]]
-module = ["aurora_dsql_psycopg", "mangum"]
-ignore_missing_imports = true
-[tool.pyright]
-typeCheckingMode = "strict"
-include = ["backend/src", "infra", "tools/project"]
-extraPaths = ["backend/src", "."]
-venvPath = "."
-venv = ".venv"
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = ["--strict-config", "--strict-markers"]
+markers = [
+    "db: PostgreSQLとの実結合",
+    "cloud: 実AWSで明示実行",
+    "integration: tests requiring external services",
+]
+
 [tool.coverage.run]
 branch = true
-source = ["backend/src/slotkeeper", "infra", "tools/project"]
-omit = ["*/generated/*", "*/operations/*/queries.py"]
+source = ["src/app", "src/app_tool", "src/tools", "infra"]
+omit = ["src/app/**/generated/*", "src/tools/rulecheck/*"]
+
 [tool.coverage.report]
 show_missing = true
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+src = ["src", "tests", "."]
+include = ["src/**/*.py", "tests/**/*.py", "infra/**/*.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC", "S", "RUF"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S105", "S106", "E501"]
+"src/tools/rulecheck/**/*.py" = ["E501", "SIM102", "SIM105"]
+"infra/**/*.py" = ["S"]
+
+[tool.sqlfluff.core]
+dialect = "postgres"
+templater = "placeholder"
+exclude_rules = ["LT02", "LT05", "ST09"]
+large_file_skip_byte_limit = 0
+max_line_length = 100
+sql_file_exts = ".sql"
+
+[tool.sqlfluff.templater.placeholder]
+param_regex = '(?<![:\w\\@])@(?P<param_name>\w+)'
+
+[tool.sqlfluff.indentation]
+tab_space_size = 4
+
+[tool.pyright]
+include = ["src", "tests", "infra"]
+extraPaths = ["src", "."]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+mypy_path = ["src", "."]
+files = ["src", "tests", "infra"]
+
+[[tool.mypy.overrides]]
+module = ["aurora_dsql_psycopg", "mangum", "mangum.*"]
+ignore_missing_imports = true
