@@ -1,0 +1,3 @@
+from typing import Any
+from psycopg import Connection
+def connect(**kwargs: Any) -> Connection[dict[str, object]]: ...

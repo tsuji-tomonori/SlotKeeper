@@ -1,0 +1,219 @@
+---
+import fs from "node:fs";
+import Layout from "../layouts/Layout.astro";
+const db = JSON.parse(
+  fs.readFileSync("docs/design/generated/database.json", "utf8"),
+);
+const crud = JSON.parse(
+  fs.readFileSync("docs/design/generated/crud/model.json", "utf8"),
+);
+---
+
+<Layout title="DB探索"
+  ><h1>データベース探索</h1><p>
+    読取り専用 · 論理参照はアプリが保証し、物理FKとは区別します。
+  </p><div class="db-toolbar">
+    <label
+      >表示名<select id="names"
+        ><option value="both">和名・物理名</option><option value="ja"
+          >和名</option
+        ><option value="physical">物理名</option></select
+      ></label
+    ><label>テーブル・列を検索<input id="db-search" type="search" /></label
+    ><button id="zoom-in">拡大</button><button id="zoom-out">縮小</button
+    ><button id="fit">全体表示</button><button id="locate">選択位置へ</button>
+  </div><div class="db-layout">
+    <aside id="table-list">
+      {
+        db.tables.map((t: { name: string; label: string }) => (
+          <button data-table={t.name}>
+            {t.label}
+            <small>{t.name}</small>
+          </button>
+        ))
+      }
+    </aside><div class="graph-viewport" tabindex="0" aria-label="DB図">
+      <div id="graph">
+        {
+          db.tables.map(
+            (t: {
+              name: string;
+              label: string;
+              columns: {
+                name: string;
+                label: string;
+                type: string;
+                nullable: boolean;
+                primary: boolean;
+              }[];
+            }) => (
+              <section class="entity" id={"table-" + t.name}>
+                <h2 data-ja={t.label} data-physical={t.name}>
+                  {t.label} / {t.name}
+                </h2>
+                {t.columns.map((c) => (
+                  <button data-column={t.name + "." + c.name}>
+                    <span data-ja={c.label} data-physical={c.name}>
+                      {c.label} / {c.name}
+                    </span>
+                    <small>
+                      {c.primary ? "PK · " : ""}
+                      {c.type} {c.nullable ? "NULL" : "NOT NULL"}
+                    </small>
+                  </button>
+                ))}
+              </section>
+            ),
+          )
+        }
+      </div>
+    </div><aside id="db-detail" aria-live="polite">
+      <h2>詳細</h2><p>図の列を選ぶと型・DDL・API・SQLを表示します。</p>
+    </aside>
+  </div><h2>論理参照</h2><ul>
+    {
+      db.relations.map((r: { from: string; to: string; guarantee: string }) => (
+        <li>
+          <>
+            <button class="relation" data-from={r.from} data-to={r.to}>
+              {r.from} → {r.to}
+            </button>
+            <p>{r.guarantee}（アプリ保証）</p>
+          </>
+        </li>
+      ))
+    }
+  </ul><script
+    is:inline
+    type="application/json"
+    id="db-data"
+    set:html={JSON.stringify({ db, crud }).replace(/</g, "\\u003c")}
+  />
+  <script>
+    const { db, crud } = JSON.parse(
+      document.querySelector("#db-data")!.textContent!,
+    );
+    let scale = 1;
+    let selected = "";
+    const graph = document.querySelector<HTMLElement>("#graph")!;
+    const detail = document.querySelector<HTMLElement>("#db-detail")!;
+    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+    let revision = "";
+    void fetch(base + "/evidence.json")
+      .then((r) => r.json())
+      .then((e: { revision: string }) => {
+        if (/^[0-9a-f]{40}$/.test(e.revision)) revision = e.revision;
+      })
+      .catch(() => undefined);
+    function mark(names: string[]) {
+      for (const node of document.querySelectorAll<HTMLElement>(
+        "[data-column]",
+      ))
+        node.classList.toggle("selected", names.includes(node.dataset.column!));
+    }
+    function select(name: string) {
+      selected = name;
+      mark([name]);
+      const [table, column] = name.split(".");
+      const t = db.tables.find((v: { name: string }) => v.name === table);
+      if (!t) return;
+      const c = t.columns.find((v: { name: string }) => v.name === column);
+      detail.replaceChildren();
+      const heading = document.createElement("h2");
+      heading.textContent = c ? c.label + " / " + c.name : t.label;
+      detail.append(heading);
+      const pre = document.createElement("pre");
+      pre.textContent = c
+        ? `${c.type} · ${c.nullable ? "NULL" : "NOT NULL"} · ${c.primary ? "PK" : ""}\n${c.ddl}`
+        : t.ddl;
+      detail.append(pre);
+      for (const row of crud.rows.filter(
+        (v: { resource: string }) => v.resource === "slotkeeper." + table,
+      )) {
+        const link = document.createElement("a");
+        link.href =
+          base +
+          "/design/api/" +
+          (row.operation.startsWith("resources") || row.operation === "schedule"
+            ? "resources"
+            : "reservations") +
+          "/" +
+          row.operation +
+          "/query/";
+        link.textContent = row.operation + " · " + row.access.join("/");
+        detail.append(link);
+        for (const e of row.evidence) {
+          // 同じ検証runのrevisionのsourceへ移動する。未確定のworktreeはpathだけ示す。
+          const source = document.createElement(revision ? "a" : "p");
+          source.textContent = "SQL: " + e.path;
+          if (source instanceof HTMLAnchorElement)
+            source.href =
+              "https://github.com/tsuji-tomonori/SlotKeeper/blob/" +
+              revision +
+              "/" +
+              e.path;
+          detail.append(source);
+        }
+      }
+    }
+    for (const b of document.querySelectorAll<HTMLButtonElement>(
+      "[data-column]",
+    ))
+      b.addEventListener("click", () => select(b.dataset.column!));
+    for (const b of document.querySelectorAll<HTMLButtonElement>(
+      "[data-table]",
+    ))
+      b.addEventListener("click", () => {
+        select(b.dataset.table!);
+        document
+          .querySelector("#table-" + b.dataset.table)
+          ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      });
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".relation"))
+      b.addEventListener("click", () => {
+        select(b.dataset.from!);
+        mark([b.dataset.from!, b.dataset.to!]);
+        const p = document.createElement("p");
+        p.textContent =
+          "論理参照先：" + b.dataset.to + "（物理FKではなくアプリが保証）";
+        detail.append(p);
+      });
+    document.querySelector("#names")?.addEventListener("change", (e) => {
+      const mode = (e.target as HTMLSelectElement).value;
+      for (const n of document.querySelectorAll<HTMLElement>("[data-ja]"))
+        n.textContent =
+          mode === "ja"
+            ? n.dataset.ja!
+            : mode === "physical"
+              ? n.dataset.physical!
+              : n.dataset.ja + " / " + n.dataset.physical;
+    });
+    document.querySelector("#db-search")?.addEventListener("input", (e) => {
+      const term = (e.target as HTMLInputElement).value.toLowerCase();
+      for (const item of document.querySelectorAll<HTMLElement>(".entity"))
+        item.hidden = !item.textContent?.toLowerCase().includes(term);
+    });
+    function zoom(delta: number) {
+      scale = Math.max(0.5, Math.min(2, scale + delta));
+      graph.style.transform = `scale(${scale})`;
+      graph.style.transformOrigin = "top left";
+    }
+    document
+      .querySelector("#zoom-in")
+      ?.addEventListener("click", () => zoom(0.1));
+    document
+      .querySelector("#zoom-out")
+      ?.addEventListener("click", () => zoom(-0.1));
+    document.querySelector("#fit")?.addEventListener("click", () => {
+      scale = 1;
+      zoom(0);
+    });
+    document
+      .querySelector("#locate")
+      ?.addEventListener("click", () =>
+        document
+          .querySelector("#table-" + selected.split(".")[0])
+          ?.scrollIntoView({ block: "nearest" }),
+      );
+  </script></Layout
+>

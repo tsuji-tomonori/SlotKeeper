@@ -1,0 +1,758 @@
+{
+  "api": {
+    "api_indexes": {
+      "health": "docs/design/generated/api/system/health/index.md",
+      "reservations_cancel": "docs/design/generated/api/reservations/reservations_cancel/index.md",
+      "reservations_create": "docs/design/generated/api/reservations/reservations_create/index.md",
+      "reservations_get": "docs/design/generated/api/reservations/reservations_get/index.md",
+      "reservations_list": "docs/design/generated/api/reservations/reservations_list/index.md",
+      "resources_create": "docs/design/generated/api/resources/resources_create/index.md",
+      "resources_list": "docs/design/generated/api/resources/resources_list/index.md",
+      "resources_update": "docs/design/generated/api/resources/resources_update/index.md",
+      "schedule": "docs/design/generated/api/resources/schedule/index.md"
+    },
+    "group_indexes": {
+      "reservations": "docs/design/generated/api/reservations/index.md",
+      "resources": "docs/design/generated/api/resources/index.md",
+      "system": "docs/design/generated/api/system/index.md"
+    },
+    "index": "docs/design/generated/api/index.md",
+    "operation_inventory": "docs/design/generated/operations.json",
+    "operations": [
+      {
+        "api": "health",
+        "documents": {
+          "detail-design": "docs/design/generated/api/system/health/detail-design.md",
+          "interface": "docs/design/generated/api/system/health/interface.md",
+          "messages": "docs/design/generated/api/system/health/messages.md",
+          "query": "docs/design/generated/api/system/health/query.md",
+          "sequence": "docs/design/generated/api/system/health/sequence.md",
+          "unit-test": "docs/design/generated/api/system/health/unit-test.md"
+        },
+        "group": "system",
+        "id": "health",
+        "non_applicable": {
+          "queries": "DBアクセスがない"
+        },
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [],
+          "responses": [
+            "200",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "reservations_cancel",
+        "documents": {
+          "detail-design": "docs/design/generated/api/reservations/reservations_cancel/detail-design.md",
+          "interface": "docs/design/generated/api/reservations/reservations_cancel/interface.md",
+          "messages": "docs/design/generated/api/reservations/reservations_cancel/messages.md",
+          "query": "docs/design/generated/api/reservations/reservations_cancel/query.md",
+          "sequence": "docs/design/generated/api/reservations/reservations_cancel/sequence.md",
+          "unit-test": "docs/design/generated/api/reservations/reservations_cancel/unit-test.md"
+        },
+        "group": "reservations",
+        "id": "reservations_cancel",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id",
+            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
+            "backend/tests/test_reservations.py::test_privacy_and_cancel",
+            "backend/tests/test_reservations.py::test_replay_before_validation",
+            "backend/tests/test_reservations.py::test_replay_after_start",
+            "backend/tests/test_reservations.py::test_versions_and_inactive",
+            "backend/tests/test_reservations.py::test_future_prevents_disable",
+            "backend/tests/test_reservations.py::test_cancel_boundaries",
+            "backend/tests/test_reservations.py::test_twenty_concurrent",
+            "backend/tests/test_reservations.py::test_same_key_concurrent",
+            "backend/tests/test_reservations.py::test_create_vs_disable",
+            "backend/tests/test_reservations.py::test_rollback_at_event",
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "cancel",
+            "control",
+            "event",
+            "get"
+          ],
+          "responses": [
+            "200",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "reservations_create",
+        "documents": {
+          "detail-design": "docs/design/generated/api/reservations/reservations_create/detail-design.md",
+          "interface": "docs/design/generated/api/reservations/reservations_create/interface.md",
+          "messages": "docs/design/generated/api/reservations/reservations_create/messages.md",
+          "query": "docs/design/generated/api/reservations/reservations_create/query.md",
+          "sequence": "docs/design/generated/api/reservations/reservations_create/sequence.md",
+          "unit-test": "docs/design/generated/api/reservations/reservations_create/unit-test.md"
+        },
+        "group": "reservations",
+        "id": "reservations_create",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id",
+            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
+            "backend/tests/test_reservations.py::test_privacy_and_cancel",
+            "backend/tests/test_reservations.py::test_replay_before_validation",
+            "backend/tests/test_reservations.py::test_replay_after_start",
+            "backend/tests/test_reservations.py::test_versions_and_inactive",
+            "backend/tests/test_reservations.py::test_future_prevents_disable",
+            "backend/tests/test_reservations.py::test_cancel_boundaries",
+            "backend/tests/test_reservations.py::test_twenty_concurrent",
+            "backend/tests/test_reservations.py::test_same_key_concurrent",
+            "backend/tests/test_reservations.py::test_create_vs_disable",
+            "backend/tests/test_reservations.py::test_rollback_at_event",
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "control",
+            "create",
+            "event",
+            "expire",
+            "overlap",
+            "record",
+            "replay",
+            "user"
+          ],
+          "responses": [
+            "201",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "reservations_get",
+        "documents": {
+          "detail-design": "docs/design/generated/api/reservations/reservations_get/detail-design.md",
+          "interface": "docs/design/generated/api/reservations/reservations_get/interface.md",
+          "messages": "docs/design/generated/api/reservations/reservations_get/messages.md",
+          "query": "docs/design/generated/api/reservations/reservations_get/query.md",
+          "sequence": "docs/design/generated/api/reservations/reservations_get/sequence.md",
+          "unit-test": "docs/design/generated/api/reservations/reservations_get/unit-test.md"
+        },
+        "group": "reservations",
+        "id": "reservations_get",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id",
+            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
+            "backend/tests/test_reservations.py::test_privacy_and_cancel",
+            "backend/tests/test_reservations.py::test_replay_before_validation",
+            "backend/tests/test_reservations.py::test_replay_after_start",
+            "backend/tests/test_reservations.py::test_versions_and_inactive",
+            "backend/tests/test_reservations.py::test_future_prevents_disable",
+            "backend/tests/test_reservations.py::test_cancel_boundaries",
+            "backend/tests/test_reservations.py::test_twenty_concurrent",
+            "backend/tests/test_reservations.py::test_same_key_concurrent",
+            "backend/tests/test_reservations.py::test_create_vs_disable",
+            "backend/tests/test_reservations.py::test_rollback_at_event",
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "events",
+            "get"
+          ],
+          "responses": [
+            "200",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "reservations_list",
+        "documents": {
+          "detail-design": "docs/design/generated/api/reservations/reservations_list/detail-design.md",
+          "interface": "docs/design/generated/api/reservations/reservations_list/interface.md",
+          "messages": "docs/design/generated/api/reservations/reservations_list/messages.md",
+          "query": "docs/design/generated/api/reservations/reservations_list/query.md",
+          "sequence": "docs/design/generated/api/reservations/reservations_list/sequence.md",
+          "unit-test": "docs/design/generated/api/reservations/reservations_list/unit-test.md"
+        },
+        "group": "reservations",
+        "id": "reservations_list",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id",
+            "backend/tests/test_reservations.py::test_create_adjacent_overlap",
+            "backend/tests/test_reservations.py::test_privacy_and_cancel",
+            "backend/tests/test_reservations.py::test_replay_before_validation",
+            "backend/tests/test_reservations.py::test_replay_after_start",
+            "backend/tests/test_reservations.py::test_versions_and_inactive",
+            "backend/tests/test_reservations.py::test_future_prevents_disable",
+            "backend/tests/test_reservations.py::test_cancel_boundaries",
+            "backend/tests/test_reservations.py::test_twenty_concurrent",
+            "backend/tests/test_reservations.py::test_same_key_concurrent",
+            "backend/tests/test_reservations.py::test_create_vs_disable",
+            "backend/tests/test_reservations.py::test_rollback_at_event",
+            "backend/tests/test_reservations.py::test_disable_after_start_keeps_record",
+            "backend/tests/test_reservations.py::test_repeatable_read",
+            "backend/tests/test_reservations.py::test_list_filters_only_own",
+            "backend/tests/test_reservations.py::test_admin_cancels_other_before_start",
+            "backend/tests/test_reservations.py::test_cancel_and_rebook_concurrent",
+            "backend/tests/test_reservations.py::test_invalid_token_leaves_database",
+            "backend/tests/test_reservations.py::test_migrate_and_seed_repeat",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "select_page"
+          ],
+          "responses": [
+            "200",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "resources_create",
+        "documents": {
+          "detail-design": "docs/design/generated/api/resources/resources_create/detail-design.md",
+          "interface": "docs/design/generated/api/resources/resources_create/interface.md",
+          "messages": "docs/design/generated/api/resources/resources_create/messages.md",
+          "query": "docs/design/generated/api/resources/resources_create/query.md",
+          "sequence": "docs/design/generated/api/resources/resources_create/sequence.md",
+          "unit-test": "docs/design/generated/api/resources/resources_create/unit-test.md"
+        },
+        "group": "resources",
+        "id": "resources_create",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id",
+            "backend/tests/test_domain.py::test_resource_input",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "create"
+          ],
+          "responses": [
+            "201",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "resources_list",
+        "documents": {
+          "detail-design": "docs/design/generated/api/resources/resources_list/detail-design.md",
+          "interface": "docs/design/generated/api/resources/resources_list/interface.md",
+          "messages": "docs/design/generated/api/resources/resources_list/messages.md",
+          "query": "docs/design/generated/api/resources/resources_list/query.md",
+          "sequence": "docs/design/generated/api/resources/resources_list/sequence.md",
+          "unit-test": "docs/design/generated/api/resources/resources_list/unit-test.md"
+        },
+        "group": "resources",
+        "id": "resources_list",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id",
+            "backend/tests/test_domain.py::test_resource_input",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "select_page"
+          ],
+          "responses": [
+            "200",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "resources_update",
+        "documents": {
+          "detail-design": "docs/design/generated/api/resources/resources_update/detail-design.md",
+          "interface": "docs/design/generated/api/resources/resources_update/interface.md",
+          "messages": "docs/design/generated/api/resources/resources_update/messages.md",
+          "query": "docs/design/generated/api/resources/resources_update/query.md",
+          "sequence": "docs/design/generated/api/resources/resources_update/sequence.md",
+          "unit-test": "docs/design/generated/api/resources/resources_update/unit-test.md"
+        },
+        "group": "resources",
+        "id": "resources_update",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id",
+            "backend/tests/test_domain.py::test_resource_input",
+            "backend/tests/test_reservations.py::test_resource_paging_order"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "control",
+            "future",
+            "update"
+          ],
+          "responses": [
+            "200",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      },
+      {
+        "api": "schedule",
+        "documents": {
+          "detail-design": "docs/design/generated/api/resources/schedule/detail-design.md",
+          "interface": "docs/design/generated/api/resources/schedule/interface.md",
+          "messages": "docs/design/generated/api/resources/schedule/messages.md",
+          "query": "docs/design/generated/api/resources/schedule/query.md",
+          "sequence": "docs/design/generated/api/resources/schedule/sequence.md",
+          "unit-test": "docs/design/generated/api/resources/schedule/unit-test.md"
+        },
+        "group": "resources",
+        "id": "schedule",
+        "sections": {
+          "cases": [
+            "backend/tests/test_auth.py::test_bad_claims",
+            "backend/tests/test_auth.py::test_bad_signature",
+            "backend/tests/test_auth.py::test_anonymous_and_health",
+            "backend/tests/test_auth.py::test_user_cannot_create_resource",
+            "backend/tests/test_auth.py::test_cognito_access_and_id"
+          ],
+          "factors": [
+            "入力・権限・状態・競合"
+          ],
+          "messages": [
+            "request_result"
+          ],
+          "queries": [
+            "bookings",
+            "resource"
+          ],
+          "responses": [
+            "200",
+            "401",
+            "403",
+            "404",
+            "409",
+            "422",
+            "503"
+          ],
+          "samples": [
+            "公開契約"
+          ]
+        }
+      }
+    ],
+    "profile": ".agents/skills/generate-implementation-design/assets/api-document-profile-v1.json",
+    "root": "docs/design/generated/api"
+  },
+  "applicable_requirement_ids": [
+    "TECH-DESIGN"
+  ],
+  "capabilities": {
+    "implementation": {
+      "check": [
+        "python",
+        "tools/project/design.py",
+        "--check"
+      ],
+      "generate": [
+        "python",
+        "tools/project/design.py"
+      ],
+      "output_root": "docs/design/generated",
+      "outputs": [
+        "docs/design/generated/DATA.md",
+        "docs/design/generated/FRONTEND.md",
+        "docs/design/generated/INFRA.md",
+        "docs/design/generated/OVERVIEW.md",
+        "docs/design/generated/TESTS.md",
+        "docs/design/generated/TRACE.md",
+        "docs/design/generated/api/index.md",
+        "docs/design/generated/api/reservations/index.md",
+        "docs/design/generated/api/reservations/reservations_cancel/detail-design.md",
+        "docs/design/generated/api/reservations/reservations_cancel/index.md",
+        "docs/design/generated/api/reservations/reservations_cancel/interface.md",
+        "docs/design/generated/api/reservations/reservations_cancel/messages.md",
+        "docs/design/generated/api/reservations/reservations_cancel/query.md",
+        "docs/design/generated/api/reservations/reservations_cancel/sequence.md",
+        "docs/design/generated/api/reservations/reservations_cancel/unit-test.md",
+        "docs/design/generated/api/reservations/reservations_create/detail-design.md",
+        "docs/design/generated/api/reservations/reservations_create/index.md",
+        "docs/design/generated/api/reservations/reservations_create/interface.md",
+        "docs/design/generated/api/reservations/reservations_create/messages.md",
+        "docs/design/generated/api/reservations/reservations_create/query.md",
+        "docs/design/generated/api/reservations/reservations_create/sequence.md",
+        "docs/design/generated/api/reservations/reservations_create/unit-test.md",
+        "docs/design/generated/api/reservations/reservations_get/detail-design.md",
+        "docs/design/generated/api/reservations/reservations_get/index.md",
+        "docs/design/generated/api/reservations/reservations_get/interface.md",
+        "docs/design/generated/api/reservations/reservations_get/messages.md",
+        "docs/design/generated/api/reservations/reservations_get/query.md",
+        "docs/design/generated/api/reservations/reservations_get/sequence.md",
+        "docs/design/generated/api/reservations/reservations_get/unit-test.md",
+        "docs/design/generated/api/reservations/reservations_list/detail-design.md",
+        "docs/design/generated/api/reservations/reservations_list/index.md",
+        "docs/design/generated/api/reservations/reservations_list/interface.md",
+        "docs/design/generated/api/reservations/reservations_list/messages.md",
+        "docs/design/generated/api/reservations/reservations_list/query.md",
+        "docs/design/generated/api/reservations/reservations_list/sequence.md",
+        "docs/design/generated/api/reservations/reservations_list/unit-test.md",
+        "docs/design/generated/api/resources/index.md",
+        "docs/design/generated/api/resources/resources_create/detail-design.md",
+        "docs/design/generated/api/resources/resources_create/index.md",
+        "docs/design/generated/api/resources/resources_create/interface.md",
+        "docs/design/generated/api/resources/resources_create/messages.md",
+        "docs/design/generated/api/resources/resources_create/query.md",
+        "docs/design/generated/api/resources/resources_create/sequence.md",
+        "docs/design/generated/api/resources/resources_create/unit-test.md",
+        "docs/design/generated/api/resources/resources_list/detail-design.md",
+        "docs/design/generated/api/resources/resources_list/index.md",
+        "docs/design/generated/api/resources/resources_list/interface.md",
+        "docs/design/generated/api/resources/resources_list/messages.md",
+        "docs/design/generated/api/resources/resources_list/query.md",
+        "docs/design/generated/api/resources/resources_list/sequence.md",
+        "docs/design/generated/api/resources/resources_list/unit-test.md",
+        "docs/design/generated/api/resources/resources_update/detail-design.md",
+        "docs/design/generated/api/resources/resources_update/index.md",
+        "docs/design/generated/api/resources/resources_update/interface.md",
+        "docs/design/generated/api/resources/resources_update/messages.md",
+        "docs/design/generated/api/resources/resources_update/query.md",
+        "docs/design/generated/api/resources/resources_update/sequence.md",
+        "docs/design/generated/api/resources/resources_update/unit-test.md",
+        "docs/design/generated/api/resources/schedule/detail-design.md",
+        "docs/design/generated/api/resources/schedule/index.md",
+        "docs/design/generated/api/resources/schedule/interface.md",
+        "docs/design/generated/api/resources/schedule/messages.md",
+        "docs/design/generated/api/resources/schedule/query.md",
+        "docs/design/generated/api/resources/schedule/sequence.md",
+        "docs/design/generated/api/resources/schedule/unit-test.md",
+        "docs/design/generated/api/system/health/detail-design.md",
+        "docs/design/generated/api/system/health/index.md",
+        "docs/design/generated/api/system/health/interface.md",
+        "docs/design/generated/api/system/health/messages.md",
+        "docs/design/generated/api/system/health/query.md",
+        "docs/design/generated/api/system/health/sequence.md",
+        "docs/design/generated/api/system/health/unit-test.md",
+        "docs/design/generated/api/system/index.md",
+        "docs/design/generated/crud/diagram.md",
+        "docs/design/generated/crud/evidence.json",
+        "docs/design/generated/crud/matrix.csv",
+        "docs/design/generated/crud/matrix.md",
+        "docs/design/generated/crud/model.json",
+        "docs/design/generated/database.json",
+        "docs/design/generated/infra.json",
+        "docs/design/generated/openapi.json",
+        "docs/design/generated/operations.json",
+        "docs/design/generated/report.json",
+        "docs/design/generated/sources.json",
+        "docs/design/generated/trace.json"
+      ],
+      "report": "docs/design/generated/report.json",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "sources": [
+        "backend/indexes.sql",
+        "backend/logical-relations.json",
+        "backend/schema-labels.json",
+        "backend/schema.sql",
+        "backend/src/slotkeeper/__init__.py",
+        "backend/src/slotkeeper/app.py",
+        "backend/src/slotkeeper/auth.py",
+        "backend/src/slotkeeper/db.py",
+        "backend/src/slotkeeper/domain.py",
+        "backend/src/slotkeeper/operations/__init__.py",
+        "backend/src/slotkeeper/operations/reservations_cancel/__init__.py",
+        "backend/src/slotkeeper/operations/reservations_cancel/endpoint.py",
+        "backend/src/slotkeeper/operations/reservations_cancel/queries.py",
+        "backend/src/slotkeeper/operations/reservations_cancel/sql/cancel.sql",
+        "backend/src/slotkeeper/operations/reservations_cancel/sql/control.sql",
+        "backend/src/slotkeeper/operations/reservations_cancel/sql/event.sql",
+        "backend/src/slotkeeper/operations/reservations_cancel/sql/get.sql",
+        "backend/src/slotkeeper/operations/reservations_create/__init__.py",
+        "backend/src/slotkeeper/operations/reservations_create/endpoint.py",
+        "backend/src/slotkeeper/operations/reservations_create/queries.py",
+        "backend/src/slotkeeper/operations/reservations_create/sql/control.sql",
+        "backend/src/slotkeeper/operations/reservations_create/sql/create.sql",
+        "backend/src/slotkeeper/operations/reservations_create/sql/event.sql",
+        "backend/src/slotkeeper/operations/reservations_create/sql/expire.sql",
+        "backend/src/slotkeeper/operations/reservations_create/sql/overlap.sql",
+        "backend/src/slotkeeper/operations/reservations_create/sql/record.sql",
+        "backend/src/slotkeeper/operations/reservations_create/sql/replay.sql",
+        "backend/src/slotkeeper/operations/reservations_create/sql/user.sql",
+        "backend/src/slotkeeper/operations/reservations_get/__init__.py",
+        "backend/src/slotkeeper/operations/reservations_get/endpoint.py",
+        "backend/src/slotkeeper/operations/reservations_get/queries.py",
+        "backend/src/slotkeeper/operations/reservations_get/sql/events.sql",
+        "backend/src/slotkeeper/operations/reservations_get/sql/get.sql",
+        "backend/src/slotkeeper/operations/reservations_list/__init__.py",
+        "backend/src/slotkeeper/operations/reservations_list/endpoint.py",
+        "backend/src/slotkeeper/operations/reservations_list/queries.py",
+        "backend/src/slotkeeper/operations/reservations_list/sql/select_page.sql",
+        "backend/src/slotkeeper/operations/resources_create/__init__.py",
+        "backend/src/slotkeeper/operations/resources_create/endpoint.py",
+        "backend/src/slotkeeper/operations/resources_create/queries.py",
+        "backend/src/slotkeeper/operations/resources_create/sql/create.sql",
+        "backend/src/slotkeeper/operations/resources_list/__init__.py",
+        "backend/src/slotkeeper/operations/resources_list/endpoint.py",
+        "backend/src/slotkeeper/operations/resources_list/queries.py",
+        "backend/src/slotkeeper/operations/resources_list/sql/select_page.sql",
+        "backend/src/slotkeeper/operations/resources_update/__init__.py",
+        "backend/src/slotkeeper/operations/resources_update/endpoint.py",
+        "backend/src/slotkeeper/operations/resources_update/queries.py",
+        "backend/src/slotkeeper/operations/resources_update/sql/control.sql",
+        "backend/src/slotkeeper/operations/resources_update/sql/future.sql",
+        "backend/src/slotkeeper/operations/resources_update/sql/update.sql",
+        "backend/src/slotkeeper/operations/schedule/__init__.py",
+        "backend/src/slotkeeper/operations/schedule/endpoint.py",
+        "backend/src/slotkeeper/operations/schedule/queries.py",
+        "backend/src/slotkeeper/operations/schedule/sql/bookings.sql",
+        "backend/src/slotkeeper/operations/schedule/sql/resource.sql",
+        "backend/src/slotkeeper/query_models.py",
+        "backend/src/slotkeeper/settings.py",
+        "backend/tests/conftest.py",
+        "backend/tests/test_auth.py",
+        "backend/tests/test_domain.py",
+        "backend/tests/test_lambda.py",
+        "backend/tests/test_operations.py",
+        "backend/tests/test_reservations.py",
+        "compose.yaml",
+        "e2e/app.spec.ts",
+        "e2e/forward.ts",
+        "e2e/playwright.config.ts",
+        "e2e/portal-remote.config.ts",
+        "e2e/portal.config.ts",
+        "e2e/portal.spec.ts",
+        "frontend/src/App.tsx",
+        "frontend/src/auth.ts",
+        "frontend/src/generated/api.ts",
+        "frontend/src/logic.ts",
+        "frontend/src/pages/index.astro",
+        "frontend/src/style.css",
+        "infra/__init__.py",
+        "infra/app.py",
+        "infra/config.py",
+        "infra/environments/dev.json",
+        "infra/environments/prod.json",
+        "infra/stack.py",
+        "infra/tests/test_stack.py",
+        "package.json",
+        "pyproject.toml",
+        "tools/project/__init__.py",
+        "tools/project/cloud.py",
+        "tools/project/collector.py",
+        "tools/project/deploy.py",
+        "tools/project/design.py",
+        "tools/project/evidence.py",
+        "tools/project/migrate.py",
+        "tools/project/package_lambda.py",
+        "tools/project/perf.py",
+        "tools/project/queries.py",
+        "tools/project/sql_contract.py",
+        "tools/project/verify.py",
+        "tools/tests/test_guards.py"
+      ],
+      "status": "required"
+    }
+  },
+  "crud": {
+    "csv": "docs/design/generated/crud/matrix.csv",
+    "diagram": "docs/design/generated/crud/diagram.md",
+    "evidence": "docs/design/generated/crud/evidence.json",
+    "model": "docs/design/generated/crud/model.json",
+    "table": "docs/design/generated/crud/matrix.md"
+  },
+  "reference_inventories": [
+    ".dev-standard/reference-adoption.json"
+  ],
+  "requirements": "spec/requirements/requirements.json",
+  "schema_version": 2,
+  "surfaces": {
+    "api": {
+      "capabilities": [
+        "implementation"
+      ],
+      "status": "required"
+    },
+    "data": {
+      "capabilities": [
+        "implementation"
+      ],
+      "status": "required"
+    },
+    "frontend": {
+      "capabilities": [
+        "implementation"
+      ],
+      "status": "required"
+    },
+    "infra": {
+      "capabilities": [
+        "implementation"
+      ],
+      "status": "required"
+    }
+  }
+}

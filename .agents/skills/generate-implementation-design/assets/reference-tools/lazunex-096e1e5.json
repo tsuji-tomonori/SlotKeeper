@@ -1,0 +1,1123 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/tsuji-tomonori/lazunex",
+  "revision": "096e1e580ab1c0670c57e4febad2bd9fdd4698ee",
+  "source_root": "src/tools",
+  "scope": "reference-blueprint",
+  "file_count": 52,
+  "tree_sha256": "8cac4a032500cf2e846f5dbbec08aa275cc9593d74a7168e8604f75fcebdfa5e",
+  "requirement_ids": [
+    "REQ-ASBUILT-001",
+    "REQ-ASBUILT-002",
+    "REQ-ASBUILT-003",
+    "REQ-ASBUILT-004",
+    "REQ-ASBUILT-005",
+    "REQ-ASBUILT-006",
+    "REQ-ASBUILT-007",
+    "REQ-ASBUILT-008",
+    "REQ-ASBUILT-009",
+    "REQ-ASBUILT-010",
+    "REQ-ASBUILT-011",
+    "REQ-ASBUILT-012",
+    "REQ-ASBUILT-013",
+    "REQ-ASBUILT-014",
+    "REQ-ASBUILT-015",
+    "REQ-ASBUILT-016",
+    "REQ-ASBUILT-017",
+    "REQ-ASBUILT-018",
+    "REQ-ASBUILT-019",
+    "REQ-ASBUILT-020",
+    "REQ-ASBUILT-021",
+    "REQ-ASBUILT-022",
+    "REQ-ASBUILT-023",
+    "REQ-ASBUILT-024",
+    "REQ-ASBUILT-025",
+    "REQ-ASBUILT-026",
+    "REQ-ASBUILT-027",
+    "REQ-ASBUILT-028",
+    "REQ-ASBUILT-029",
+    "REQ-ASBUILT-030",
+    "REQ-ASBUILT-031",
+    "REQ-ASBUILT-032",
+    "REQ-ASBUILT-033",
+    "REQ-ASBUILT-034",
+    "REQ-ASBUILT-035",
+    "REQ-DESIGN-001",
+    "REQ-DESIGN-002",
+    "REQ-DESIGN-003",
+    "REQ-DESIGN-004",
+    "REQ-DESIGN-005",
+    "REQ-DESIGN-006",
+    "REQ-DESIGN-007",
+    "REQ-DESIGN-008",
+    "REQ-DESIGN-009",
+    "REQ-DESIGN-010",
+    "REQ-DESIGN-011",
+    "REQ-DESIGN-012",
+    "REQ-DESIGN-013",
+    "REQ-DESIGN-014",
+    "REQ-DESIGN-015",
+    "REQ-DESIGN-016",
+    "REQ-DESIGN-017",
+    "REQ-DESIGN-018",
+    "REQ-DESIGN-019",
+    "REQ-DESIGN-020",
+    "REQ-DESIGN-021",
+    "REQ-DESIGN-022",
+    "REQ-DESIGN-023",
+    "REQ-DESIGN-024",
+    "REQ-DESIGN-025",
+    "REQ-DOCS-001",
+    "REQ-DOCS-002",
+    "REQ-EVIDENCE-001",
+    "REQ-EVIDENCE-002",
+    "REQ-EVIDENCE-003",
+    "REQ-EVIDENCE-004"
+  ],
+  "files": [
+    {
+      "path": "src/tools/__init__.py",
+      "blob_sha": "baa82b690b569cc06871fecc9a7322c1387cb601",
+      "purpose": "tool packageの識別",
+      "classification": "package-support",
+      "requirement_ids": [
+        "REQ-ASBUILT-030"
+      ],
+      "adoption": "not-adopted",
+      "reason": "Python package markerは導入先言語のmodule方式に依存し、検査能力を持たない。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": []
+    },
+    {
+      "path": "src/tools/check_api_contracts.py",
+      "blob_sha": "e6404011ff796f20701b2205ebd3880fb80cd961",
+      "purpose": "操作metadataと登録operationの対応検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-012",
+        "REQ-DESIGN-009"
+      ],
+      "adoption": "adapt",
+      "reason": "metadataの実登録照合を基に、導入先の公開契約と責務の実呼出しを検査する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_descriptions.py",
+      "blob_sha": "54f3e3c888862da3b2fb0f89ef7698f7f3684377",
+      "purpose": "API/schema/enumの日本語説明検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DOCS-002"
+      ],
+      "adoption": "adapt",
+      "reason": "Field/decorator依存を導入先の型・公開metadataへ置換し、指定された説明言語を検査する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_exception_summaries.py",
+      "blob_sha": "7dad75b7d658b26a37da4c5bb7c024782e8e79ac",
+      "purpose": "個別処理・外部依存の例外summary検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-027"
+      ],
+      "adoption": "extend",
+      "reason": "例外summary検査を基に、捕捉/再送出から応答・運用対応までの未解決経路も検出する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_function_exception_policy.py",
+      "blob_sha": "939adc54d590b47ec8c2ed4b622021d7bc89ea6d",
+      "purpose": "個別業務処理のHTTP例外禁止と資源未設定時の例外方針検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DESIGN-021"
+      ],
+      "adoption": "adapt",
+      "reason": "HTTPExceptionの直接送出禁止を通信層固有例外の境界へ適応する。固有資源名・例外型を固定せず、別名・同期/非同期の正負例を追加する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_function_names.py",
+      "blob_sha": "67081d8a0728e8d703199810b6594b297b310ce3",
+      "purpose": "処理名の動詞・対象・条件辞書との照合",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DOCS-002"
+      ],
+      "adoption": "not-adopted",
+      "reason": "lazunex固有の命名辞書は移植しない。責務と自然言語説明の検査で可読性を確保する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": []
+    },
+    {
+      "path": "src/tools/check_api_function_resource_usage.py",
+      "blob_sha": "8c5f4e7971450d57d8dabc8ee10ccbcb04b21d8c",
+      "purpose": "個別処理のDB/外部port利用と資源引数検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DESIGN-011"
+      ],
+      "adoption": "adapt",
+      "reason": "resource-free例外とport識別を導入先へ適応し、実I/O利用を検証する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_function_tests.py",
+      "blob_sha": "191508856e6b01f417fdfe63509e833f6b49206f",
+      "purpose": "個別処理と実test参照の対応検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-020"
+      ],
+      "adoption": "extend",
+      "reason": "名前参照だけで充足とせず、実collector IDと要件・処理の明示traceを照合する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_managed_literals.py",
+      "blob_sha": "1a1e106bcb0a708bfd3427168d9a8bec8cf7f3b4",
+      "purpose": "業務literalの定数・enum利用検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-030"
+      ],
+      "adoption": "not-adopted",
+      "reason": "lazunex業務定数は対象固有であり移植しない。endpoint許可symbol制約は別途全source走査で実装する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": []
+    },
+    {
+      "path": "src/tools/check_api_mermaid_sequences.py",
+      "blob_sha": "22e24c73be054e25ce93c4e99c2d98a18bc02908",
+      "purpose": "Mermaidのparticipantとラベル形式検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-026"
+      ],
+      "adoption": "adapt",
+      "reason": "Mermaid表現検査を再利用し、実call graphとの対応は導入先解析器が補う。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_router_ignored_returns.py",
+      "blob_sha": "1614ef6366a846aff222223afdfecbe222c3ac8c",
+      "purpose": "意味ある処理戻り値の破棄と副作用検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DESIGN-018"
+      ],
+      "adoption": "extend",
+      "reason": "await式中心の検査を同期/非同期・別名呼出しの負例へ拡張する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_router_logging_tests.py",
+      "blob_sha": "ad01c72af11b1c3947271dec2f0915a664c6aab5",
+      "purpose": "API異常ログの実HTTP sample assertion検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-013",
+        "REQ-ASBUILT-027"
+      ],
+      "adoption": "adapt",
+      "reason": "logger wrapper/test helper固有の名前を実呼出しとassertionの対応へ適応する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_router_test_asserts.py",
+      "blob_sha": "e3199682adefde060eddf2eb9e97eb096cfa9f29",
+      "purpose": "sample応答とCRUD対象DB状態のassert検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-013",
+        "REQ-ASBUILT-014"
+      ],
+      "adoption": "extend",
+      "reason": "source文字列照合から導入先の実テスト検証へ強化し、非SQL副作用も含める。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_router_tests.py",
+      "blob_sha": "89e4f0cfda8cc9e098640959bd635b34fbbf39a7",
+      "purpose": "各operationの対応router test存在検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-020"
+      ],
+      "adoption": "extend",
+      "reason": "ファイル名一致だけでなく実collectorの検証単位を照合する。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_router_unit_test_factors.py",
+      "blob_sha": "fc5ed4c2abdc0cf9b319e88eaf089a779977f830",
+      "purpose": "要因ケースとHTTP/status/log assertion検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-022",
+        "REQ-ASBUILT-028"
+      ],
+      "adoption": "adapt",
+      "reason": "pytest固有nodeとassert構造を導入先のcollectorと自然言語GWTへ対応させる。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_sequence_success_responses.py",
+      "blob_sha": "585661317653b57073b805b6be2ac250bde3fbe5",
+      "purpose": "sequenceの成功応答の存在・配置検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-026"
+      ],
+      "adoption": "extend",
+      "reason": "2xx文字列だけに頼らず、実フローの成功・内部失敗継続・例外を検査する。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_sql_ddl_usage.py",
+      "blob_sha": "3605134ca374cc1c3dbe06ad9c3c9933bbe8f1b7",
+      "purpose": "SQLのtable/column参照とDDL定義の整合検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DESIGN-004",
+        "REQ-DESIGN-012",
+        "REQ-DESIGN-017"
+      ],
+      "adoption": "adapt",
+      "reason": "SQL dialectと型情報を導入先parserへ合わせ、未対応構文は未検証として残す。",
+      "language_assumptions": [
+        "Python runtime",
+        "SQL dialect / sqlglot"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_api_status_samples.py",
+      "blob_sha": "5672da8d5a6df21ad2f9446053196403a546f84c",
+      "purpose": "実route/OpenAPI/sampleのstatusと型の整合検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-012",
+        "REQ-ASBUILT-013"
+      ],
+      "adoption": "adapt",
+      "reason": "FastAPI/Pydanticの実ロードを導入先の実公開契約exportとsample実行へ置換する。",
+      "language_assumptions": [
+        "Python AST",
+        "FastAPI",
+        "Pydantic"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_bool_router_conditions.py",
+      "blob_sha": "313614e2c288b1a19b619c6795d09a05e541bd3f",
+      "purpose": "真偽戻り値の条件式利用検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DESIGN-018"
+      ],
+      "adoption": "adapt",
+      "reason": "真偽値の条件利用を戻り値の実利用検査へ適応し、同期/非同期・別名呼出しの単独破棄を拒否する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_constant_bool_returns.py",
+      "blob_sha": "fa4bc35cfea7637ea256448f8502c6061b3335ca",
+      "purpose": "定数boolしか返さない判定処理の検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-DESIGN-019"
+      ],
+      "adoption": "adapt",
+      "reason": "型付き処理の戻り値を導入先の同期/非同期構造で検査する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_e2e_case_evidences.py",
+      "blob_sha": "b1ac9b25409cd500ce0df429b66c1f836218fb6d",
+      "purpose": "E2EケースとGWT証跡binding検査",
+      "classification": "e2e",
+      "requirement_ids": [
+        "REQ-EVIDENCE-002"
+      ],
+      "adoption": "adapt",
+      "reason": "YAML binding方式と業務ケースIDを導入先の実E2E evidenceへ対応させる。",
+      "language_assumptions": [
+        "Python runtime",
+        "YAML / PyYAML"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_e2e_specs.py",
+      "blob_sha": "d76facf07ddfc0f3bd199726d070c7c989611746",
+      "purpose": "E2E構成・依存・索引・coverage契約検査",
+      "classification": "e2e",
+      "requirement_ids": [
+        "REQ-ASBUILT-008",
+        "REQ-EVIDENCE-002"
+      ],
+      "adoption": "adapt",
+      "reason": "固定flowとcomponent数量を持ち込まず、導入先実inventoryとの集合一致にする。",
+      "language_assumptions": [
+        "Python runtime",
+        "YAML / PyYAML"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_exception_router_handlers.py",
+      "blob_sha": "20a4218829e919e9481d065fa6a749c31aef9d26",
+      "purpose": "例外を生じる個別処理呼出しの捕捉境界検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-027",
+        "REQ-DESIGN-011"
+      ],
+      "adoption": "extend",
+      "reason": "try包含判定を基に再送出・内部捕捉・応答変換までの経路を追跡する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_operational_logging.py",
+      "blob_sha": "85cf26905cbac5a504cad9ba9ccdc7aa28cda396",
+      "purpose": "運用logger規約の書換えなし検査入口",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-027",
+        "REQ-DESIGN-013"
+      ],
+      "adoption": "adapt",
+      "reason": "catalog検証の再利用という構造を採用し、ログprivacyと安全な型を導入先で検証する。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/check_router_error_response_returns.py",
+      "blob_sha": "19702b24ee37c05b5a60d9530da07998a88d75ee",
+      "purpose": "endpointの宣言エラーstatusと実returnの集合検査",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "REQ-ASBUILT-027",
+        "REQ-ASBUILT-033"
+      ],
+      "adoption": "extend",
+      "reason": "正常status内失敗と動的応答を追跡し、未解決を一律500へ変換しない。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/e2e_models.py",
+      "blob_sha": "d75e3dc2796a61cb579be8087ed9e294edf66a91",
+      "purpose": "E2Eの対象・部品・組合せ・実行assertionモデル",
+      "classification": "e2e",
+      "requirement_ids": [
+        "REQ-ASBUILT-008"
+      ],
+      "adoption": "adapt",
+      "reason": "モデル形を参考にし、固定の事業flowと対象定数は導入先実装から置換する。",
+      "language_assumptions": [
+        "Python runtime",
+        "YAML / PyYAML"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_api_detail_design.py",
+      "blob_sha": "3f607c3d2e952431cfe0165125167534ea52cac7",
+      "purpose": "入力・前提・資源変更・応答取得元の詳細設計生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-004",
+        "REQ-ASBUILT-023"
+      ],
+      "adoption": "adapt",
+      "reason": "型・SQL・応答組立の抽出を導入先言語で実装し、章順を構成profileで共有する。",
+      "language_assumptions": [
+        "Python AST",
+        "FastAPI",
+        "SQL dialect / sqlglot"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_api_list.py",
+      "blob_sha": "2a78a6fee04dff1b05ceb052815c49064cd975b5",
+      "purpose": "export済みAPI集合から索引生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-005",
+        "REQ-ASBUILT-025"
+      ],
+      "adoption": "adapt",
+      "reason": "実operation登録集合からグループ/API索引と帳票を生成する。",
+      "language_assumptions": [
+        "Python runtime",
+        "FastAPI"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_api_message_catalog.py",
+      "blob_sha": "a0305f66432c7394817fffa066bf331952bb0ba4",
+      "purpose": "運用logger呼出し・型付きcontext・message帳票生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-027",
+        "REQ-DESIGN-013"
+      ],
+      "adoption": "extend",
+      "reason": "wrapper静的解析を基に例外/HTTP対応とprivacy負例を導入先で補強する。",
+      "language_assumptions": [
+        "Python AST",
+        "Pydantic"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_api_pytest_cases.py",
+      "blob_sha": "b80802a383700d42a7446840cbdf0346eb8c36e9",
+      "purpose": "帳票ケースからpytest雛形生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-028"
+      ],
+      "adoption": "not-adopted",
+      "reason": "生成雛形は実行テストと自然言語GWTの代替にならない。導入先で実テストを作成する。",
+      "language_assumptions": [
+        "Python runtime",
+        "pytest"
+      ],
+      "connections": []
+    },
+    {
+      "path": "src/tools/generate_api_sequences.py",
+      "blob_sha": "f926e654d6dff047cb4a5b9c1153477d9042255e",
+      "purpose": "endpoint処理順・条件・例外・transactionのsequence生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-DESIGN-002",
+        "REQ-ASBUILT-026"
+      ],
+      "adoption": "extend",
+      "reason": "命名推測やframework定型補完を成功根拠とせず、実call graphと未対応診断を導入先で実装する。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_api_unit_test_factors.py",
+      "blob_sha": "d25b27db23552370d9730d2ccee39629bd62113b",
+      "purpose": "分岐/例外の要因・組合せ・詳細帳票生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-022",
+        "REQ-ASBUILT-028"
+      ],
+      "adoption": "extend",
+      "reason": "直積を無条件生成せず到達性を考慮し、実検証単位のGWTを対応させる。",
+      "language_assumptions": [
+        "Python AST",
+        "FastAPI",
+        "Pydantic"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_db_crud.py",
+      "blob_sha": "d467c6d69b12db141f2a71c885f8a8ceac156662",
+      "purpose": "SQL正本からAPI×table CRUD CSV生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-006",
+        "REQ-ASBUILT-024"
+      ],
+      "adoption": "extend",
+      "reason": "参照先と変更先の区別を基に実到達call graph・アクセスなし・同一モデル表/図/根拠を追加する。",
+      "language_assumptions": [
+        "Python runtime",
+        "SQL dialect / sqlglot"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_db_er_diagram.py",
+      "blob_sha": "0a374040b466eda429db9e51a04bb70abbc8f353",
+      "purpose": "DDLの参照制約・多重度からER生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-007"
+      ],
+      "adoption": "adapt",
+      "reason": "DDL parserとdialectを導入先へ置換し、未解決の関係を推測しない。",
+      "language_assumptions": [
+        "Python runtime",
+        "SQL dialect / sqlglot"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_db_table_specs.py",
+      "blob_sha": "80369de8e65bacd3e5239db04eef959267e12346",
+      "purpose": "DDLからtable/column/制約の帳票生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-007"
+      ],
+      "adoption": "adapt",
+      "reason": "SQL採用時だけ対象dialectの構造解析から生成する。",
+      "language_assumptions": [
+        "Python runtime",
+        "SQL dialect / sqlglot"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_e2e_case_list.py",
+      "blob_sha": "a20fad9069f57a871d7c446dbcb0852d06e0d7c4",
+      "purpose": "E2Eケース一覧・対象matrix・除外CSV生成",
+      "classification": "e2e",
+      "requirement_ids": [
+        "REQ-ASBUILT-008",
+        "REQ-EVIDENCE-002"
+      ],
+      "adoption": "adapt",
+      "reason": "lazunex固有variant/flow定数を移植せず実collector/シナリオの対象へ対応させる。",
+      "language_assumptions": [
+        "Python runtime",
+        "YAML / PyYAML"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_e2e_scenarios.py",
+      "blob_sha": "efd66df8dae722c2764b13169641eb80fd0da6d4",
+      "purpose": "E2Eの前提・操作・期待結果・証跡詳細生成",
+      "classification": "e2e",
+      "requirement_ids": [
+        "REQ-ASBUILT-008"
+      ],
+      "adoption": "adapt",
+      "reason": "YAMLと業務flow固有の導出を導入先のテスト情報へ適応する。",
+      "language_assumptions": [
+        "Python runtime",
+        "YAML / PyYAML"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_external_crud.py",
+      "blob_sha": "9d355a503c12b92f5939125a29b99dc9b07b62d6",
+      "purpose": "外部サービス呼出しから資源別CRUD CSV生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-ASBUILT-006",
+        "REQ-ASBUILT-024"
+      ],
+      "adoption": "extend",
+      "reason": "固定service/method辞書を導入先portへ対応させ、未知呼出しをアクセスなしにしない。",
+      "language_assumptions": [
+        "Python AST"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_openapi_if_specs.py",
+      "blob_sha": "04a3daa2b71173fbbb7bc5253efaf473078ef65e",
+      "purpose": "実OpenAPIと型・sampleからinterface帳票生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-DESIGN-003",
+        "REQ-ASBUILT-022"
+      ],
+      "adoption": "adapt",
+      "reason": "FastAPI app起動を導入先の公開interface exportへ置換する。",
+      "language_assumptions": [
+        "Python AST",
+        "FastAPI"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_queries.py",
+      "blob_sha": "f91b36d78b649e6acaf453589a5e9956db70a91c",
+      "purpose": "SQL束縛引数・投影型・実行wrapper生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-DESIGN-007",
+        "REQ-DESIGN-012",
+        "REQ-DESIGN-017"
+      ],
+      "adoption": "adapt",
+      "reason": "SQLAlchemy/Pydanticと型推定を導入先の型/DB portへ適応し、厳格Paramsと投影/NULL対応を検査する。",
+      "language_assumptions": [
+        "Python runtime",
+        "Pydantic",
+        "SQL dialect / sqlglot",
+        "SQLAlchemy"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generate_query_specs.py",
+      "blob_sha": "439c3f6c80717947fb74be82d62199bedcbb0eea",
+      "purpose": "SQLごとの種別・表・型・条件の帳票生成",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "REQ-DESIGN-004",
+        "REQ-ASBUILT-023"
+      ],
+      "adoption": "adapt",
+      "reason": "SQL構造情報を導入先parserから取得し、名前に所有先を含め衝突を拒否する。",
+      "language_assumptions": [
+        "Python runtime",
+        "SQL dialect / sqlglot"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/generation_io.py",
+      "blob_sha": "c3356cd1846353574ad3de536c47db9a6a00f36b",
+      "purpose": "生成fileの差分比較と書込み共通化",
+      "classification": "common-io",
+      "requirement_ids": [
+        "REQ-ASBUILT-001",
+        "REQ-ASBUILT-002",
+        "REQ-ASBUILT-035"
+      ],
+      "adoption": "extend",
+      "reason": "共通IOを基に所有root・symlink・旧出力・byte一致検査を追加する。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/rulecheck/__init__.py",
+      "blob_sha": "99208b61f9a7374accb96d46e125671329473d4f",
+      "purpose": "rule engine package marker",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-030"
+      ],
+      "adoption": "not-adopted",
+      "reason": "Python package構造だけで検査能力がなく、導入先のmodule方式へ委ねる。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": []
+    },
+    {
+      "path": "src/tools/rulecheck/__main__.py",
+      "blob_sha": "eb53e2f31b2f703ad32ef64b8a41faa3e7d18e08",
+      "purpose": "rule engine CLI転送entrypoint",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-030"
+      ],
+      "adoption": "not-adopted",
+      "reason": "Python -m用の起動転送は導入先CLIへ委ねる。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": []
+    },
+    {
+      "path": "src/tools/rulecheck/builtin_checks.py",
+      "blob_sha": "18bd805d125ac355917168e5ee1ceedd28f05b61",
+      "purpose": "配置・依存・flow・定量条件のchecker登録集合",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-DESIGN-008",
+        "REQ-DESIGN-009",
+        "REQ-DESIGN-010",
+        "REQ-DESIGN-014",
+        "REQ-DESIGN-015",
+        "REQ-DESIGN-016",
+        "REQ-DESIGN-011",
+        "REQ-DESIGN-020",
+        "REQ-DESIGN-021",
+        "REQ-DESIGN-022"
+      ],
+      "adoption": "extend",
+      "reason": "配置・依存・flowに加えrouter_error_handling、functions_exception_policy、functions_public_contractを適応する。包括的捕捉・業務層の通信例外・説明欠落を検査し、別名/相対参照・非公開処理も選択profileに沿って拡張する。固有path・命名・固定数量閾値は移植しない。",
+      "language_assumptions": [
+        "Python AST",
+        "FastAPI",
+        "SQLAlchemy"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/rulecheck/checklist.py",
+      "blob_sha": "68131acf65ecb8294383d26712324936a40e6392",
+      "purpose": "規約checker項目の一覧埋込み生成と差分検査",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-017"
+      ],
+      "adoption": "not-adopted",
+      "reason": "Markdown規約を第二正本にしない。Quint正本の要件IDと導入先check対応を使う。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": []
+    },
+    {
+      "path": "src/tools/rulecheck/cli.py",
+      "blob_sha": "bbc409a99ed90f86d1ec577ead31d2a357f83a78",
+      "purpose": "生成・検証・評価のCLI統合",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-002",
+        "REQ-ASBUILT-031"
+      ],
+      "adoption": "adapt",
+      "reason": "既存target-owned入口に接続し、構成適合/drift/test/未検証を別結果として返す。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/rulecheck/config.py",
+      "blob_sha": "3a03ae43e1e35d330e88a6ff20744b72242f70b5",
+      "purpose": "既定規約設定とoverrideの結合",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-017"
+      ],
+      "adoption": "adapt",
+      "reason": "固定のlazunex閾値は持ち込まず、導入先で採用した設定と要件を照合する。",
+      "language_assumptions": [
+        "Python runtime",
+        "pytest"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/rulecheck/evaluator.py",
+      "blob_sha": "b977822f4f5a07710bce0cb44bec815f2d6ba8a9",
+      "purpose": "checker dispatchと例外/未知checkの失敗集約",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-032"
+      ],
+      "adoption": "adapt",
+      "reason": "未知checkerや検査例外を成功にしない評価方式を導入先入口へ接続する。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/rulecheck/models.py",
+      "blob_sha": "a23c247046565bcfd203a2f2a3bc4f3ee913da12",
+      "purpose": "Rule/CheckContext/CheckResultの共通型",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-031"
+      ],
+      "adoption": "adapt",
+      "reason": "Python dataclassを導入先の型へ置換し、4種類の報告と根拠を分離する。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/rulecheck/report.py",
+      "blob_sha": "2e806069711745923f82e6584cf4bd3d5542f15e",
+      "purpose": "checker結果の集計とMarkdown整形",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-019",
+        "REQ-ASBUILT-031"
+      ],
+      "adoption": "adapt",
+      "reason": "pass/fail/manual/skipの区別を保持して導入先の既存エビデンスに接続する。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": [
+        ".agents/skills/generate-implementation-design/references/adapter-contract.md"
+      ]
+    },
+    {
+      "path": "src/tools/rulecheck/rule_parser.py",
+      "blob_sha": "2d8dbd62335a1105a5cefee21da88f7920ce4092",
+      "purpose": "Markdown規範行とchecker tagの抽出",
+      "classification": "rule-engine",
+      "requirement_ids": [
+        "REQ-ASBUILT-017"
+      ],
+      "adoption": "not-adopted",
+      "reason": "規範Markdownのparseで要件正本を二重化せず、Quint派生JSONを読む。",
+      "language_assumptions": [
+        "Python runtime"
+      ],
+      "connections": []
+    }
+  ],
+  "gaps": [
+    {
+      "requirement_id": "REQ-ASBUILT-003",
+      "reason": "出力隔離と直接編集禁止bannerは導入先の所有rootに合わせて実装する。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-009",
+      "reason": "参照toolは実test結果JSONの公開安全な参照viewを完結しない。導入先collectorとportalを接続する。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-010",
+      "reason": "tool自身のCLI/flow設計の抽出器はこの52filesに見当たらず導入先で追加する。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-011",
+      "reason": "catalog全体一意のerror IDと全error branch集合の一致は導入先adapterで補う。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-015",
+      "reason": "テスト構造の意味を導入先collector/解析器で検査し、雛形生成を成功としない。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-016",
+      "reason": "coverage実測の分母分子・採用目標との照合は導入先coverage collectorで補う。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-018",
+      "reason": "抑制理由・孤児・反復の監査一覧は導入先linterと抑制設定から生成する。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-021",
+      "reason": "API/data/infra/frontend全領域の接続判定はadapter manifestで補う。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-024",
+      "reason": "CSV・表・図・抽出根拠の単一モデル一致と未解決呼出しの失敗扱いは参照実装から拡張が必要。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-029",
+      "reason": "言語非依存manifest schemaと要件集合照合は共通check_designで新設する。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-034",
+      "reason": "参照集合の欠落・余剰・blob SHA再照合はreference_inventoryで新設する。"
+    },
+    {
+      "requirement_id": "REQ-ASBUILT-035",
+      "reason": "generation_ioは渡された生成対象だけを比較・書込みする。旧対象残存の拒否と所有出力を毎回空にする二重生成は共通check_designで補う。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-001",
+      "reason": "1 operation単位の責務分割を実source集合と照合するadapterを導入先で実装する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-005",
+      "reason": "この参照toolsはinfra全体の生成器を提供しない。導入先の構築artifactから生成する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-006",
+      "reason": "導入先generatorの非破壊checkと共通二重生成を接続する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-009",
+      "reason": "参照の配置・metadata検査だけではendpointの応答builder実呼出し、未参照contract/sample、空責務、旧集約への単純委譲を網羅しない。導入先で実call/参照を照合する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-014",
+      "reason": "全endpoint sourceの非endpoint補助関数・入れ子・class/method・lambda・未登録endpointを一律拒否する検査は参照52filesでは確認できない。利用者指定profileの追加checkerとして導入先で実装する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-015",
+      "reason": "参照のimport文字列中心の検査を拡張し、別名・相対importを実所有先へ解決してAPI間直接依存を拒否する。解決不能を依存なしとしない。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-018",
+      "reason": "await中心の参照checkerを同期/非同期の実体・戻り契約・別名呼出しへ拡張する。値なしの検証専用処理は実体照合を維持する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-020",
+      "reason": "参照のgeneric例外名検査を、型指定なし・別名・集合に隠れた包括的捕捉まで拡張する。対象言語の例外階層と宣言済み集合を解決する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-022",
+      "reason": "参照の公開関数docstring検査を選択profileの全対象処理へ適応する。空説明を拒否し、日本語既定と実責務への対応は導入先で確認する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-023",
+      "reason": "個別処理からendpoint/worker共有workflowへの逆依存を一律に拒否する能力は参照toolsだけでは完結しない。別名/相対参照・同期/非同期の正負例と共有workflowの設計追跡を導入先で追加する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-024",
+      "reason": "固定参照の構成粒度・責務・例外/logger/query型/帳票の意味と適用外を導入先要件・版付きprofileへ記録する能力は、全件tool棚卸しに加えて導入先で接続する。"
+    },
+    {
+      "requirement_id": "REQ-DESIGN-025",
+      "reason": "配置変更前後のHTTP・transaction・外部呼出し前後の認可・実保存先回帰・既存E2E・証跡閲覧は導入先の同一revisionの実行テストへ接続する。参照repositoryの検査を導入先成功の証拠としない。"
+    },
+    {
+      "requirement_id": "REQ-DOCS-001",
+      "reason": "人向け説明の意味的可読性は対象言語と要求言語に基づきレビューで補う。"
+    },
+    {
+      "requirement_id": "REQ-EVIDENCE-001",
+      "reason": "初期品質portalのcollector/framework接続と公開準備は導入先で実装する。"
+    },
+    {
+      "requirement_id": "REQ-EVIDENCE-003",
+      "reason": "revision/run・allowlist・公開権限は既存evidence guardrailと導入先collectorで補う。"
+    },
+    {
+      "requirement_id": "REQ-EVIDENCE-004",
+      "reason": "階層検索・現在位置・CSVのブラウザE2Eは共通portalで追加する。"
+    }
+  ]
+}

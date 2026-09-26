@@ -1,0 +1,503 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/tsuji-tomonori/KotoRelay",
+  "revision": "b0e460ea317b8c601eff6d13e871e1bdfdcf09f0",
+  "source_root": "tools/project",
+  "scope": "target-adoption",
+  "file_count": 27,
+  "tree_sha256": "3f21238a214dc4eddd6632f3078c8c0ec36c55641e6dad73757eb9677d548248",
+  "requirement_ids": [
+    "TECH-DESIGN"
+  ],
+  "files": [
+    {
+      "path": "tools/project/api_documents.py",
+      "blob_sha": "78b849cf3e38999e666d3fc5ac407b1ce3b7e2a4",
+      "purpose": "lazunexのAPI帳票の章構成とCRUD対応を、実装由来の内容へ適用する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "lazunexのAPI帳票の章構成とCRUD対応を、実装由来の内容へ適用する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/api_layout.py",
+      "blob_sha": "d58f3016d851d9933d9c9555df5f711b64ae62c2",
+      "purpose": "API操作ごとの配置・責務・契約と依存方向を検査する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "API操作ごとの配置・責務・契約と依存方向を検査する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/collector.py",
+      "blob_sha": "a596116aaaddca935971946dd50056d254ba7329",
+      "purpose": "pytestのcollectionを実行結果と独立したinventoryとして保存する。",
+      "classification": "common-io",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "pytestのcollectionを実行結果と独立したinventoryとして保存する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/collector.py",
+        "tools/project/evidence.py"
+      ]
+    },
+    {
+      "path": "tools/project/condition_labels.py",
+      "blob_sha": "37ceaf2475cecbbbb1076d563fc52c380434614f",
+      "purpose": "bool述語の日本語説明を条件ラベルの唯一の入力として解決する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "bool述語の日本語説明を条件ラベルの唯一の入力として解決する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/csp.mjs",
+      "blob_sha": "6caf9f8e8a9835791fafc3bd77807e3d53036d50",
+      "purpose": "tools/project/csp.mjs",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "tools/project/csp.mjsという責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/database_explorer.py",
+      "blob_sha": "e8b682599774e48cc363e7f411ae00a3a0310da5",
+      "purpose": "DDLと既存CRUD解析から、DB探索画面用の追跡可能なデータを生成する。",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "DDLと既存CRUD解析から、DB探索画面用の追跡可能なデータを生成する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/design.py",
+      "blob_sha": "da98666f55077dcae24ae7996ee3163cc5adcf74",
+      "purpose": "実装のAST、OpenAPI、SQL AST、合成テンプレートから現在設計を生成する。",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "実装のAST、OpenAPI、SQL AST、合成テンプレートから現在設計を生成する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/error_design.py",
+      "blob_sha": "2964f961fe112f5b198a147f0f1f91e9fa49bb17",
+      "purpose": "実在する例外送出と型付き運用ログから応答・メッセージ設計を生成する。",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "実在する例外送出と型付き運用ログから応答・メッセージ設計を生成する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/evidence.py",
+      "blob_sha": "276bc0aeb0f3e2ce6878e90bc5a9a16a3d3e800a",
+      "purpose": "collectorと実行原本を照合し、公開可能な品質エビデンスだけをSPAへ渡す。",
+      "classification": "common-io",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "collectorと実行原本を照合し、公開可能な品質エビデンスだけをSPAへ渡す。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/collector.py",
+        "tools/project/evidence.py"
+      ]
+    },
+    {
+      "path": "tools/project/exception_flow.py",
+      "blob_sha": "7e8b73974c4408156283d5b275a0fa0414029537",
+      "purpose": "例外の型と既知の属性を使い、catchの実際の分岐を静的に選択する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "例外の型と既知の属性を使い、catchの実際の分岐を静的に選択する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/frontend-inventory.mjs",
+      "blob_sha": "5383f7628fd4878c0d9ef7b376218cd366626d02",
+      "purpose": "tools/project/frontend-inventory.mjs",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "tools/project/frontend-inventory.mjsという責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/queries.py",
+      "blob_sha": "85dc887d01f5d116e2aebed80c223806fc6c67b9",
+      "purpose": "DDLとSQL ASTから型付き行・query wrapperを決定的に生成する。",
+      "classification": "as-built-generator",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "DDLとSQL ASTから型付き行・query wrapperを決定的に生成する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/queries.py"
+      ]
+    },
+    {
+      "path": "tools/project/record_portal.py",
+      "blob_sha": "e54101fc82ec89c240283c5b99b19a8fe2733872",
+      "purpose": "検証済みSPAへポータル自体のGWT証跡も追加し、失敗を保持する。",
+      "classification": "common-io",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "検証済みSPAへポータル自体のGWT証跡も追加し、失敗を保持する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/collector.py",
+        "tools/project/evidence.py"
+      ]
+    },
+    {
+      "path": "tools/project/router_sequence.py",
+      "blob_sha": "ef609e7952030071cf81bc56e9ea97e1eb7aa009",
+      "purpose": "routerのASTから呼出し順・分岐・反復・例外・transactionを投影する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "routerのASTから呼出し順・分岐・反復・例外・transactionを投影する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/source_policy.py",
+      "blob_sha": "c17ec6c0e79deaffb2945fd7c71bf084bf28d97f",
+      "purpose": "lazunexの責務検査をKotoRelayの同期APIと生成queryへ接続する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "lazunexの責務検査をKotoRelayの同期APIと生成queryへ接続する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/test_narrative.py",
+      "blob_sha": "2bd8beb4994dd62130700eb74025f659b6912ff3",
+      "purpose": "テストのdocstringから人が読む検証単位を取得し、欠落は生成失敗にする。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "テストのdocstringから人が読む検証単位を取得し、欠落は生成失敗にする。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_api_layout_gates.py",
+      "blob_sha": "5141e0f8fd5d38120977efbb19acdfaa4bba9021",
+      "purpose": "API責務配置とSQLの生成境界の欠落・混在を検出する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "API責務配置とSQLの生成境界の欠落・混在を検出する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_condition_labels.py",
+      "blob_sha": "71017ed6410feafbd4faa310f4e2b6a55094bf51",
+      "purpose": "条件の日本語説明とbool関数の境界を正例・負例で固定する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "条件の日本語説明とbool関数の境界を正例・負例で固定する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_database_explorer.py",
+      "blob_sha": "fbe5d03eaf39424ae4d325a6c9d9216ff73a3579",
+      "purpose": "DB探索の複合参照・原文・CRUD対応を独立した入力で確認する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "DB探索の複合参照・原文・CRUD対応を独立した入力で確認する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_document_structure.py",
+      "blob_sha": "7552bf634405ebb815b44794bcc672ab1a296aff",
+      "purpose": "参照帳票の章契約、API階層、CRUDの実装対応が退行しないことを確認する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "参照帳票の章契約、API階層、CRUDの実装対応が退行しないことを確認する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_error_reporting.py",
+      "blob_sha": "3f34a31e5b38fe6034ab1217fc8f9865a2aa2d97",
+      "purpose": "例外応答と日本語テスト説明の生成を正例・負例で確認する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "例外応答と日本語テスト説明の生成を正例・負例で確認する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_exception_flow.py",
+      "blob_sha": "8994a0b7aa1427471f318c6c5f1e75cf4da51f78",
+      "purpose": "例外の発生位置・catchの選択・継続先をシーケンスで検証する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "例外の発生位置・catchの選択・継続先をシーケンスで検証する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_project_tools.py",
+      "blob_sha": "6f5d272b565dbc9f0f0a57e22f15b066c8114020",
+      "purpose": "生成と公開adapterが未実行・欠落・追加を見落とさないことを検査する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "生成と公開adapterが未実行・欠落・追加を見落とさないことを検査する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_router_flow.py",
+      "blob_sha": "49cbe1566cb2823c487f524ee275ae747820d345",
+      "purpose": "routerの実行順序とSQL専用モデルの契約を負例で検証する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "routerの実行順序とSQL専用モデルの契約を負例で検証する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tests/test_source_policy.py",
+      "blob_sha": "91dc7c98a8846daad66ea050a7eb44fe32a413cd",
+      "purpose": "router専用の宣言・戻り値・例外境界を負例で検証する。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "router専用の宣言・戻り値・例外境界を負例で検証する。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/tool_adoption.json",
+      "blob_sha": "3c2447171bb3918cff0f72bac27647782b07564d",
+      "purpose": "tools/project/tool_adoption.json",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "tools/project/tool_adoption.jsonという責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/design.py",
+        "tools/project/queries.py",
+        "tools/tests/test_guards.py"
+      ]
+    },
+    {
+      "path": "tools/project/verify.py",
+      "blob_sha": "2ed22c7f04efdf83d17ec8596a6f3b7590617b0e",
+      "purpose": "実コマンドを実行し、失敗を保持したまま同一runの公開入力を作る。",
+      "classification": "static-checker",
+      "requirement_ids": [
+        "TECH-DESIGN"
+      ],
+      "adoption": "adapt",
+      "reason": "実コマンドを実行し、失敗を保持したまま同一runの公開入力を作る。という責務を比較した。対象はSlotKeeperの実登録API、SQL、画面、CDKとし、KotoRelayのコードはコピーせず接続先で独自実装する。",
+      "language_assumptions": [
+        "Python AST / SQL / TypeScript"
+      ],
+      "connections": [
+        "tools/project/verify.py"
+      ]
+    }
+  ],
+  "gaps": []
+}

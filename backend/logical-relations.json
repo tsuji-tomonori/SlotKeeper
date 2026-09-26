@@ -1,0 +1,20 @@
+[
+  {
+    "from": "reservations.resource_id",
+    "to": "resources.id",
+    "guarantee": "reservations_createの資源制御行と存在検査",
+    "kind": "application"
+  },
+  {
+    "from": "reservations.subject",
+    "to": "users.subject",
+    "guarantee": "同一transaction内のuser登録",
+    "kind": "application"
+  },
+  {
+    "from": "reservation_events.reservation_id",
+    "to": "reservations.id",
+    "guarantee": "作成と取消endpointの同一transaction",
+    "kind": "application"
+  }
+]
