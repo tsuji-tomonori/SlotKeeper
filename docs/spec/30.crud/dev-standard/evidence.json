@@ -1,14 +1,11 @@
 {
-  "no_access": {
-    "health": "DBと外部サービスへアクセスせず稼働状態だけを返す"
-  },
+  "no_access": {},
   "operations": [
     "cancelReservation",
     "createReservation",
     "createResource",
     "getReservation",
     "getResourceSchedule",
-    "health",
     "listReservations",
     "listResources",
     "updateResource"

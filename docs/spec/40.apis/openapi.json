@@ -468,22 +468,6 @@
         "title": "GetResourceScheduleResponse",
         "type": "object"
       },
-      "HealthResponse": {
-        "description": "稼働確認の結果です。",
-        "properties": {
-          "status": {
-            "const": "ok",
-            "description": "APIプロセスが要求を処理できることを表す稼働状態です。",
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ],
-        "title": "HealthResponse",
-        "type": "object"
-      },
       "ListReservationsResponse": {
         "description": "自分の予約一覧のレスポンスです。",
         "properties": {
@@ -1020,104 +1004,25 @@
   "paths": {
     "/health": {
       "get": {
-        "description": "秘密やDB情報を含まない稼働状態を返します。認証は不要です。",
+        "description": "秘密やDB情報を含まない稼働状態を返す。",
         "operationId": "health",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "example": {
-                  "status": "ok"
-                },
                 "schema": {
-                  "$ref": "#/components/schemas/HealthResponse"
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health",
+                  "type": "object"
                 }
               }
             },
             "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "認証情報が未指定、期限切れ、または検証できない場合に返します。"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": {
-                    "code": "TOO_MANY_REQUESTS",
-                    "details": [
-                      {
-                        "reason": "呼び出し頻度が許可された上限を超えた場合。",
-                        "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
-                        "retryable": true,
-                        "statusCode": 429
-                      }
-                    ],
-                    "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
-                    "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "呼び出し頻度が許可された上限を超えた場合に返します。"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": {
-                    "code": "INTERNAL_SERVER_ERROR",
-                    "details": [
-                      {
-                        "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
-                        "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
-                        "retryable": false,
-                        "statusCode": 500
-                      }
-                    ],
-                    "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
-                    "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SlotKeeper内部で想定外のエラーが発生した場合に返します。"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。"
           }
         },
-        "summary": "稼働状態を取得する",
+        "summary": "Health",
         "tags": [
           "system"
         ]

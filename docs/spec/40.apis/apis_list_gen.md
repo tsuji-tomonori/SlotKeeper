@@ -4,7 +4,7 @@
 
 | Tag | Method | Path | Summary |
 | --- | --- | --- | --- |
-| `system` | `GET` | `/health` | 稼働状態を取得する |
+| `system` | `GET` | `/health` | Health |
 | `reservations` | `GET` | `/reservations` | 自分の予約一覧を取得する |
 | `reservations` | `POST` | `/reservations` | 予約を作成する |
 | `reservations` | `GET` | `/reservations/{reservationId}` | 予約詳細を取得する |

@@ -1,0 +1,275 @@
+{
+  "relations": [
+    {
+      "from": "reservation_events.reservation_id",
+      "guarantee": "DSQLに物理FKがないため、参照先の存在と整合はアプリが同一transactionで保証する",
+      "kind": "application",
+      "to": "reservations.reservation_id"
+    },
+    {
+      "from": "reservations.resource_id",
+      "guarantee": "DSQLに物理FKがないため、参照先の存在と整合はアプリが同一transactionで保証する",
+      "kind": "application",
+      "to": "resources.resource_id"
+    },
+    {
+      "from": "reservations.owner_principal_id",
+      "guarantee": "DSQLに物理FKがないため、参照先の存在と整合はアプリが同一transactionで保証する",
+      "kind": "application",
+      "to": "users.principal_id"
+    }
+  ],
+  "tables": [
+    {
+      "columns": [
+        {
+          "ddl": "principal_id VARCHAR(200) NOT NULL",
+          "label": "要求した利用者の認証subject",
+          "name": "principal_id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "idempotency_key VARCHAR(128) NOT NULL",
+          "label": "Idempotency-Keyヘッダの値",
+          "name": "idempotency_key",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(128)"
+        },
+        {
+          "ddl": "request_hash VARCHAR(64) NOT NULL",
+          "label": "正規化した要求本文のSHA-256",
+          "name": "request_hash",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(64)"
+        },
+        {
+          "ddl": "response_payload TEXT NOT NULL",
+          "label": "元の成功応答のJSON",
+          "name": "response_payload",
+          "nullable": false,
+          "primary": false,
+          "type": "TEXT"
+        },
+        {
+          "ddl": "expires_at TIMESTAMPTZ NOT NULL",
+          "label": "成功記録の有効期限",
+          "name": "expires_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.idempotency_records (\n  principal_id VARCHAR(200) NOT NULL,\n  idempotency_key VARCHAR(128) NOT NULL,\n  request_hash VARCHAR(64) NOT NULL,\n  response_payload TEXT NOT NULL,\n  expires_at TIMESTAMPTZ NOT NULL,\n  PRIMARY KEY (principal_id, idempotency_key)\n)",
+      "label": "予約作成要求の成功記録を表す",
+      "name": "idempotency_records"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "event_id VARCHAR(36) NOT NULL",
+          "label": "履歴ID",
+          "name": "event_id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "reservation_id VARCHAR(36) NOT NULL",
+          "label": "対象の予約ID",
+          "name": "reservation_id",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "actor_principal_id VARCHAR(200) NOT NULL",
+          "label": "操作した利用者の認証subject",
+          "name": "actor_principal_id",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "action VARCHAR(20) NOT NULL",
+          "label": "操作種別",
+          "name": "action",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(20)"
+        },
+        {
+          "ddl": "occurred_at TIMESTAMPTZ NOT NULL",
+          "label": "操作日時",
+          "name": "occurred_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.reservation_events (\n  event_id VARCHAR(36) PRIMARY KEY,\n  reservation_id VARCHAR(36) NOT NULL,\n  actor_principal_id VARCHAR(200) NOT NULL,\n  action VARCHAR(20) NOT NULL,\n  occurred_at TIMESTAMPTZ NOT NULL\n)",
+      "label": "予約の作成と取消の履歴を表す",
+      "name": "reservation_events"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "reservation_id VARCHAR(36) NOT NULL",
+          "label": "予約ID",
+          "name": "reservation_id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "resource_id VARCHAR(36) NOT NULL",
+          "label": "予約対象の資源ID",
+          "name": "resource_id",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "owner_principal_id VARCHAR(200) NOT NULL",
+          "label": "予約者の認証subject",
+          "name": "owner_principal_id",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "start_at TIMESTAMPTZ NOT NULL",
+          "label": "予約開始日時",
+          "name": "start_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        },
+        {
+          "ddl": "end_at TIMESTAMPTZ NOT NULL",
+          "label": "予約終了日時",
+          "name": "end_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        },
+        {
+          "ddl": "purpose VARCHAR(200) NOT NULL",
+          "label": "予約目的",
+          "name": "purpose",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "status VARCHAR(20) NOT NULL",
+          "label": "予約状態",
+          "name": "status",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(20)"
+        },
+        {
+          "ddl": "row_version INT NOT NULL",
+          "label": "楽観ロック用の行バージョン",
+          "name": "row_version",
+          "nullable": false,
+          "primary": false,
+          "type": "INT"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.reservations (\n  reservation_id VARCHAR(36) PRIMARY KEY,\n  resource_id VARCHAR(36) NOT NULL,\n  owner_principal_id VARCHAR(200) NOT NULL,\n  start_at TIMESTAMPTZ NOT NULL,\n  end_at TIMESTAMPTZ NOT NULL,\n  purpose VARCHAR(200) NOT NULL,\n  status VARCHAR(20) NOT NULL,\n  row_version INT NOT NULL\n)",
+      "label": "資源の予約を表す",
+      "name": "reservations"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "resource_id VARCHAR(36) NOT NULL",
+          "label": "資源ID",
+          "name": "resource_id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(36)"
+        },
+        {
+          "ddl": "name VARCHAR(100) NOT NULL",
+          "label": "資源名",
+          "name": "name",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(100)"
+        },
+        {
+          "ddl": "description VARCHAR(1000) NOT NULL",
+          "label": "資源の説明",
+          "name": "description",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(1000)"
+        },
+        {
+          "ddl": "kind VARCHAR(20) NOT NULL",
+          "label": "資源種別",
+          "name": "kind",
+          "nullable": false,
+          "primary": false,
+          "type": "VARCHAR(20)"
+        },
+        {
+          "ddl": "active BOOLEAN NOT NULL",
+          "label": "新規予約を受け付けるかどうか",
+          "name": "active",
+          "nullable": false,
+          "primary": false,
+          "type": "BOOLEAN"
+        },
+        {
+          "ddl": "row_version INT NOT NULL",
+          "label": "利用者に公開する楽観ロック用の行バージョン",
+          "name": "row_version",
+          "nullable": false,
+          "primary": false,
+          "type": "INT"
+        },
+        {
+          "ddl": "control_version BIGINT NOT NULL",
+          "label": "同一資源の予約作成・取消・無効化を競合させる内部制御版",
+          "name": "control_version",
+          "nullable": false,
+          "primary": false,
+          "type": "BIGINT"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.resources (\n  resource_id VARCHAR(36) PRIMARY KEY,\n  name VARCHAR(100) NOT NULL,\n  description VARCHAR(1000) NOT NULL,\n  kind VARCHAR(20) NOT NULL,\n  active BOOLEAN NOT NULL,\n  row_version INT NOT NULL,\n  control_version BIGINT NOT NULL\n)",
+      "label": "予約対象となる会議室または備品を表す",
+      "name": "resources"
+    },
+    {
+      "columns": [
+        {
+          "ddl": "principal_id VARCHAR(200) NOT NULL",
+          "label": "認証基盤のsubject",
+          "name": "principal_id",
+          "nullable": false,
+          "primary": true,
+          "type": "VARCHAR(200)"
+        },
+        {
+          "ddl": "first_seen_at TIMESTAMPTZ NOT NULL",
+          "label": "初めて予約した日時",
+          "name": "first_seen_at",
+          "nullable": false,
+          "primary": false,
+          "type": "TIMESTAMPTZ"
+        }
+      ],
+      "ddl": "CREATE TABLE IF NOT EXISTS slotkeeper.users (\n  principal_id VARCHAR(200) PRIMARY KEY,\n  first_seen_at TIMESTAMPTZ NOT NULL\n)",
+      "label": "予約を作成した利用者を表す",
+      "name": "users"
+    }
+  ]
+}

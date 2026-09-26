@@ -1,0 +1,10 @@
+{
+  "cancelReservation": "reservations/cancel_reservation",
+  "createReservation": "reservations/create_reservation",
+  "createResource": "resources/create_resource",
+  "getReservation": "reservations/get_reservation",
+  "getResourceSchedule": "resources/get_resource_schedule",
+  "listReservations": "reservations/list_reservations",
+  "listResources": "resources/list_resources",
+  "updateResource": "resources/update_resource"
+}

@@ -110,8 +110,6 @@
       "tests/app/apis/resources/get_resource_schedule/test_router.py::test_get_resource_schedule_sample_request_emits_router_error_log_to_stdio",
       "tests/app/apis/resources/list_resources/test_router.py::test_list_resources_sample_request_emits_router_error_log_to_stdio",
       "tests/app/apis/resources/update_resource/test_router.py::test_update_resource_sample_request_emits_router_error_log_to_stdio",
-      "tests/app/apis/system/health/test_functions.py::test_router_error_response",
-      "tests/app/apis/system/health/test_router.py::test_health_sample_request_emits_router_error_log_to_stdio",
       "tests/test_operational_logging.py::test_request_log_redacts"
     ]
   },
@@ -410,15 +408,20 @@
     "gwt": "Given 実装source・SQL・CDKがある When 設計を2回クリーン生成し、既存生成物と比較する Then byte一致し、欠落・変更・余剰・未対応構文・要件traceの欠落を非0で報告する",
     "requirement": "TECH-DESIGN",
     "tests": [
-      "tests/tools/test_project_guards.py::test_schema_dictionary_mutations",
-      "tests/tools/test_project_guards.py::test_sql_parameter_mutation",
-      "tests/tools/test_project_guards.py::test_deterministic_generation",
-      "tests/tools/test_project_guards.py::test_sequence_tracks_conditions",
-      "tests/tools/test_project_guards.py::test_added_api_without_design_update",
-      "tests/tools/test_project_guards.py::test_unsupported_endpoint_syntax",
-      "tests/tools/test_project_guards.py::test_sql_target_change_updates_crud",
-      "tests/tools/test_project_guards.py::test_manual_edit_and_stale_document",
-      "tests/tools/test_project_guards.py::test_missing_test_for_requirement"
+      "tests/tools/test_project_design.py::test_data_capability_is_deterministic",
+      "tests/tools/test_project_design.py::test_drift_reports_manual_edit_and_stale_file",
+      "tests/tools/test_project_design.py::test_write_owned_root_replaces_only_owned_contents",
+      "tests/tools/test_project_design.py::test_repeat_sections_reads_profile_grammar",
+      "tests/tools/test_project_design.py::test_repeat_sections_rejects_unsupported_structure",
+      "tests/tools/test_project_design.py::test_added_route_without_contract_is_rejected",
+      "tests/tools/test_project_design.py::test_crud_rows_split_read_and_write_evidence",
+      "tests/tools/test_project_design.py::test_crud_model_matches_common_projection",
+      "tests/tools/test_project_design.py::test_sql_target_change_changes_crud_projection",
+      "tests/tools/test_project_design.py::test_database_model_marks_logical_references",
+      "tests/tools/test_project_design.py::test_frontend_without_menu_is_unsupported",
+      "tests/tools/test_project_design.py::test_trace_rejects_missing_and_unknown_tests",
+      "tests/tools/test_project_design.py::test_verify_checks_cover_requirement_evidence",
+      "tests/tools/test_project_evidence.py::test_design_search_covers_lazunex_documents"
     ]
   },
   {
@@ -445,10 +448,11 @@
     "gwt": "Given 失敗・skip・未実行・flakyを含む結果がある When 結果を共通形式へ変換する Then 非成功状態を成功へ変えず、collector外の結果と別runの混入を拒否する",
     "requirement": "TECH-QUALITY",
     "tests": [
-      "tests/tools/test_project_guards.py::test_result_identity_and_unexecuted",
-      "tests/tools/test_project_guards.py::test_nonpassing_states_preserved",
-      "tests/tools/test_project_guards.py::test_missing_collector_result_is_not_run",
-      "tests/tools/test_project_guards.py::test_foreign_run_rejected"
+      "tests/tools/test_project_evidence.py::test_result_identity_and_unexecuted",
+      "tests/tools/test_project_evidence.py::test_nonpassing_states_preserved",
+      "tests/tools/test_project_evidence.py::test_result_outside_collector_is_rejected",
+      "tests/tools/test_project_evidence.py::test_foreign_run_rejected",
+      "tests/tools/test_project_evidence.py::test_backend_coverage_below_goal_fails"
     ]
   },
   {
@@ -457,10 +461,9 @@
     "gwt": "Given 公開サイトにallowlist外のfileやsymlinkがある When 公開集合を検査する Then 公開を拒否し、生ログ・token・DB dumpを含めない",
     "requirement": "TECH-PRIVACY",
     "tests": [
-      "tests/app/apis/system/health/test_functions.py::test_build_health_response_returns_ok_only",
-      "tests/app/apis/system/health/test_router.py::test_health_router_returns_sample_shaped_response_with_db",
-      "tests/tools/test_project_guards.py::test_publication_allowlist",
-      "tests/tools/test_project_guards.py::test_symlink_not_published"
+      "tests/tools/test_project_evidence.py::test_publication_allowlist",
+      "tests/tools/test_project_evidence.py::test_symlink_not_published",
+      "tests/tools/test_project_evidence.py::test_allowed_site_records_provenance"
     ]
   },
   {

@@ -4,7 +4,6 @@
   "createResource",
   "getReservation",
   "getResourceSchedule",
-  "health",
   "listReservations",
   "listResources",
   "updateResource"

@@ -17,7 +17,6 @@ getReservation,slotkeeper.reservations,R
 getResourceSchedule,identity.jwks_signing_key,R
 getResourceSchedule,slotkeeper.reservations,R
 getResourceSchedule,slotkeeper.resources,R
-health,-,NONE
 listReservations,identity.jwks_signing_key,R
 listReservations,slotkeeper.reservations,R
 listResources,identity.jwks_signing_key,R

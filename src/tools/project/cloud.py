@@ -1,5 +1,7 @@
 """明示指定された実AWSだけを検査し、ローカル成功と区別した証跡を残す。"""
 
+from __future__ import annotations
+
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -31,9 +33,9 @@ def concurrent_booking(url: str, token: str, resource: str) -> dict[str, Any]:
         minutes=15 * (uuid4().int % 20)
     )
     body = {
-        "resource_id": resource,
-        "start_at": start.isoformat(),
-        "end_at": (start + timedelta(minutes=15)).isoformat(),
+        "resourceId": resource,
+        "startAt": start.isoformat(),
+        "endAt": (start + timedelta(minutes=15)).isoformat(),
         "purpose": "実AWS競合検証",
     }
     barrier = Barrier(20)
@@ -54,13 +56,37 @@ def concurrent_booking(url: str, token: str, resource: str) -> dict[str, Any]:
     with httpx.Client(timeout=30) as client:
         for row in created:
             client.post(
-                url + "/reservations/" + row["id"] + "/cancel",
+                url + "/reservations/" + row["reservationId"] + "/cancel",
                 headers=headers,
                 json={"version": row["version"]},
             )
     return {
         "status": "passed" if statuses == [201] + [409] * 19 else "failed",
         "statuses": statuses,
+    }
+
+
+def passed(condition: bool) -> str:
+    return "passed" if condition else "failed"
+
+
+def endpoint_cases(url: str, token: str) -> dict[str, Any]:
+    """health、JWT境界、cold/warm応答を確認する。"""
+    auth = {"Authorization": "Bearer " + token}
+    with httpx.Client(timeout=30) as client:
+        # 最初の業務要求はLambdaとDSQL接続が冷えている可能性があるため、以後と分けて記録する。
+        first = timed(client, "GET", url + "/resources", headers=auth)
+        warm = [timed(client, "GET", url + "/resources", headers=auth) for _ in range(10)]
+        health = timed(client, "GET", url + "/health")
+        anonymous = timed(client, "GET", url + "/resources")
+    return {
+        "health": {"status": passed(health[0] == 200), "http": health[0]},
+        "anonymous-denied": {"status": passed(anonymous[0] == 401), "http": anonymous[0]},
+        "authenticated-read": {
+            "status": passed(first[0] == 200 and all(status == 200 for status, _ in warm)),
+            "first_ms": first[1],
+            "warm_ms": sorted(ms for _, ms in warm),
+        },
     }
 
 
@@ -71,28 +97,12 @@ def main() -> None:
     resource = os.environ.get("SLOT_CLOUD_RESOURCE_ID", "")
     if not url.startswith("https://") or not token:
         raise SystemExit("実AWS URLとaccess tokenの明示指定が必要")
-    auth = {"Authorization": "Bearer " + token}
-    with httpx.Client(timeout=30) as client:
-        # 最初の業務要求はLambdaとDSQL接続が冷えている可能性があるため、以後と分けて記録する。
-        first = timed(client, "GET", url + "/resources", headers=auth)
-        warm = [timed(client, "GET", url + "/resources", headers=auth) for _ in range(10)]
-        health = timed(client, "GET", url + "/health")
-        anonymous = timed(client, "GET", url + "/resources")
-    cases: dict[str, Any] = {
-        "health": {"status": "passed" if health[0] == 200 else "failed", "http": health[0]},
-        "anonymous-denied": {
-            "status": "passed" if anonymous[0] == 401 else "failed",
-            "http": anonymous[0],
-        },
-        "authenticated-read": {
-            "status": "passed" if first[0] == 200 and all(s == 200 for s, _ in warm) else "failed",
-            "first_ms": first[1],
-            "warm_ms": sorted(ms for _, ms in warm),
-        },
-        "dsql-concurrent-booking": concurrent_booking(url, token, resource)
+    cases = endpoint_cases(url, token)
+    cases["dsql-concurrent-booking"] = (
+        concurrent_booking(url, token, resource)
         if resource
-        else {"status": "not-run", "reason": "SLOT_CLOUD_RESOURCE_IDの合成資源が未指定"},
-    }
+        else {"status": "not-run", "reason": "SLOT_CLOUD_RESOURCE_IDの合成資源が未指定"}
+    )
     results = {
         "revision": os.environ.get("SLOT_REVISION", "local-worktree"),
         "runId": os.environ.get("SLOT_RUN_ID", "local"),

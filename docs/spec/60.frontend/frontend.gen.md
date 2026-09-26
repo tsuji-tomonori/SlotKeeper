@@ -6,19 +6,19 @@
 
 | 画面 | 表示権限 | 見出し | 入力 | 操作関数 | 呼出API |
 |---|---|---|---|---|---|
-| 資源を探す（resources） | 認証済み利用者 | 使いたい資源を選ぶ / この資源を予約 | 日付, 開始, 終了, 利用目的 | book, loadSchedule | GET /resources/{resource_id}/schedule, POST /reservations |
+| 資源を探す（resources） | 認証済み利用者 | 使いたい資源を選ぶ / この資源を予約 | 日付, 開始, 終了, 利用目的 | book, loadSchedule | GET /resources/{resourceId}/schedule, POST /reservations |
 | 自分の予約（mine） | 認証済み利用者 | 自分の予約 | 状態, 日付 | — | — |
-| 資源管理（admin） | 管理者 | 資源管理 | 資源名, 種類, 説明 | saveResource | POST /resources, PUT /resources/{resource_id} |
-| 予約詳細・履歴（?reservation=ID） | 本人・管理者（APIで判定） | 予約詳細・履歴 | — | cancel | POST /reservations/{reservation_id}/cancel |
+| 資源管理（admin） | 管理者 | 資源管理 | 資源名, 種類, 説明 | saveResource | POST /resources, PUT /resources/{resourceId} |
+| 予約詳細・履歴（?reservation=ID） | 本人・管理者（APIで判定） | 予約詳細・履歴 | — | cancel | POST /reservations/{reservationId}/cancel |
 
 ## 状態変化による取得
 
 | 条件 | 関数 | 呼出API | 再実行の依存 |
 |---|---|---|---|
-| user | loadResources | GET /resources | user, resourceOffset |
-| selected && user | loadSchedule | GET /resources/{resource_id}/schedule | selected, day, user |
-| user && tab === "mine" | loadMine | GET /reservations | user, tab, filter, mineDay, offset |
-| user && id | loadDetail | GET /reservations/{reservation_id} | user |
+| user | loadResources | GET /resources | user, resourcePages |
+| selected && user | loadSchedule | GET /resources/{resourceId}/schedule | selected, day, user |
+| user && tab === "mine" | loadMine | GET /reservations | user, tab, filter, mineDay, minePages |
+| user && id | loadDetail | GET /reservations/{reservationId} | user |
 
 ## 例外表示（業務コード）
 
@@ -54,7 +54,7 @@
 
 | source | 状態宣言 | API |
 |---|---|---|
-| frontend/src/App.tsx | useState, useRef } from "react", useState<PublicConfig>(), useState<UserManager>(), useState<User \| null>(null), useState("resources"), useState<Resource[]>([]), useState<Resource>(), useState(japanDate(new Date(Date.now() + 86400000))), useState<BusySlot[]>([]), useState<Reservation[]>([]), useState<Detail>(), useState(""), useState(""), useState(false), useState("future"), useState(""), useState(0), useState(0), useState<Resource>(), useState(""), useState("10:00"), useState("11:00") | /resources, /resources/{resource_id}/schedule, /reservations, /reservations/{reservation_id}, /reservations, /reservations/{reservation_id}/cancel, /resources/{resource_id}, /resources |
+| frontend/src/App.tsx | useState, useRef } from "react", useState<PublicConfig>(), useState<UserManager>(), useState<User \| null>(null), useState("resources"), useState<Resource[]>([]), useState<Resource>(), useState(japanDate(new Date(Date.now() + 86400000))), useState<BusySlot[]>([]), useState<Reservation[]>([]), useState<Detail>(), useState(""), useState(""), useState(false), useState("future"), useState(""), useState<(string \| undefined)[]>([<br>    undefined,<br>  ]), useState<string>(), useState<(string \| undefined)[]>([<br>    undefined,<br>  ]), useState<string>(), useState<Resource>(), useState(""), useState("10:00"), useState("11:00") | /resources, /resources/{resourceId}/schedule, /reservations, /reservations/{reservationId}, /reservations, /reservations/{reservationId}/cancel, /resources/{resourceId}, /resources |
 | frontend/src/auth.ts | — | — |
 | frontend/src/logic.ts | — | — |
 | frontend/src/pages/index.astro | — | — |

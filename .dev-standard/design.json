@@ -6,15 +6,13 @@
       "createResource": "docs/spec/40.apis/resources/create_resource/index.md",
       "getReservation": "docs/spec/40.apis/reservations/get_reservation/index.md",
       "getResourceSchedule": "docs/spec/40.apis/resources/get_resource_schedule/index.md",
-      "health": "docs/spec/40.apis/system/health/index.md",
       "listReservations": "docs/spec/40.apis/reservations/list_reservations/index.md",
       "listResources": "docs/spec/40.apis/resources/list_resources/index.md",
       "updateResource": "docs/spec/40.apis/resources/update_resource/index.md"
     },
     "group_indexes": {
       "reservations": "docs/spec/40.apis/reservations/index.md",
-      "resources": "docs/spec/40.apis/resources/index.md",
-      "system": "docs/spec/40.apis/system/index.md"
+      "resources": "docs/spec/40.apis/resources/index.md"
     },
     "index": "docs/spec/40.apis/index.md",
     "operation_inventory": "docs/spec/40.apis/operations.json",
@@ -346,54 +344,6 @@
         }
       },
       {
-        "api": "health",
-        "documents": {
-          "detail-design": "docs/spec/40.apis/system/health/detail-design_gen.md",
-          "interface": "docs/spec/40.apis/system/health/interface_gen.md",
-          "messages": "docs/spec/40.apis/system/health/messages_gen.md",
-          "query": "docs/spec/40.apis/system/health/query_gen.md",
-          "sequence": "docs/spec/40.apis/system/health/sequence_gen.md",
-          "unit-test": "docs/spec/40.apis/system/health/unit-test_gen.md"
-        },
-        "group": "system",
-        "id": "health",
-        "non_applicable": {
-          "queries": "このAPIが実行するSQLはありません。",
-          "request_bodies": "Request body はありません。",
-          "resource_changes": "正常系で作成/更新/削除するリソースはありません。"
-        },
-        "sections": {
-          "cases": [
-            "TC001",
-            "TC002",
-            "TC003",
-            "TC004"
-          ],
-          "factors": [
-            "F01 例外処理"
-          ],
-          "messages": [
-            "`M001` `health.router_api_function_error`"
-          ],
-          "queries": [],
-          "request_bodies": [],
-          "resource_changes": [],
-          "responses": [
-            "`200` Successful Response",
-            "`401` 認証情報が未指定、期限切れ、または検証できない場合に返します。",
-            "`422` path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。",
-            "`429` 呼び出し頻度が許可された上限を超えた場合。",
-            "`500` SlotKeeper内部で想定外のエラーが発生した場合。",
-            "`503` DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。"
-          ],
-          "samples": [
-            "HTTP 200",
-            "HTTP 429",
-            "HTTP 500"
-          ]
-        }
-      },
-      {
         "api": "list_reservations",
         "documents": {
           "detail-design": "docs/spec/40.apis/reservations/list_reservations/detail-design_gen.md",
@@ -657,14 +607,7 @@
         "docs/spec/40.apis/resources/update_resource/query_gen.md",
         "docs/spec/40.apis/resources/update_resource/sequence_gen.md",
         "docs/spec/40.apis/resources/update_resource/unit-test_gen.md",
-        "docs/spec/40.apis/system/health/detail-design_gen.md",
-        "docs/spec/40.apis/system/health/index.md",
-        "docs/spec/40.apis/system/health/interface_gen.md",
-        "docs/spec/40.apis/system/health/messages_gen.md",
-        "docs/spec/40.apis/system/health/query_gen.md",
-        "docs/spec/40.apis/system/health/sequence_gen.md",
-        "docs/spec/40.apis/system/health/unit-test_gen.md",
-        "docs/spec/40.apis/system/index.md"
+        "docs/spec/40.apis/system/health/interface_gen.md"
       ],
       "report": "docs/spec/40.apis/report.json",
       "requirement_ids": [
@@ -702,6 +645,7 @@
         "docs/spec/30.crud/dev-standard/matrix.csv",
         "docs/spec/30.crud/dev-standard/matrix.md",
         "docs/spec/30.crud/dev-standard/model.json",
+        "docs/spec/30.crud/dev-standard/operation-documents.json",
         "docs/spec/30.crud/identity_crud.gen.csv",
         "docs/spec/30.crud/index.md",
         "docs/spec/30.crud/report.json"
@@ -736,6 +680,7 @@
       ],
       "output_root": "docs/spec/20.db",
       "outputs": [
+        "docs/spec/20.db/database.json",
         "docs/spec/20.db/er.gen.md",
         "docs/spec/20.db/report.json",
         "docs/spec/20.db/tables/idempotency_records.gen.md",

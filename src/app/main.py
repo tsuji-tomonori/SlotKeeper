@@ -18,7 +18,6 @@ from app.apis.resources.get_resource_schedule.router import (
 from app.apis.resources.list_resources.router import router as list_resources_router
 from app.apis.resources.update_resource.router import router as update_resource_router
 from app.apis.router_errors import api_error_response
-from app.apis.system.health.router import router as health_router
 from app.core.config import settings
 from app.core.logging import (
     bind_log_context,
@@ -28,6 +27,11 @@ from app.core.logging import (
 )
 
 ops_logger = get_operation_logger(__name__)
+
+
+async def health() -> dict[str, str]:
+    """秘密やDB情報を含まない稼働状態を返す。"""
+    return {"status": "ok"}
 
 
 async def request_log(
@@ -92,7 +96,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(HTTPException, http_exception_response)
     app.add_exception_handler(RequestValidationError, validation_error_response)
 
-    app.include_router(health_router)
+    app.add_api_route("/health", health, methods=["GET"], tags=["system"], operation_id="health")
     app.include_router(list_resources_router)
     app.include_router(create_resource_router)
     app.include_router(update_resource_router)

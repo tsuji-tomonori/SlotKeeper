@@ -5,7 +5,7 @@ import * as prettier from "prettier";
 const target = "frontend/src/generated/api.ts";
 const result = spawnSync(
   "npx",
-  ["openapi-typescript", "docs/design/generated/openapi.json"],
+  ["openapi-typescript", "docs/spec/40.apis/openapi.json"],
   { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] },
 );
 if (result.status !== 0) process.exit(1);

@@ -5,10 +5,14 @@ import createClient from "openapi-fetch";
 import type { paths, components } from "./generated/api";
 import { manager, type PublicConfig } from "./auth";
 import { japanDate, japanInput, logoutLocation, message } from "./logic";
-type Resource = components["schemas"]["Resource"];
-type Reservation = components["schemas"]["Reservation"];
-type Detail = components["schemas"]["Detail"];
-type BusySlot = components["schemas"]["BusySlot"];
+type Resource = components["schemas"]["ResourceItemResponse"];
+type Reservation = components["schemas"]["ReservationItemResponse"];
+type Detail = components["schemas"]["GetReservationResponse"];
+type BusySlot = components["schemas"]["ScheduleSlotResponse"];
+type ErrorBody = components["schemas"]["ErrorResponse"];
+const PAGE = 20;
+// 継続tokenは前へ戻れないため、表示中ページまでのtokenを積んで戻る。
+const current = (pages: (string | undefined)[]) => pages[pages.length - 1];
 const format = (s: string) =>
   new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -34,8 +38,14 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState("future");
   const [mineDay, setMineDay] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [resourceOffset, setResourceOffset] = useState(0);
+  const [minePages, setMinePages] = useState<(string | undefined)[]>([
+    undefined,
+  ]);
+  const [mineNext, setMineNext] = useState<string>();
+  const [resourcePages, setResourcePages] = useState<(string | undefined)[]>([
+    undefined,
+  ]);
+  const [resourceNext, setResourceNext] = useState<string>();
   const [edit, setEdit] = useState<Resource>();
   const [purpose, setPurpose] = useState("");
   const [start, setStart] = useState("10:00");
@@ -80,13 +90,13 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (user) void loadResources();
-  }, [user, resourceOffset]);
+  }, [user, resourcePages]);
   useEffect(() => {
     if (selected && user) void loadSchedule();
   }, [selected, day, user]);
   useEffect(() => {
     if (user && tab === "mine") void loadMine();
-  }, [user, tab, filter, mineDay, offset]);
+  }, [user, tab, filter, mineDay, minePages]);
   useEffect(() => {
     const id = new URLSearchParams(location.search).get("reservation");
     if (user && id) void loadDetail(id);
@@ -121,27 +131,42 @@ export default function App() {
       setBusy(false);
     }
   }
-  function check(status: number, code?: string) {
-    throw new Error(message(status, code));
+  function check(status: number, error?: ErrorBody) {
+    // 業務理由は共通error schemaのdetails[0].reasonで受け取る。
+    throw new Error(
+      message(status, error?.error.details?.[0]?.reason ?? undefined),
+    );
   }
   async function loadResources() {
     await task(async () => {
       const { data, error, response } = await client.GET("/resources", {
-        params: { query: { limit: 20, offset: resourceOffset } },
+        params: { query: { limit: PAGE, nextToken: current(resourcePages) } },
       });
-      if (error) check(response.status, error.code);
-      setResources(data ?? []);
+      if (error) check(response.status, error);
+      setResources(data?.items ?? []);
+      setResourceNext(data?.nextToken ?? undefined);
     });
   }
   async function loadSchedule() {
     if (!selected) return;
     await task(async () => {
-      const { data, error, response } = await client.GET(
-        "/resources/{resource_id}/schedule",
-        { params: { path: { resource_id: selected.id }, query: { day } } },
-      );
-      if (error) check(response.status, error.code);
-      setSlots(data ?? []);
+      const found: BusySlot[] = [];
+      let nextToken: string | undefined;
+      do {
+        const { data, error, response } = await client.GET(
+          "/resources/{resourceId}/schedule",
+          {
+            params: {
+              path: { resourceId: selected.resourceId },
+              query: { day, limit: 100, nextToken },
+            },
+          },
+        );
+        if (error) check(response.status, error);
+        found.push(...(data?.items ?? []));
+        nextToken = data?.nextToken ?? undefined;
+      } while (nextToken);
+      setSlots(found);
     });
   }
   async function loadMine() {
@@ -150,27 +175,28 @@ export default function App() {
         params: {
           query: {
             future: filter === "future",
-            state:
+            status:
               filter === "confirmed" || filter === "cancelled"
                 ? filter
                 : undefined,
             day: mineDay || undefined,
-            limit: 20,
-            offset,
+            limit: PAGE,
+            nextToken: current(minePages),
           },
         },
       });
-      if (error) check(response.status, error.code);
-      setMine(data ?? []);
+      if (error) check(response.status, error);
+      setMine(data?.items ?? []);
+      setMineNext(data?.nextToken ?? undefined);
     });
   }
   async function loadDetail(id: string) {
     await task(async () => {
       const { data, error, response } = await client.GET(
-        "/reservations/{reservation_id}",
-        { params: { path: { reservation_id: id } } },
+        "/reservations/{reservationId}",
+        { params: { path: { reservationId: id } } },
       );
-      if (error) check(response.status, error.code);
+      if (error) check(response.status, error);
       setDetail(data);
     });
   }
@@ -183,9 +209,9 @@ export default function App() {
     if (!selected) return;
     await task(async () => {
       const body = {
-        resource_id: selected.id,
-        start_at: japanInput(day + "T" + start),
-        end_at: japanInput(day + "T" + end),
+        resourceId: selected.resourceId,
+        startAt: japanInput(day + "T" + start),
+        endAt: japanInput(day + "T" + end),
         purpose: purpose.trim(),
       };
       const encoded = JSON.stringify(body);
@@ -193,28 +219,28 @@ export default function App() {
         request.current = { body: encoded, key: crypto.randomUUID() };
       const { data, error, response } = await client.POST("/reservations", {
         body,
-        params: { header: { "idempotency-key": request.current.key } },
+        params: { header: { "Idempotency-Key": request.current.key } },
       });
-      if (error) check(response.status, error.code);
+      if (error) check(response.status, error);
       request.current = undefined;
       setPurpose("");
       await loadSchedule();
       setNotice("予約が確定しました。");
-      if (data) openDetail(data.id);
+      if (data) openDetail(data.reservationId);
     });
   }
-  async function cancel(reservation: Reservation) {
+  async function cancel(reservation: Detail["reservation"]) {
     await task(async () => {
       const { data, error, response } = await client.POST(
-        "/reservations/{reservation_id}/cancel",
+        "/reservations/{reservationId}/cancel",
         {
-          params: { path: { reservation_id: reservation.id } },
+          params: { path: { reservationId: reservation.reservationId } },
           body: { version: reservation.version },
         },
       );
-      if (error) check(response.status, error.code);
+      if (error) check(response.status, error);
       if (data) {
-        await loadDetail(data.id);
+        await loadDetail(data.reservationId);
         if (tab === "mine") await loadMine();
         if (selected) await loadSchedule();
         setNotice("予約を取り消しました。");
@@ -232,8 +258,8 @@ export default function App() {
         kind: String(data.get("kind")) as "room" | "equipment",
       };
       const result = edit
-        ? await client.PUT("/resources/{resource_id}", {
-            params: { path: { resource_id: edit.id } },
+        ? await client.PUT("/resources/{resourceId}", {
+            params: { path: { resourceId: edit.resourceId } },
             body: {
               ...common,
               active: data.get("active") === "on",
@@ -241,7 +267,7 @@ export default function App() {
             },
           })
         : await client.POST("/resources", { body: common });
-      if (result.error) check(result.response.status, result.error.code);
+      if (result.error) check(result.response.status, result.error);
       setEdit(undefined);
       form.reset();
       await loadResources();
@@ -362,9 +388,12 @@ export default function App() {
                 <div className="cards">
                   {resources.map((r) => (
                     <button
-                      key={r.id}
+                      key={r.resourceId}
                       className={
-                        "resource " + (selected?.id === r.id ? "selected" : "")
+                        "resource " +
+                        (selected?.resourceId === r.resourceId
+                          ? "selected"
+                          : "")
                       }
                       onClick={() => setSelected(r)}
                     >
@@ -386,16 +415,16 @@ export default function App() {
                 )}
                 <div className="pagination">
                   <button
-                    disabled={resourceOffset === 0}
-                    onClick={() =>
-                      setResourceOffset(Math.max(0, resourceOffset - 20))
-                    }
+                    disabled={resourcePages.length === 1}
+                    onClick={() => setResourcePages(resourcePages.slice(0, -1))}
                   >
                     前の資源
                   </button>
                   <button
-                    disabled={resources.length < 20}
-                    onClick={() => setResourceOffset(resourceOffset + 20)}
+                    disabled={!resourceNext}
+                    onClick={() =>
+                      setResourcePages([...resourcePages, resourceNext])
+                    }
                   >
                     次の資源
                   </button>
@@ -425,14 +454,14 @@ export default function App() {
                           {slots.map((slot, i) => (
                             <li key={i}>
                               <strong>
-                                {format(slot.start_at)} — {format(slot.end_at)}
+                                {format(slot.startAt)} — {format(slot.endAt)}
                               </strong>
-                              <span>予約済み</span>
+                              <span>{slot.label}</span>
                               {slot.reservation && (
                                 <button
                                   className="quiet"
                                   onClick={() =>
-                                    openDetail(slot.reservation!.id)
+                                    openDetail(slot.reservation!.reservationId)
                                   }
                                 >
                                   詳細・取消
@@ -501,7 +530,7 @@ export default function App() {
                       value={filter}
                       onChange={(e) => {
                         setFilter(e.target.value);
-                        setOffset(0);
+                        setMinePages([undefined]);
                       }}
                     >
                       <option value="future">開始前の予約</option>
@@ -517,7 +546,7 @@ export default function App() {
                       value={mineDay}
                       onChange={(e) => {
                         setMineDay(e.target.value);
-                        setOffset(0);
+                        setMinePages([undefined]);
                       }}
                     />
                   </label>
@@ -527,21 +556,21 @@ export default function App() {
                 )}
                 <ul className="reservation-list">
                   {mine.map((r) => (
-                    <li key={r.id}>
+                    <li key={r.reservationId}>
                       <div>
                         <strong>{r.purpose}</strong>
                         <p>
-                          {format(r.start_at)} — {format(r.end_at)}
+                          {format(r.startAt)} — {format(r.endAt)}
                         </p>
                         <span>
                           {r.status === "cancelled"
                             ? "取消済み"
-                            : new Date(r.end_at) < new Date()
+                            : new Date(r.endAt) < new Date()
                               ? "終了"
                               : "確定"}
                         </span>
                       </div>
-                      <button onClick={() => openDetail(r.id)}>
+                      <button onClick={() => openDetail(r.reservationId)}>
                         詳細・履歴
                       </button>
                     </li>
@@ -549,14 +578,14 @@ export default function App() {
                 </ul>
                 <div className="pagination">
                   <button
-                    disabled={offset === 0}
-                    onClick={() => setOffset(Math.max(0, offset - 20))}
+                    disabled={minePages.length === 1}
+                    onClick={() => setMinePages(minePages.slice(0, -1))}
                   >
                     前の予約
                   </button>
                   <button
-                    disabled={mine.length < 20}
-                    onClick={() => setOffset(offset + 20)}
+                    disabled={!mineNext}
+                    onClick={() => setMinePages([...minePages, mineNext])}
                   >
                     次の予約
                   </button>
@@ -569,7 +598,7 @@ export default function App() {
                 <div className="booking-grid">
                   <div>
                     {resources.map((r) => (
-                      <div className="admin-row" key={r.id}>
+                      <div className="admin-row" key={r.resourceId}>
                         <span>
                           {r.name} · {r.active ? "有効" : "無効"}
                         </span>
@@ -578,7 +607,7 @@ export default function App() {
                     ))}
                   </div>
                   <form
-                    key={edit?.id ?? "new"}
+                    key={edit?.resourceId ?? "new"}
                     className="panel"
                     onSubmit={(e) => void saveResource(e)}
                   >
@@ -649,12 +678,12 @@ export default function App() {
                 <p>
                   資源：
                   {resources.find(
-                    (r) => r.id === detail.reservation.resource_id,
-                  )?.name ?? detail.reservation.resource_id}
+                    (r) => r.resourceId === detail.reservation.resourceId,
+                  )?.name ?? detail.reservation.resourceId}
                 </p>
                 <p>
-                  {format(detail.reservation.start_at)} —{" "}
-                  {format(detail.reservation.end_at)}
+                  {format(detail.reservation.startAt)} —{" "}
+                  {format(detail.reservation.endAt)}
                 </p>
                 <p>
                   状態：
@@ -665,14 +694,14 @@ export default function App() {
                 </p>
                 <ol>
                   {detail.events.map((e) => (
-                    <li key={e.id}>
-                      {format(e.at)} ·{" "}
+                    <li key={e.eventId}>
+                      {format(e.occurredAt)} ·{" "}
                       {e.action === "created" ? "予約を作成" : "予約を取消"}
                     </li>
                   ))}
                 </ol>
                 {detail.reservation.status === "confirmed" &&
-                  new Date(detail.reservation.start_at) > new Date() && (
+                  new Date(detail.reservation.startAt) > new Date() && (
                     <button
                       className="danger"
                       disabled={busy}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import mimetypes
 from datetime import UTC, datetime
@@ -95,15 +96,13 @@ def main() -> None:
                 ),
             ),
         )
-        try:
+        with contextlib.suppress(client.exceptions.UsernameExistsException):
             client.admin_create_user(
                 UserPoolId=outputs["UserPoolId"],
                 Username=args.admin_email,
                 UserAttributes=[{"Name": "email", "Value": args.admin_email}],
                 DesiredDeliveryMediums=["EMAIL"],
             )
-        except client.exceptions.UsernameExistsException:
-            pass
         client.admin_add_user_to_group(
             UserPoolId=outputs["UserPoolId"], Username=args.admin_email, GroupName="admin"
         )

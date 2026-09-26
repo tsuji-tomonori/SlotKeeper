@@ -215,7 +215,8 @@
   ],
   "managed_literals": {
     "admin": [
-      "common.py"
+      "common.py",
+      "contract.py"
     ],
     "confirmed": [
       "reservations/common.py"

@@ -78,6 +78,8 @@ include = ["src/**/*.py", "tests/**/*.py", "infra/**/*.py"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC", "S", "RUF"]
 ignore = ["S101"]
+# 日本語の文章で使う全角括弧・記号は意図した文字として扱う。
+allowed-confusables = ["（", "）", "×", "：", "−"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "S105", "S106", "E501"]

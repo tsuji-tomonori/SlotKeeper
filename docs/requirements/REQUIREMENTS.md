@@ -273,7 +273,7 @@ SlotKeeperは、要求ID、操作、結果、所要時間を構造化ログに�
 トレース(JSON List、順序保持):
 - 設計: <code>["docs/spec/40.apis/reservations/create_reservation/messages_gen.md"]</code>
 - 実装: <code>["src/app/main.py"]</code>
-- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/create_reservation/test_router.py","tests/app/apis/reservations/get_reservation/test_router.py","tests/app/apis/reservations/list_reservations/test_router.py","tests/app/apis/resources/create_resource/test_router.py","tests/app/apis/resources/get_resource_schedule/test_router.py","tests/app/apis/resources/list_resources/test_router.py","tests/app/apis/resources/update_resource/test_router.py","tests/app/apis/system/health/test_functions.py","tests/app/apis/system/health/test_router.py","tests/test_operational_logging.py"]</code>
+- テスト: <code>["tests/app/apis/reservations/cancel_reservation/test_router.py","tests/app/apis/reservations/create_reservation/test_router.py","tests/app/apis/reservations/get_reservation/test_router.py","tests/app/apis/reservations/list_reservations/test_router.py","tests/app/apis/resources/create_resource/test_router.py","tests/app/apis/resources/get_resource_schedule/test_router.py","tests/app/apis/resources/list_resources/test_router.py","tests/app/apis/resources/update_resource/test_router.py","tests/test_operational_logging.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -801,7 +801,7 @@ SlotKeeperは、実装から6帳票、DB、CRUD、画面、infraを決定的に�
 トレース(JSON List、順序保持):
 - 設計: <code>["docs/spec/40.apis/report.json"]</code>
 - 実装: <code>["src/tools/project/design.py",".dev-standard/design.json"]</code>
-- テスト: <code>["tests/tools/test_project_guards.py"]</code>
+- テスト: <code>["tests/tools/test_project_design.py","tests/tools/test_project_evidence.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -897,7 +897,7 @@ SlotKeeperは、型、lint、実DB、ブラウザ、負例検査の失敗を隠�
 トレース(JSON List、順序保持):
 - 設計: <code>["docs/spec/80.trace/tests.gen.md"]</code>
 - 実装: <code>["src/tools/project/evidence.py","src/tools/project/collector.py","src/tools/project/verify.py"]</code>
-- テスト: <code>["tests/tools/test_project_guards.py"]</code>
+- テスト: <code>["tests/tools/test_project_evidence.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>
@@ -929,7 +929,7 @@ SlotKeeperは、公開allowlistに秘密や生ログを含めないを**提供�
 トレース(JSON List、順序保持):
 - 設計: <code>["docs/spec/10.architecture/architecture.manual.md"]</code>
 - 実装: <code>["src/tools/project/evidence.py"]</code>
-- テスト: <code>["tests/app/apis/system/health/test_functions.py","tests/app/apis/system/health/test_router.py","tests/tools/test_project_guards.py"]</code>
+- テスト: <code>["tests/tools/test_project_evidence.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>
 後継要件: <code>""</code>

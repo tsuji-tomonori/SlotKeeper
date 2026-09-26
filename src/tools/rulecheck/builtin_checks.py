@@ -945,13 +945,12 @@ def functions_resource_usage(item: RuleItem, context: CheckContext) -> list[Chec
 
 
 def functions_exception_policy(item: RuleItem, context: CheckContext) -> list[CheckResult]:
-    runtime_names = {"session", "api_gateway_control", "identity_admin", "secret_values"}
+    runtime_names = {"session", "access_token_verifier"}
     suffixes = ("_client", "_control", "_admin", "_values")
     issues: list[CheckResult] = []
     targets = [*_api_function_files(context)]
-    common = _repo_path(context, "src/app/apis/common.py")
-    if common.exists():
-        targets.append(common)
+    # lazunexのprojects/common.pyに相当するdomain共通処理を対象にする。
+    targets.extend(sorted(_repo_path(context, "src/app/apis").glob("*/common.py")))
     for path in targets:
         tree = _parse_python(path)
         if tree is None:

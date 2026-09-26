@@ -27,7 +27,7 @@ test("階層検索から設計図とDB探索へ移動する [TECH-PORTAL-AC]", a
     page.getByRole("heading", { name: "設計をたどる。品質を確かめる。" }),
   ).toBeVisible();
   await stage(page, info, "Given");
-  await page.getByLabel("設計を検索").fill("reservations_create");
+  await page.getByLabel("設計を検索").fill("create_reservation");
   await page
     .locator("#results a")
     .filter({ hasText: "sequence" })
@@ -43,7 +43,7 @@ test("階層検索から設計図とDB探索へ移動する [TECH-PORTAL-AC]", a
   await page.getByLabel("テーブル・列を検索").fill("予約");
   await page.locator('[data-column="reservations.purpose"]').click();
   await expect(page.locator("#db-detail")).toContainText("目的");
-  await expect(page.locator("#db-detail")).toContainText("reservations_create");
+  await expect(page.locator("#db-detail")).toContainText("createReservation");
   await page
     .locator(".relation")
     .filter({ hasText: "reservations.resource_id" })

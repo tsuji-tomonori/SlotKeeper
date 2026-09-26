@@ -453,8 +453,6 @@ def sql_action_spec(path: Path) -> SqlSpec | None:
 
 
 def query_specs(queries_path: Path) -> dict[str, QuerySpec]:
-    if not queries_path.exists():
-        return {}
     tree = ast.parse(queries_path.read_text(encoding="utf-8"), filename=str(queries_path))
     specs: dict[str, QuerySpec] = {}
     for node in tree.body:

@@ -32,7 +32,7 @@ def failures(output: str) -> set[str]:
 
 def run_rulecheck() -> str:
     """lazunexと同じ引数でMUST規約を検査する。"""
-    completed = subprocess.run(  # noqa: S603
+    completed = subprocess.run(
         [
             sys.executable,
             "-m",

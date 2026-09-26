@@ -360,8 +360,6 @@
           "tests/app/apis/resources/get_resource_schedule/test_router.py",
           "tests/app/apis/resources/list_resources/test_router.py",
           "tests/app/apis/resources/update_resource/test_router.py",
-          "tests/app/apis/system/health/test_functions.py",
-          "tests/app/apis/system/health/test_router.py",
           "tests/test_operational_logging.py"
         ]
       },
@@ -1182,7 +1180,8 @@
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "tests/tools/test_project_guards.py"
+          "tests/tools/test_project_design.py",
+          "tests/tools/test_project_evidence.py"
         ]
       },
       "type": "constraint",
@@ -1318,7 +1317,7 @@
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "tests/tools/test_project_guards.py"
+          "tests/tools/test_project_evidence.py"
         ]
       },
       "type": "constraint",
@@ -1363,9 +1362,7 @@
           "dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"
         ],
         "tests": [
-          "tests/app/apis/system/health/test_functions.py",
-          "tests/app/apis/system/health/test_router.py",
-          "tests/tools/test_project_guards.py"
+          "tests/tools/test_project_evidence.py"
         ]
       },
       "type": "constraint",

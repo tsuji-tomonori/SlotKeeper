@@ -119,14 +119,6 @@
 | tests/app/apis/resources/update_resource/test_router.py::test_tc005_update_resource_router_matches_unit_test_gen | Given 資源編集の制御版更新で業務例外 When API呼出し Then Routerで500へ変換し運用ログを出す。 | — |
 | tests/app/apis/resources/update_resource/test_router.py::test_tc006_update_resource_router_matches_unit_test_gen | Given 資源編集の制御版更新で外部API例外 When API呼出し Then Routerで502へ変換し運用ログを出す。 | — |
 | tests/app/apis/resources/update_resource/test_router.py::test_tc007_update_resource_router_matches_unit_test_gen | Given 資源編集の制御版更新でHTTP例外 When API呼出し Then Routerで400へ変換し運用ログを出す。 | — |
-| tests/app/apis/system/health/test_functions.py::test_build_health_response_returns_ok_only | Given 稼働中のAPI When 稼働状態を組み立てる Then 秘密やDB情報を含まずokだけを返す。 | TECH-PRIVACY-AC |
-| tests/app/apis/system/health/test_functions.py::test_router_error_response | Given 稼働確認中の業務例外 When Router例外を変換 Then 500と理由コードを返す。 | COM-07-AC |
-| tests/app/apis/system/health/test_router.py::test_health_router_returns_sample_shaped_response_with_db | Given 認証情報なし When 稼働確認 Then 標本と同じ稼働状態だけを返しDBを変更しない。 | TECH-PRIVACY-AC |
-| tests/app/apis/system/health/test_router.py::test_health_sample_request_emits_router_error_log_to_stdio | Given 標本requestと処理中の業務例外 When 稼働確認 Then Router例外の運用ログをcatalogどおり出す。 | COM-07-AC |
-| tests/app/apis/system/health/test_router.py::test_tc001_health_router_matches_unit_test_gen | Given 稼働中のAPI When 稼働確認 Then 200でokを返す。 | — |
-| tests/app/apis/system/health/test_router.py::test_tc002_health_router_matches_unit_test_gen | Given 稼働状態の組立てで業務例外 When API呼出し Then Routerで500へ変換し運用ログを出す。 | — |
-| tests/app/apis/system/health/test_router.py::test_tc003_health_router_matches_unit_test_gen | Given 稼働状態の組立てで外部API例外 When API呼出し Then Routerで502へ変換し運用ログを出す。 | — |
-| tests/app/apis/system/health/test_router.py::test_tc004_health_router_matches_unit_test_gen | Given 稼働状態の組立てでHTTP例外 When API呼出し Then Routerで400へ変換し運用ログを出す。 | — |
 | tests/app/apis/test_deps.py::test_bad_claims | Given 不正claim When 業務API呼出し Then 401でDB未接続。 | SLOT-AC14 |
 | tests/app/apis/test_deps.py::test_bad_signature | Given 別の秘密鍵による改ざん When 検証 Then 401。 | SLOT-AC14 |
 | tests/app/apis/test_deps.py::test_anonymous_and_health | Given 未認証 When 業務APIとhealth Then 業務401・healthは秘密なし。 | COM-04-AC, COM-03-AC |
@@ -405,21 +397,28 @@
 | tests/tools/test_generate_query_specs.py::test_main_writes_outputs_and_check_reports_changed | — | — |
 | tests/tools/test_generate_query_specs.py::test_arg_parser_defaults | — | — |
 | tests/tools/test_generate_query_specs.py::test_render_query_markdown_handles_no_sql_specs | — | — |
-| tests/tools/test_project_guards.py::test_result_identity_and_unexecuted | Given collectorの2件 When 片方だけ成功 Then 他方をnot-runとして残す。 | TECH-QUALITY-AC |
-| tests/tools/test_project_guards.py::test_nonpassing_states_preserved | Given 非成功状態 When 変換 Then passedへ変えない。 | TECH-QUALITY-AC |
-| tests/tools/test_project_guards.py::test_schema_dictionary_mutations | Given 列辞書欠落・余剰かDDL変更 When schema抽出 Then 不整合拒否か型変化を検出。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_sql_parameter_mutation | Given SQLの束縛変数だけ変更 When 型生成 Then 引数不一致を拒否。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_deterministic_generation | Given 同一source When 2回のクリーン生成 Then byte集合が一致する。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_sequence_tracks_conditions | Given 分岐とqueryの順序変更 When AST図生成 Then 図が変化する。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_added_api_without_design_update | Given 生成済み設計 When API追加後に設計を更新せず検査 Then 新operationの6帳票欠落とOpenAPI変更を検出する。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_unsupported_endpoint_syntax | Given adapterが解析しないtry構文のendpoint When 設計生成 Then 空の成功にせず未対応として拒否する。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_sql_target_change_updates_crud | Given 生成済みCRUD When SQLの更新先を変更 Then CRUD model・表・CSVのdriftを検出する。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_manual_edit_and_stale_document | Given 生成物の手編集と旧帳票の残存 When drift検査 Then 変更と余剰を報告し既存fileを書き換えない。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_missing_test_for_requirement | Given 受入条件に対応するテスト When テスト削除・タグ欠落・未知タグ Then 要件traceの欠落として拒否する。 | TECH-DESIGN-AC |
-| tests/tools/test_project_guards.py::test_missing_collector_result_is_not_run | Given collectorにあるが結果のないcase When 変換 Then not-runとし成功へ数えない。 | TECH-QUALITY-AC |
-| tests/tools/test_project_guards.py::test_foreign_run_rejected | Given 別runのcollector原本 When ポータル証跡を構築 Then 混入として拒否する。 | TECH-QUALITY-AC |
-| tests/tools/test_project_guards.py::test_publication_allowlist | Given 公開サイトに生ログ・storage state・DB dump When 公開集合を検査 Then 公開を拒否する。 | TECH-PRIVACY-AC |
-| tests/tools/test_project_guards.py::test_symlink_not_published | Given 公開サイト内のsymlink When 公開集合を検査 Then 外部fileを公開しない。 | TECH-PRIVACY-AC |
+| tests/tools/test_project_design.py::test_data_capability_is_deterministic | Given 同一のDDL When dataの設計を2回クリーン生成 Then byte集合が一致する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_drift_reports_manual_edit_and_stale_file | Given 生成物の手編集と旧帳票の残存 When drift検査 Then 変更と余剰を報告し既存fileを書き換えない。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_write_owned_root_replaces_only_owned_contents | Given 旧生成物がある所有root When 再生成 Then 旧fileを残さず新しい集合だけにする。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_repeat_sections_reads_profile_grammar | Given profileの繰返し節 When 帳票見出しを解析 Then 実装由来の見出しを列挙する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_repeat_sections_rejects_unsupported_structure | Given profileにない見出し When 帳票を解析 Then 空の成功にせず未対応として拒否する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_added_route_without_contract_is_rejected | Given 契約のないrouteの追加 When API設計を生成 Then 実登録集合との不一致として拒否する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_crud_rows_split_read_and_write_evidence | Given 同じ保存先への読取りと更新 When CRUDを集約 Then 1rowでread/writeの根拠を分ける。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_crud_model_matches_common_projection | Given 実装のSQLとrouter依存 When CRUD modelを生成 Then 全operationが根拠つきで射影できる。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_sql_target_change_changes_crud_projection | Given 生成済みCRUD When SQLの更新先が変わる Then CRUD model・表・CSVが変化する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_database_model_marks_logical_references | Given DSQL向けの論理FK When DB探索modelを生成 Then アプリ保証の参照として区別する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_frontend_without_menu_is_unsupported | Given メインメニューのない画面 When 画面設計を生成 Then 未対応として拒否する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_trace_rejects_missing_and_unknown_tests | Given 受入条件に対応するテスト When テスト欠落・未知タグ Then 要件traceの欠落として拒否する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_verify_checks_cover_requirement_evidence | Given 検査で確認する要件 When verify入口を解析 Then 参照する検査名がすべて実在する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_evidence.py::test_result_identity_and_unexecuted | Given collectorの2件 When 片方だけ成功 Then 他方をnot-runとして残す。 | TECH-QUALITY-AC |
+| tests/tools/test_project_evidence.py::test_nonpassing_states_preserved | Given 非成功状態 When 変換 Then passedへ変えない。 | TECH-QUALITY-AC |
+| tests/tools/test_project_evidence.py::test_result_outside_collector_is_rejected | Given collector外の結果 When 変換 Then 混入として拒否する。 | TECH-QUALITY-AC |
+| tests/tools/test_project_evidence.py::test_foreign_run_rejected | Given 別runのcollector原本 When ポータル証跡を構築 Then 混入として拒否する。 | TECH-QUALITY-AC |
+| tests/tools/test_project_evidence.py::test_backend_coverage_below_goal_fails | Given 目標未満の業務コードcoverage When 証跡へ変換 Then 計測済みではなく失敗として示す。 | TECH-QUALITY-AC |
+| tests/tools/test_project_evidence.py::test_publication_allowlist | Given 公開サイトに生ログ・storage state・DB dump When 公開集合を検査 Then 公開を拒否する。 | TECH-PRIVACY-AC |
+| tests/tools/test_project_evidence.py::test_symlink_not_published | Given 公開サイト内のsymlink When 公開集合を検査 Then 外部fileを公開しない。 | TECH-PRIVACY-AC |
+| tests/tools/test_project_evidence.py::test_allowed_site_records_provenance | Given allowlist内だけの公開サイト When 公開集合を検査 Then hashを記録して公開可能にする。 | TECH-PRIVACY-AC |
+| tests/tools/test_project_evidence.py::test_design_search_covers_lazunex_documents | Given lazunex形式の設計Markdown When 検索索引を作る Then API帳票とE2E仕様を含める。 | TECH-DESIGN-AC |
 | tests/tools/test_project_migrate.py::test_migrate_and_seed_repeat | Given 既存データ When migrationとseedを繰り返す Then 重複せず既存データを保持する。 | COM-05-AC, COM-02-AC, SLOT-AC16 |
 | tests/tools/test_rulecheck_cli.py::test_rulecheck_cli_generate_verify_and_check | — | — |
 | tests/tools/test_rulecheck_cli.py::test_metric_exclude_globs_skip_generated_python | — | — |

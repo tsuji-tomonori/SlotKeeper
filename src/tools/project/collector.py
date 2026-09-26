@@ -22,7 +22,11 @@ def pytest_collection_finish(session: pytest.Session) -> None:
 def pytest_runtest_logreport(report: pytest.TestReport) -> None:
     """setup/teardown失敗とskipも実行結果へ残す。"""
     if report.when == "call" or report.failed or report.skipped:
-        status = "failed" if report.failed else "skipped" if report.skipped else "passed"
+        status = "passed"
+        if report.failed:
+            status = "failed"
+        elif report.skipped:
+            status = "skipped"
         RESULTS[report.nodeid] = {"status": status, "duration": report.duration}
     save()
 

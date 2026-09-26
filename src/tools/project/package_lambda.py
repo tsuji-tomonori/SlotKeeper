@@ -15,8 +15,8 @@ def package() -> None:
     with tempfile.TemporaryDirectory() as name:
         stage = Path(name)
         requirements = stage / "requirements.txt"
-        subprocess.run(
-            [
+        subprocess.run(  # noqa: S603 - 固定引数のuvだけを実行する。
+            [  # noqa: S607
                 "uv",
                 "export",
                 "--frozen",
@@ -30,8 +30,8 @@ def package() -> None:
             capture_output=True,
         )
         target = stage / "package"
-        subprocess.run(
-            [
+        subprocess.run(  # noqa: S603 - 固定引数のuvだけを実行する。
+            [  # noqa: S607
                 "uv",
                 "pip",
                 "install",
@@ -57,16 +57,19 @@ def package() -> None:
             ROOT / "artifacts/lambda.zip", "w", compression=zipfile.ZIP_DEFLATED
         ) as archive:
             for path in sorted(target.rglob("*")):
-                if (
-                    path.is_file()
-                    and path.relative_to(target).parts[0] != "bin"
-                    and path.name != "RECORD"
-                ):
+                if packaged(path, target):
                     entry = zipfile.ZipInfo(
                         path.relative_to(target).as_posix(), date_time=(2026, 1, 1, 0, 0, 0)
                     )
                     entry.compress_type = zipfile.ZIP_DEFLATED
                     archive.writestr(entry, path.read_bytes())
+
+
+def packaged(path: Path, target: Path) -> bool:
+    """実行時に不要なconsole scriptとwheel記録をZIPから除く。"""
+    if not path.is_file() or path.name == "RECORD":
+        return False
+    return path.relative_to(target).parts[0] != "bin"
 
 
 if __name__ == "__main__":
