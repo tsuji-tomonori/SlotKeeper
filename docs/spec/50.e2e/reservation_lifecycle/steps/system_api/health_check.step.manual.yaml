@@ -1,0 +1,12 @@
+schema_version: 1
+
+step:
+  id: system_health_check
+  title: ヘルスチェックAPIを呼び出す
+  phase: setup
+  operation_id: health
+  endpoint: GET /health
+
+expect:
+  response:
+    status: 200

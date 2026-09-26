@@ -1,0 +1,9 @@
+schema_version: 1
+template:
+  id: get_reservations
+  operation_id: listReservations
+  method: GET
+  path: /reservations
+request:
+  headers:
+    Authorization: Bearer ${tokens.member_token}

@@ -1,0 +1,17 @@
+schema_version: 1
+template:
+  id: post_resources
+  operation_id: createResource
+  method: POST
+  path: /resources
+request:
+  headers:
+    Authorization: Bearer ${tokens.admin_token}
+    Content-Type: application/json
+  body:
+    from_sample:
+      module: app.apis.resources.create_resource.samples
+      object: CREATE_RESOURCE_REQUEST_SAMPLE
+captures:
+  resourceId: $.resourceId
+  version: $.version

@@ -57,8 +57,13 @@ def literal_value(expression: Any | None) -> str:
     return ""
 
 
+SQL_PARAMETER_RE = re.compile(r"(?<![\w$])\$(?P<name>[A-Za-z_]\w*)")
+
+
 def render_sql(expression: Any) -> str:
-    return " ".join(expression.sql(dialect="postgres").split())
+    """PostgreSQL方言でSQL式を1行へ整形し、SQLファイルと同じ`@name`表記へ戻す。"""
+    sql = " ".join(expression.sql(dialect="postgres").split())
+    return SQL_PARAMETER_RE.sub(r"@\g<name>", sql)
 
 
 def reference_label(reference: exp.Reference) -> str:

@@ -1,0 +1,58 @@
+schema_version: 1
+
+bindings:
+  - id: cancel_reservation_cancelled
+    when:
+      action: cancel_reservation
+      state: cancelled
+      data_tags:
+        include:
+          - valid_cancel
+    steps:
+      - ref: steps/reservation_api/cancel_reservation.step.manual.yaml
+    evidences:
+      - ref: reservation_cancelled
+      - ref: schedule_released
+
+  - id: cancel_reservation_other_member_forbidden
+    when:
+      action: cancel_reservation
+      state: other_member_forbidden
+      data_tags:
+        include:
+          - valid_cancel
+    steps:
+      - ref: steps/reservation_api/cancel_reservation.step.manual.yaml
+    failure_trigger: ${member.title} が作成した予約を、管理者ではない Member B の token で取消し、403 を発生させる。
+    error_settings:
+      error.actor: 予約者ではない一般利用者 Member B
+    evidences:
+      - ref: cancel_forbidden_response
+
+  - id: cancel_reservation_already_cancelled
+    when:
+      action: cancel_reservation
+      state: already_cancelled
+      data_tags:
+        include:
+          - valid_cancel
+    steps:
+      - ref: steps/reservation_api/cancel_reservation.step.manual.yaml
+    failure_trigger: ${member.title} の予約を一度取消した後、取消応答のversionで再度取消し、409 を発生させる。
+    error_settings:
+      error.precondition: 対象予約がcancelled
+    evidences:
+      - ref: already_cancelled_response
+
+  - id: cancel_reservation_stale_version
+    when:
+      action: cancel_reservation
+      state: stale_version
+      data_tags:
+        include:
+          - stale_version
+    steps:
+      - ref: steps/reservation_api/cancel_reservation.step.manual.yaml
+    failure_trigger: 現在versionと異なる version=99 を指定して取消し、楽観ロック違反の409を発生させる。
+    evidences:
+      - ref: stale_version_response

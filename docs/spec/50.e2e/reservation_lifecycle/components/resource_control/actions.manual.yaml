@@ -1,0 +1,17 @@
+schema_version: 1
+
+actions:
+  - id: deactivate_resource
+    title: 資源を無効化する
+    operation_type: command
+    default_result: deactivated
+    compatible_states:
+      - deactivated
+      - future_reservation_exists
+      - stale_version
+    target:
+      - resource
+    requires:
+      component_states:
+        resource_catalog:
+          state: registered

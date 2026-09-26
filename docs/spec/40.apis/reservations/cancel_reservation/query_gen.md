@@ -38,7 +38,7 @@
 ### 条件
 
 - `WHERE`
-  - `reservations.reservation_id = $reservation_id`
+  - `reservations.reservation_id = @reservation_id`
 
 
 ## 002_update_resources_control_version.sql
@@ -72,7 +72,7 @@
 ### 条件
 
 - `WHERE`
-  - `resource_id = $resource_id`
+  - `resource_id = @resource_id`
 
 
 ## 003_update_reservations.sql
@@ -111,7 +111,7 @@
 ### 条件
 
 - `WHERE`
-  - `reservation_id = $reservation_id`
+  - `reservation_id = @reservation_id`
 
 
 ## 004_insert_reservation_events.sql

@@ -5,19 +5,31 @@ import csv
 import io
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import cast
-
-import yaml
 
 from tools.e2e_models import (
     COMPONENT_IDS,
+    DIMENSIONS_BY_ID,
     FLOW_ID,
     FLOW_STEPS,
     TARGET_CASES,
+    TARGET_DIMENSIONS,
     E2eComponentVariant,
     E2eTargetCase,
+    as_mapping,
+    as_sequence,
     build_component_variants,
+    component_actions,
+    component_data_profiles,
+    component_states,
+    flow_document,
+    load_component_yaml,
     markdown_escape,
+    matrix_config,
+    matrix_dimensions,
+    parse_variant,
+    scalar_text,
+    string_list,
+    target_title,
 )
 from tools.generation_io import check_outputs, write_outputs
 
@@ -41,82 +53,49 @@ OPERATION_TYPE_LABELS = {
 }
 
 
-def component_id(variant_id: str) -> str:
-    return variant_id.split(".", maxsplit=1)[0]
-
-
 def component_variants_by_id() -> dict[str, E2eComponentVariant]:
     return {variant.variant_id: variant for variant in build_component_variants()}
 
 
-def target_case_projects(target_case: E2eTargetCase) -> str:
-    projects = sorted({assertion.project_id for assertion in target_case.runtime_assertions})
-    if projects:
-        return "<br>".join(f"`{project}`" for project in projects)
-    variants = " ".join(target_case.selected_variants)
-    for project in ("project_A", "project_B", "project_C"):
-        if project in variants:
-            return f"`{project}`"
-    return "-"
+def resolve_variant(
+    variant_id: str,
+    *,
+    variants: Mapping[str, E2eComponentVariant],
+) -> E2eComponentVariant:
+    return variants.get(variant_id) or parse_variant(variant_id)
 
 
-def target_case_apis(target_case: E2eTargetCase) -> str:
-    apis = sorted(
-        {
-            assertion.api_id
-            for assertion in target_case.runtime_assertions
-            if assertion.expected == "allowed"
-        }
-    )
-    if apis:
-        return "<br>".join(f"`{api}`" for api in apis)
-    for api in ("API_A", "API_B", "API_C"):
-        if f".{api}." in target_case.goal_variant:
-            return f"`{api}`"
-    variants = " ".join(target_case.selected_variants)
-    matched_apis = [api for api in ("API_A", "API_B", "API_C") if api in variants]
-    return "<br>".join(f"`{api}`" for api in matched_apis) if matched_apis else "-"
-
-
-def plain_target_case_projects(target_case: E2eTargetCase) -> str:
-    projects = sorted({assertion.project_id for assertion in target_case.runtime_assertions})
-    if projects:
-        return " / ".join(target_label(project) for project in projects)
-    variants = " ".join(target_case.selected_variants)
-    matched_projects = [
-        project for project in ("project_A", "project_B", "project_C") if project in variants
+def dimension_targets_for_case(target_case: E2eTargetCase, dimension_id: str) -> list[str]:
+    """ケースの対象を、matrix期待・goal variant・前提variantの順で解決する。"""
+    row_dimension, column_dimension = matrix_dimensions()
+    if target_case.matrix_assertions and dimension_id in (row_dimension, column_dimension):
+        return sorted(
+            {
+                assertion.row_id if dimension_id == row_dimension else assertion.column_id
+                for assertion in target_case.matrix_assertions
+            }
+        )
+    goal = parse_variant(target_case.goal_variant)
+    goal_target = goal.target(dimension_id)
+    if goal_target is not None:
+        return [goal_target]
+    selected = [
+        target_id
+        for variant_id in target_case.selected_variants
+        for target_id in [parse_variant(variant_id).target(dimension_id)]
+        if target_id is not None
     ]
-    if matched_projects:
-        return " / ".join(target_label(project) for project in matched_projects)
-    return "-"
-
-
-def plain_target_case_apis(target_case: E2eTargetCase) -> str:
-    apis = sorted(
-        {
-            assertion.api_id
-            for assertion in target_case.runtime_assertions
-            if assertion.expected == "allowed"
-        }
-    )
-    if not apis:
-        apis = [api for api in ("API_A", "API_B", "API_C") if api in target_case.goal_variant]
-    if not apis:
-        variants = " ".join(target_case.selected_variants)
-        apis = [api for api in ("API_A", "API_B", "API_C") if api in variants]
-    return " / ".join(target_label(api) for api in apis) if apis else "-"
+    return list(dict.fromkeys(selected))
 
 
 def case_target_label(target_case: E2eTargetCase) -> str:
-    project = plain_target_case_projects(target_case)
-    api = plain_target_case_apis(target_case)
-    if project != "-" and api != "-":
-        return f"{project} x {api}"
-    if project != "-":
-        return project
-    if api != "-":
-        return api
-    return "-"
+    labels = [
+        " / ".join(target_title(target_id) for target_id in targets)
+        for dimension in TARGET_DIMENSIONS
+        for targets in [dimension_targets_for_case(target_case, dimension.dimension_id)]
+        if targets
+    ]
+    return " x ".join(labels) if labels else "-"
 
 
 def scenario_link(target_case: E2eTargetCase) -> str:
@@ -131,7 +110,7 @@ def flow_summary_for_variants(
 ) -> str:
     actions: list[str] = []
     for variant_id in target_case.selected_variants:
-        variant = parse_variant(variant_id, variants=variants)
+        variant = resolve_variant(variant_id, variants=variants)
         action_title = title_only(
             variant.action_id,
             titles[variant.component_id].get(f"action:{variant.action_id}"),
@@ -149,25 +128,26 @@ def connective_action(action: str) -> str:
     return action
 
 
+def matrix_evidence_label(target_case: E2eTargetCase) -> str:
+    return "<br>".join(
+        f"{target_title(assertion.column_id)} {assertion.expected}"
+        for assertion in target_case.matrix_assertions
+    )
+
+
 def target_case_view(
     target_case: E2eTargetCase,
     *,
     variants: Mapping[str, E2eComponentVariant],
     titles: Mapping[str, Mapping[str, str]],
 ) -> tuple[str, str, str, str]:
-    goal = parse_variant(target_case.goal_variant, variants=variants)
+    goal = resolve_variant(target_case.goal_variant, variants=variants)
     component_titles = titles[goal.component_id]
     action = title_only(goal.action_id, component_titles.get(f"action:{goal.action_id}"))
     state = title_only(goal.state_id, component_titles.get(f"state:{goal.state_id}"))
-    data_title = title_only(goal.data_id, component_titles.get(f"data:{goal.data_id}"))
-    data = concrete_data_label(goal, data_title)
+    data = concrete_data_label(goal)
     purpose = f"{case_target_label(target_case)}で{connective_action(action)}、{state}を確認する"
-    evidence = state
-    if target_case.runtime_assertions:
-        evidence = "<br>".join(
-            f"{target_label(assertion.api_id)} {assertion.expected}"
-            for assertion in target_case.runtime_assertions
-        )
+    evidence = matrix_evidence_label(target_case) or state
     return (
         markdown_escape(purpose),
         markdown_escape(data),
@@ -195,7 +175,7 @@ def render_component_case_summary(
         ]
         states: list[str] = []
         for target_case in component_cases:
-            variant = parse_variant(target_case.goal_variant, variants=variants)
+            variant = resolve_variant(target_case.goal_variant, variants=variants)
             state = title_only(
                 variant.state_id,
                 titles[component_id].get(f"state:{variant.state_id}"),
@@ -211,28 +191,30 @@ def render_component_case_summary(
     return lines
 
 
-def render_project_api_matrices(
+def matrix_heading() -> str:
+    row_dimension, column_dimension = matrix_dimensions()
+    return f"{DIMENSIONS_BY_ID[row_dimension].title} x {DIMENSIONS_BY_ID[column_dimension].title}"
+
+
+def render_target_matrices(
     *,
     variants: Mapping[str, E2eComponentVariant],
     titles: Mapping[str, Mapping[str, str]],
 ) -> list[str]:
-    matrix_components = (
-        "access_request_workflow",
-        "review_decision",
-        "runtime_authorization",
-    )
-    lines = [
-        "## 6. Project x API matrix",
-        "",
-    ]
-    for component_id in matrix_components:
+    row_dimension, column_dimension = matrix_dimensions()
+    rows = DIMENSIONS_BY_ID[row_dimension]
+    columns = DIMENSIONS_BY_ID[column_dimension]
+    lines = [f"## 6. {matrix_heading()} matrix", ""]
+    for component_id in string_list(matrix_config().get("components")):
         grouped: dict[str, dict[tuple[str, str], str]] = {}
         for target_case in TARGET_CASES:
             for variant_id in target_case.selected_variants:
-                variant = parse_variant(variant_id, variants=variants)
+                variant = resolve_variant(variant_id, variants=variants)
                 if variant.component_id != component_id:
                     continue
-                if variant.project_id is None or variant.api_id is None:
+                row_id = variant.target(row_dimension)
+                column_id = variant.target(column_dimension)
+                if row_id is None or column_id is None:
                     continue
                 state = title_only(
                     variant.state_id,
@@ -242,28 +224,29 @@ def render_project_api_matrices(
                     variant.data_id,
                     titles[component_id].get(f"data:{variant.data_id}"),
                 )
-                key = f"{state} / {data}"
-                grouped.setdefault(key, {}).setdefault(
-                    (variant.project_id, variant.api_id),
+                grouped.setdefault(f"{state} / {data}", {}).setdefault(
+                    (row_id, column_id),
                     target_case.case_id,
                 )
         if not grouped:
             continue
         component_title = titles[component_id].get("component", component_id)
         lines.extend([f"### {component_id} {component_title}", ""])
+        header = " | ".join(target.title for target in columns.targets)
+        separator = "|".join("---" for _ in range(len(columns.targets) + 1))
         for key, case_ids in grouped.items():
             lines.extend(
                 [
                     f"#### {markdown_escape(key)}",
                     "",
-                    "| Project \\ API | API A | API B | API C |",
-                    "|---|---|---|---|",
+                    f"| {rows.title} \\ {columns.title} | {header} |",
+                    f"|{separator}|",
                 ]
             )
-            for project_id in ("project_A", "project_B", "project_C"):
-                row = [target_label(project_id)]
-                for api_id in ("API_A", "API_B", "API_C"):
-                    case_id = case_ids.get((project_id, api_id))
+            for row_target in rows.targets:
+                row = [row_target.title]
+                for column_target in columns.targets:
+                    case_id = case_ids.get((row_target.target_id, column_target.target_id))
                     row.append(f"`{case_id}`" if case_id else "-")
                 lines.append(f"| {' | '.join(row)} |")
             lines.append("")
@@ -275,10 +258,7 @@ def render_generated_case_rows(
     variants: Mapping[str, E2eComponentVariant],
     titles: Mapping[str, Mapping[str, str]],
 ) -> list[str]:
-    lines = [
-        "## 7. Cases by component",
-        "",
-    ]
+    lines = ["## 7. Cases by component", ""]
     for component_id in COMPONENT_IDS:
         component_title = titles[component_id].get("component", component_id)
         lines.extend(
@@ -307,10 +287,9 @@ def render_generated_case_rows(
     return lines
 
 
-def render_variant_index_markdown(root: Path = Path("docs/spec/50.e2e")) -> str:
-    source_root = source_flow_root(root)
+def render_variant_index_markdown() -> str:
     variants = component_variants_by_id()
-    titles = component_element_titles(source_root)
+    titles = component_element_titles()
     lines = [
         GENERATED_COMMENT,
         "",
@@ -320,23 +299,23 @@ def render_variant_index_markdown(root: Path = Path("docs/spec/50.e2e")) -> str:
         "[case-list_gen.md](case-list_gen.md) を参照する。",
         "",
         "| ケースID | Coverage Group | Goal Component | Goal Variant | "
-        "Selected Variants | Runtime期待 | シナリオ |",
+        "Selected Variants | Matrix期待 | シナリオ |",
         "|---|---|---|---|---|---|---|",
     ]
     for target_case in TARGET_CASES:
         selected = "<br>".join(f"`{variant}`" for variant in target_case.selected_variants)
-        runtime_assertions = (
+        assertions = (
             "<br>".join(
-                f"`{assertion.project_id}` / `{assertion.api_id}`: `{assertion.expected}`"
-                for assertion in target_case.runtime_assertions
+                f"`{assertion.row_id}` / `{assertion.column_id}`: `{assertion.expected}`"
+                for assertion in target_case.matrix_assertions
             )
-            if target_case.runtime_assertions
+            if target_case.matrix_assertions
             else "-"
         )
         lines.append(
             f"| `{target_case.case_id}` | `{target_case.coverage_group}` | "
             f"`{target_case.goal_component}` | `{target_case.goal_variant}` | "
-            f"{selected} | {runtime_assertions} | {scenario_link(target_case)} |"
+            f"{selected} | {assertions} | {scenario_link(target_case)} |"
         )
     lines.extend(["", "## 表示ラベル", ""])
     for component_id in COMPONENT_IDS:
@@ -351,42 +330,10 @@ def render_variant_index_markdown(root: Path = Path("docs/spec/50.e2e")) -> str:
     return "\n".join(lines)
 
 
-def as_mapping(value: object) -> Mapping[str, object]:
-    return cast(Mapping[str, object], value) if isinstance(value, dict) else {}
-
-
-def as_sequence(value: object) -> Sequence[object]:
-    return cast(Sequence[object], value) if isinstance(value, list | tuple) else ()
-
-
-def scalar_text(value: object, default: str = "-") -> str:
-    return value if isinstance(value, str) else default
-
-
 def bool_text(value: object) -> str:
     if isinstance(value, bool):
         return "はい" if value else "いいえ"
     return "-"
-
-
-def load_yaml(path: Path) -> Mapping[str, object]:
-    loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
-    return as_mapping(loaded)
-
-
-def source_flow_root(root: Path) -> Path:
-    flow_root = root / FLOW_ID
-    if (flow_root / "components").exists():
-        return flow_root
-    return Path("docs/spec/50.e2e") / FLOW_ID
-
-
-def label_with_title(element_id: str | None, title: str | None = None) -> str:
-    if element_id is None:
-        return "-"
-    if title:
-        return f"{element_id}: {title}"
-    return element_id
 
 
 def title_only(element_id: str | None, title: str | None = None) -> str:
@@ -395,117 +342,53 @@ def title_only(element_id: str | None, title: str | None = None) -> str:
     return title or element_id
 
 
-def target_label(target_id: str) -> str:
-    if target_id.startswith("project_"):
-        return target_id.replace("project_", "Project ")
-    if target_id.startswith("API_"):
-        return target_id.replace("API_", "API ")
-    return target_id.replace("_", " ")
+def data_profile(component_id: str, data_id: str) -> Mapping[str, object]:
+    for profile in component_data_profiles(component_id):
+        if profile.get("id") == data_id:
+            return profile
+    return {}
 
 
-def concrete_data_label(variant: E2eComponentVariant, data_title: str) -> str:
-    targets = [
-        target_label(target)
-        for target in (variant.project_id, variant.api_id)
-        if target is not None
-    ]
-    target = " x ".join(targets)
-    if variant.data_id in {
-        "api_default",
-        "api_unknown",
-    }:
-        return target_label(variant.api_id or variant.data_id)
-    if variant.data_id in {
-        "project_default",
-        "redirect_url_update",
-    }:
-        return target_label(variant.project_id or variant.data_id)
-    concrete_labels = {
-        "request_both_auth": "利用申請",
-        "duplicate_pending_request": "重複PENDING申請",
-        "approve_both": "承認",
-        "reject_default": "却下",
-        "approved_both_entitlement": "利用権",
-        "rejected_no_entitlement": "却下後の利用権なし",
-        "provisioning_retry": "provisioning再試行",
-    }
-    if variant.data_id in concrete_labels and target:
-        return f"{target} の{concrete_labels[variant.data_id]}"
+def concrete_data_label(variant: E2eComponentVariant) -> str:
+    """variantの対象Targetとdata profileから、ケース一覧向けの具体データ名を返す。"""
+    profile = data_profile(variant.component_id, variant.data_id)
+    data_title = scalar_text(profile.get("title"), variant.data_id)
+    target = " x ".join(target_title(target_id) for _dimension, target_id in variant.targets)
+    if profile.get("label_mode") == "target":
+        return target or data_title
+    label = profile.get("label")
+    if isinstance(label, str) and target:
+        return f"{target} の{label}"
     return f"{target} / {data_title}" if target else data_title
 
 
-def component_data_title(component_id: str, data_id: str, data_title: str) -> str:
-    titles = {
-        ("api_catalog", "api_default"): "API A / API B / API C",
-        ("api_catalog", "api_unknown"): "API A (apiId=api_unknown)",
-        ("project_workspace", "project_default"): "Project A / Project B / Project C",
-        ("project_workspace", "redirect_url_update"): "Project A のcallback URL更新",
-        ("access_request_workflow", "request_both_auth"): "Project A x API A の利用申請",
-        (
-            "access_request_workflow",
-            "duplicate_pending_request",
-        ): "Project A x API A の重複PENDING申請",
-        ("review_decision", "approve_both"): "Project A x API A の承認",
-        ("review_decision", "reject_default"): "Project A x API A の却下",
-        (
-            "entitlement_provisioning",
-            "approved_both_entitlement",
-        ): "Project A x API A の利用権",
-        (
-            "entitlement_provisioning",
-            "rejected_no_entitlement",
-        ): "Project A x API A の却下後の利用権なし",
-        (
-            "runtime_authorization",
-            "approved_runtime_credential",
-        ): "Project A x API A の承認済みRuntime認証情報",
-        (
-            "runtime_authorization",
-            "unapproved_runtime_credential",
-        ): "Project A x API A の未承認Runtime認証情報",
-        ("runtime_authorization", "scope_missing"): "Project A x API A のscopeなしRuntime認証情報",
-        (
-            "runtime_authorization",
-            "api_key_missing",
-        ): "Project A x API A のAPI keyなしRuntime認証情報",
+def yaml_titles(items: Sequence[Mapping[str, object]]) -> dict[str, str]:
+    return {
+        scalar_text(item.get("id")): scalar_text(item.get("title"))
+        for item in items
+        if isinstance(item.get("id"), str)
     }
-    return titles.get((component_id, data_id), data_title)
 
 
-def yaml_titles(items: Sequence[object]) -> dict[str, str]:
-    titles: dict[str, str] = {}
-    for item in items:
-        item_map = as_mapping(item)
-        item_id = scalar_text(item_map.get("id"))
-        if item_id != "-":
-            titles[item_id] = scalar_text(item_map.get("title"))
-    return titles
-
-
-def component_element_titles(flow_root: Path) -> dict[str, dict[str, str]]:
+def component_element_titles() -> dict[str, dict[str, str]]:
     titles: dict[str, dict[str, str]] = {}
     for component_id in COMPONENT_IDS:
-        component_root = flow_root / "components" / component_id
-        component_doc = load_yaml(component_root / "component.manual.yaml")
-        component = as_mapping(component_doc.get("component"))
-        actions_doc = load_yaml(component_root / "actions.manual.yaml")
-        states_doc = load_yaml(component_root / "states.manual.yaml")
-        data_doc = load_yaml(component_root / "data.manual.yaml")
+        component = as_mapping(
+            load_component_yaml(component_id, "component.manual.yaml").get("component")
+        )
         titles[component_id] = {
             "component": scalar_text(component.get("title")),
             **{
                 f"action:{item_id}": title
-                for item_id, title in yaml_titles(as_sequence(actions_doc.get("actions"))).items()
+                for item_id, title in yaml_titles(component_actions(component_id)).items()
             },
             **{
                 f"state:{item_id}": title
-                for item_id, title in yaml_titles(as_sequence(states_doc.get("states"))).items()
+                for item_id, title in yaml_titles(component_states(component_id)).items()
             },
             **{
                 f"data:{item_id}": title
-                for item_id, title in yaml_titles(
-                    as_sequence(data_doc.get("data_profiles"))
-                ).items()
+                for item_id, title in yaml_titles(component_data_profiles(component_id)).items()
             },
         }
     return titles
@@ -517,44 +400,10 @@ def variant_labels(
     titles: Mapping[str, Mapping[str, str]],
 ) -> tuple[str, str, str]:
     component_titles = titles[variant.component_id]
-    data_title = title_only(variant.data_id, component_titles.get(f"data:{variant.data_id}"))
-    data_label = concrete_data_label(variant, data_title)
     return (
-        data_label,
-        title_only(
-            variant.action_id,
-            component_titles.get(f"action:{variant.action_id}"),
-        ),
+        concrete_data_label(variant),
+        title_only(variant.action_id, component_titles.get(f"action:{variant.action_id}")),
         title_only(variant.state_id, component_titles.get(f"state:{variant.state_id}")),
-    )
-
-
-def parse_variant(
-    variant_id: str,
-    *,
-    variants: Mapping[str, E2eComponentVariant],
-) -> E2eComponentVariant:
-    if variant_id in variants:
-        return variants[variant_id]
-    prefix, data_id = variant_id.split("@", maxsplit=1)
-    parts = prefix.split(".")
-    component_id = parts[0]
-    action_id = parts[1]
-    target_ids = parts[2:-1]
-    state_id = parts[-1]
-    project_id = next(
-        (target_id for target_id in target_ids if target_id.startswith("project_")),
-        None,
-    )
-    api_id = next((target_id for target_id in target_ids if target_id.startswith("API_")), None)
-    return E2eComponentVariant(
-        component_id,
-        action_id,
-        project_id,
-        api_id,
-        state_id,
-        data_id,
-        True,
     )
 
 
@@ -565,7 +414,7 @@ def selected_variants_by_component(
 ) -> dict[str, E2eComponentVariant]:
     selected: dict[str, E2eComponentVariant] = {}
     for variant_id in target_case.selected_variants:
-        variant = parse_variant(variant_id, variants=variants)
+        variant = resolve_variant(variant_id, variants=variants)
         selected[variant.component_id] = variant
     return selected
 
@@ -599,11 +448,10 @@ def render_coverage_summary(variants: Sequence[E2eComponentVariant]) -> list[str
     return lines
 
 
-def render_component_sections(flow_root: Path) -> list[str]:
+def render_component_sections() -> list[str]:
     lines = ["## 3. コンポーネントごとの要素", ""]
     for component_id in COMPONENT_IDS:
-        component_root = flow_root / "components" / component_id
-        component_doc = load_yaml(component_root / "component.manual.yaml")
+        component_doc = load_component_yaml(component_id, "component.manual.yaml")
         component = as_mapping(component_doc.get("component"))
         lines.extend(
             [
@@ -620,9 +468,7 @@ def render_component_sections(flow_root: Path) -> list[str]:
                 f"`{scalar_text(invariant_map.get('id'))}` | - | "
                 f"{markdown_escape(scalar_text(invariant_map.get('text')))} |"
             )
-        actions_doc = load_yaml(component_root / "actions.manual.yaml")
-        for action in as_sequence(actions_doc.get("actions")):
-            action_map = as_mapping(action)
+        for action_map in component_actions(component_id):
             operation_type = scalar_text(action_map.get("operation_type"))
             detail = (
                 f"操作種別={OPERATION_TYPE_LABELS.get(operation_type, operation_type)}, "
@@ -634,31 +480,21 @@ def render_component_sections(flow_root: Path) -> list[str]:
                 f"{markdown_escape(scalar_text(action_map.get('title')))} | "
                 f"{markdown_escape(detail)} |"
             )
-        states_doc = load_yaml(component_root / "states.manual.yaml")
-        for state in as_sequence(states_doc.get("states")):
-            state_map = as_mapping(state)
-            continue_flow = state_map.get("continue_flow")
-            detail = f"後続継続={bool_text(continue_flow)}"
+        for state_map in component_states(component_id):
+            detail = f"後続継続={bool_text(state_map.get('continue_flow'))}"
             lines.append(
                 f"| {ELEMENT_KIND_LABELS['state']} | "
                 f"`{scalar_text(state_map.get('id'))}` | "
                 f"{markdown_escape(scalar_text(state_map.get('title')))} | {detail} |"
             )
-        data_doc = load_yaml(component_root / "data.manual.yaml")
-        for data_profile in as_sequence(data_doc.get("data_profiles")):
-            data_map = as_mapping(data_profile)
-            data_id = scalar_text(data_map.get("id"))
-            display_title = component_data_title(
-                component_id,
-                data_id,
-                scalar_text(data_map.get("title")),
+        for data_map in component_data_profiles(component_id):
+            display_title = scalar_text(
+                data_map.get("display_title"), scalar_text(data_map.get("title"))
             )
-            tags = ", ".join(
-                str(tag) for tag in as_sequence(data_map.get("tags")) if isinstance(tag, str)
-            )
+            tags = ", ".join(string_list(data_map.get("tags")))
             lines.append(
                 f"| {ELEMENT_KIND_LABELS['data']} | "
-                f"`{data_id}` | "
+                f"`{scalar_text(data_map.get('id'))}` | "
                 f"{markdown_escape(display_title)} | "
                 f"{markdown_escape(tags or '-')} |"
             )
@@ -666,10 +502,26 @@ def render_component_sections(flow_root: Path) -> list[str]:
     return lines
 
 
-def render_case_list_markdown(root: Path = Path("docs/spec/50.e2e")) -> str:
-    source_root = source_flow_root(root)
+def render_case_list_rules() -> list[str]:
+    lines = [
+        "## 4. 枝刈り規則",
+        "",
+        "| Rule ID | 条件 | 結果 | 理由 |",
+        "|---|---|---|---|",
+    ]
+    for item in as_sequence(flow_document().get("case_list_rules")):
+        rule = as_mapping(item)
+        lines.append(
+            f"| `{scalar_text(rule.get('id'))}` | {scalar_text(rule.get('condition'))} | "
+            f"{scalar_text(rule.get('result'))} | {scalar_text(rule.get('reason'))} |"
+        )
+    lines.append("")
+    return lines
+
+
+def render_case_list_markdown() -> str:
     variants = component_variants_by_id()
-    titles = component_element_titles(source_root)
+    titles = component_element_titles()
     lines = [
         GENERATED_COMMENT,
         "",
@@ -678,7 +530,7 @@ def render_case_list_markdown(root: Path = Path("docs/spec/50.e2e")) -> str:
         "## 0. 読み方",
         "",
         "- Component coverage: 各論理コンポーネントのvariant coverage。",
-        "- Matrix: Project x API の組み合わせ確認。",
+        f"- Matrix: {matrix_heading()} の組み合わせ確認。",
         "- 内部variant一覧は [case-variant-index_gen.md](case-variant-index_gen.md) を参照。",
         "",
         "## 1. 対象フロー",
@@ -687,40 +539,18 @@ def render_case_list_markdown(root: Path = Path("docs/spec/50.e2e")) -> str:
         "|---|---|---|---|",
     ]
     for step in FLOW_STEPS:
-        endpoint = f"{step.method} {step.path}" if step.method != "GET" else f"GET {step.path}"
         lines.append(
-            f"| `{step.step_id}` | `{step.operation}` | `{markdown_escape(endpoint)}` | "
-            f"`{step.template}` |"
+            f"| `{step.step_id}` | `{step.operation}` | "
+            f"`{markdown_escape(f'{step.method} {step.path}')}` | `{step.template}` |"
         )
     lines.extend(
         [
             "",
             *render_coverage_summary(tuple(variants.values())),
-            *render_component_sections(source_root),
-        ]
-    )
-    lines.extend(
-        [
-            "## 4. 枝刈り規則",
-            "",
-            "| Rule ID | 条件 | 結果 | 理由 |",
-            "|---|---|---|---|",
-            "| `P001` | `continue_flow=false` の失敗系 | Project/APIを代表targetへ集約 | "
-            "データ種別や対象差で期待結果が変わらない失敗系を重複実行しない |",
-            "| `P002` | 後続ケースの前提variantとして検証される正常系 | "
-            "単独goal caseを生成しない | "
-            "API公開、Project作成、利用申請、承認成功はRuntime等の後続ケースに内包する |",
-            "| `P003` | 前提component stateが成立しないgoal variant | ケース生成対象から除外 | "
-            "到達不能な手順をE2Eケースに含めない |",
-            "| `P004` | 同じcomponent stateを証明する同一evidence | ケース内で重複排除 | "
-            "レビュー対象のエビデンス表を簡潔に保つ |",
-            "",
-        ]
-    )
-    lines.extend(
-        [
+            *render_component_sections(),
+            *render_case_list_rules(),
             *render_component_case_summary(variants=variants, titles=titles),
-            *render_project_api_matrices(variants=variants, titles=titles),
+            *render_target_matrices(variants=variants, titles=titles),
             *render_generated_case_rows(variants=variants, titles=titles),
             "## 8. Appendix",
             "",
@@ -732,11 +562,11 @@ def render_case_list_markdown(root: Path = Path("docs/spec/50.e2e")) -> str:
     return "\n".join(lines)
 
 
-def render_pruned_cases_csv(root: Path = Path("docs/spec/50.e2e")) -> str:
+def render_pruned_cases_csv() -> str:
     output = io.StringIO()
     writer = csv.writer(output, lineterminator="\n")
     variants = component_variants_by_id()
-    titles = component_element_titles(source_flow_root(root))
+    titles = component_element_titles()
     writer.writerow(
         [
             "case_id",
@@ -756,21 +586,16 @@ def render_pruned_cases_csv(root: Path = Path("docs/spec/50.e2e")) -> str:
                 component_columns.extend(("-", "-", "-"))
                 continue
             component_columns.extend(variant_labels(variant, titles=titles))
-        writer.writerow(
-            [
-                target_case.case_id,
-                *component_columns,
-            ]
-        )
+        writer.writerow([target_case.case_id, *component_columns])
     return output.getvalue()
 
 
 def rendered_outputs(output_root: Path = Path("docs/spec/50.e2e")) -> Mapping[Path, str]:
     flow_root = output_root / FLOW_ID
     return {
-        flow_root / "case-list_gen.md": render_case_list_markdown(output_root),
-        flow_root / "case-variant-index_gen.md": render_variant_index_markdown(output_root),
-        flow_root / "pruned-cases_gen.csv": render_pruned_cases_csv(output_root),
+        flow_root / "case-list_gen.md": render_case_list_markdown(),
+        flow_root / "case-variant-index_gen.md": render_variant_index_markdown(),
+        flow_root / "pruned-cases_gen.csv": render_pruned_cases_csv(),
     }
 
 

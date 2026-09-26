@@ -33,7 +33,7 @@
 ### 条件
 
 - `WHERE`
-  - `resource_id = $resource_id`
+  - `resource_id = @resource_id`
 
 
 ## 002_select_reservations.sql
@@ -66,9 +66,9 @@
 ### 条件
 
 - `WHERE`
-  - `reservations.resource_id = $resource_id`
+  - `reservations.resource_id = @resource_id`
   - `AND reservations.status = 'confirmed'`
-  - `AND reservations.start_at > $now`
+  - `AND reservations.start_at > @now`
 
 
 ## 003_update_resources.sql
@@ -109,4 +109,4 @@
 ### 条件
 
 - `WHERE`
-  - `resource_id = $resource_id`
+  - `resource_id = @resource_id`

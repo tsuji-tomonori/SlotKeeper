@@ -1,0 +1,74 @@
+schema_version: 1
+
+bindings:
+  - id: book_slot_booked
+    when:
+      action: book_slot
+      state: booked
+      data_tags:
+        include:
+          - valid_booking
+    steps:
+      - ref: steps/reservation_api/create_reservation.step.manual.yaml
+    evidences:
+      - ref: reservation_listed
+      - ref: schedule_busy
+
+  - id: book_slot_replayed
+    when:
+      action: book_slot
+      state: replayed
+      data_tags:
+        include:
+          - valid_booking
+    steps:
+      - ref: steps/reservation_api/create_reservation.step.manual.yaml
+    procedure: 前の Step で成功した予約作成要求と同じ Idempotency-Key、同じ本文で予約作成 API を再送する。
+    evidences:
+      - ref: replay_same_reservation
+
+  - id: book_slot_slot_taken
+    when:
+      action: book_slot
+      state: slot_taken
+      data_tags:
+        include:
+          - valid_booking
+    steps:
+      - ref: steps/reservation_api/create_reservation.step.manual.yaml
+    failure_trigger: 前の Step で予約済みの ${resource.title} 10:00-11:00枠を、別のIdempotency-Keyで再度予約し、重複枠の409を発生させる。
+    error_settings:
+      error.precondition: ${resource.title} の10:00-11:00にconfirmed予約が存在する
+      error.override.headers.Idempotency-Key: ${case.id}-${member.id}-${resource.id}-second
+    evidences:
+      - ref: slot_taken_response
+
+  - id: book_slot_resource_inactive
+    when:
+      action: book_slot
+      state: resource_inactive
+      data_tags:
+        include:
+          - valid_booking
+    steps:
+      - ref: steps/reservation_api/create_reservation.step.manual.yaml
+    failure_trigger: 管理者が ${resource.title} を無効化した後に ${member.title} が予約作成 API を呼び出し、無効資源の409を発生させる。
+    error_settings:
+      error.precondition: ${resource.title} がactive=false
+    evidences:
+      - ref: resource_inactive_response
+
+  - id: book_slot_idempotency_mismatch
+    when:
+      action: book_slot
+      state: idempotency_mismatch
+      data_tags:
+        include:
+          - idempotency_conflict
+    steps:
+      - ref: steps/reservation_api/create_reservation.step.manual.yaml
+    failure_trigger: 前の Step で10:00-11:00の予約に使った Idempotency-Key のまま、時刻と目的を変えて再送し、入力不一致の409を発生させる。
+    error_settings:
+      error.precondition: 同じIdempotency-Keyで10:00-11:00の予約が成功済み
+    evidences:
+      - ref: idempotency_mismatch_response

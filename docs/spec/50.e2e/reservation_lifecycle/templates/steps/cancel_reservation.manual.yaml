@@ -1,0 +1,16 @@
+schema_version: 1
+template:
+  id: cancel_reservation
+  operation_id: cancelReservation
+  method: POST
+  path: /reservations/${reservationId}/cancel
+request:
+  headers:
+    Authorization: Bearer ${tokens.member_token}
+    Content-Type: application/json
+  body:
+    from_sample:
+      module: app.apis.reservations.cancel_reservation.samples
+      object: CANCEL_RESERVATION_REQUEST_SAMPLE
+captures:
+  version: $.version

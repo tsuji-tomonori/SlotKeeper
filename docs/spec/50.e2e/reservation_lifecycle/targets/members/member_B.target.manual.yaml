@@ -1,0 +1,21 @@
+schema_version: 1
+
+target:
+  type: member
+  id: member_B
+  title: Member B
+  display_name: member_B
+  description: E2Eで予約を作成する一般利用者 Member B
+  tags:
+    - general_member
+
+md:
+  target_section:
+    resource_type: Member
+    usage: 予約者B
+    show_variables:
+      - principalId
+
+defaults:
+  principalId: ${actors.member_B}
+  token: ${member_token}

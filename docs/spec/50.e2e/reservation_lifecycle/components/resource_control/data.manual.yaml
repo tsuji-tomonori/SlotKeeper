@@ -1,0 +1,49 @@
+schema_version: 1
+
+data_profiles:
+  - id: deactivate_default
+    title: 資源無効化
+    label: 資源無効化
+    coverage_role: canonical_success
+    compatible_actions:
+      - deactivate_resource
+    compatible_states:
+      - deactivated
+      - future_reservation_exists
+    tags:
+      - admin
+      - valid_deactivate
+    request:
+      headers:
+        Authorization: Bearer ${admin_token}
+      path:
+        resourceId: resourceId[${resource.id}]
+      body:
+        name: ${resource.defaults.name}
+        description: ${resource.defaults.description}
+        kind: ${resource.defaults.kind}
+        active: false
+        version: version[${resource.id}]
+
+  - id: stale_resource_version
+    title: 古い版での資源無効化
+    label: 古い版での資源無効化
+    coverage_role: negative
+    compatible_actions:
+      - deactivate_resource
+    compatible_states:
+      - stale_version
+    tags:
+      - admin
+      - stale_version
+    request:
+      headers:
+        Authorization: Bearer ${admin_token}
+      path:
+        resourceId: resourceId[${resource.id}]
+      body:
+        name: ${resource.defaults.name}
+        description: ${resource.defaults.description}
+        kind: ${resource.defaults.kind}
+        active: false
+        version: 99

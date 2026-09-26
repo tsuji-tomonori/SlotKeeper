@@ -1,0 +1,16 @@
+schema_version: 1
+
+bindings:
+  - id: trace_request_traced
+    when:
+      action: trace_request
+      state: traced
+      data_tags:
+        include:
+          - trace
+    steps:
+      - ref: steps/reservation_api/get_reservation.step.manual.yaml
+    procedure: 存在しない予約IDを指定して予約詳細 API を呼び出し、応答ヘッダーと本文、運用ログを突き合わせる。
+    evidences:
+      - ref: error_trace_id_matches_header
+      - ref: request_completed_log

@@ -1,0 +1,20 @@
+schema_version: 1
+
+states:
+  - id: registered
+    title: 資源登録成功
+    continue_flow: true
+    compatible_actions:
+      - register_resource
+    provides:
+      variables:
+        - resourceId[${resource.id}]
+        - version[${resource.id}]
+
+  - id: register_forbidden
+    title: 管理者以外の資源登録拒否
+    continue_flow: false
+    compatible_actions:
+      - register_resource
+    requires_data_tags:
+      - non_admin

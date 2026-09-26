@@ -31,7 +31,7 @@
 ### 条件
 
 - `WHERE`
-  - `resources.resource_id = $resource_id`
+  - `resources.resource_id = @resource_id`
 
 
 ## 002_select_reservations.sql
@@ -75,10 +75,10 @@
 ### 条件
 
 - `WHERE`
-  - `reservations.resource_id = $resource_id`
+  - `reservations.resource_id = @resource_id`
   - `AND reservations.status = 'confirmed'`
-  - `AND reservations.start_at < $day_end`
-  - `AND reservations.end_at > $day_start`
-  - `AND (CAST($after_start_at AS TIMESTAMPTZ) IS NULL`
-  - `OR CAST($after_reservation_id AS VARCHAR) IS NULL`
-  - `OR (reservations.start_at, reservations.reservation_id) > (CAST($after_start_at AS TIMESTAMPTZ), CAST($after_reservation_id AS VARCHAR)))`
+  - `AND reservations.start_at < @day_end`
+  - `AND reservations.end_at > @day_start`
+  - `AND (CAST(@after_start_at AS TIMESTAMPTZ) IS NULL`
+  - `OR CAST(@after_reservation_id AS VARCHAR) IS NULL`
+  - `OR (reservations.start_at, reservations.reservation_id) > (CAST(@after_start_at AS TIMESTAMPTZ), CAST(@after_reservation_id AS VARCHAR)))`

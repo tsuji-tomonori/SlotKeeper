@@ -1,0 +1,14 @@
+schema_version: 1
+
+actions:
+  - id: trace_request
+    title: 要求の追跡IDを確認する
+    operation_type: evidence
+    default_result: traced
+    case_generation:
+      standalone_cases:
+        - state: traced
+          data: trace_not_found
+    compatible_states:
+      - traced
+    target: []

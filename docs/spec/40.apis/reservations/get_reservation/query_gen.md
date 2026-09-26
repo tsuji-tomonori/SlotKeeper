@@ -38,7 +38,7 @@
 ### 条件
 
 - `WHERE`
-  - `reservations.reservation_id = $reservation_id`
+  - `reservations.reservation_id = @reservation_id`
 
 
 ## 002_select_reservation_events.sql
@@ -74,4 +74,4 @@
 ### 条件
 
 - `WHERE`
-  - `reservation_events.reservation_id = $reservation_id`
+  - `reservation_events.reservation_id = @reservation_id`

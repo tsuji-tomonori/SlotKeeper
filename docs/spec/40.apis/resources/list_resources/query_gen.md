@@ -38,6 +38,6 @@
 ### 条件
 
 - `WHERE`
-  - `(CAST($after_name AS VARCHAR) IS NULL`
-  - `OR CAST($after_resource_id AS VARCHAR) IS NULL`
-  - `OR (resources.name, resources.resource_id) > (CAST($after_name AS VARCHAR), CAST($after_resource_id AS VARCHAR)))`
+  - `(CAST(@after_name AS VARCHAR) IS NULL`
+  - `OR CAST(@after_resource_id AS VARCHAR) IS NULL`
+  - `OR (resources.name, resources.resource_id) > (CAST(@after_name AS VARCHAR), CAST(@after_resource_id AS VARCHAR)))`

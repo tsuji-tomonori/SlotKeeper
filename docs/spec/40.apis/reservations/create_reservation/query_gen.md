@@ -35,8 +35,8 @@
 ### 条件
 
 - `WHERE`
-  - `idempotency_records.principal_id = $principal_id`
-  - `AND idempotency_records.idempotency_key = $idempotency_key`
+  - `idempotency_records.principal_id = @principal_id`
+  - `AND idempotency_records.idempotency_key = @idempotency_key`
 
 
 ## 002_update_resources_control_version.sql
@@ -70,7 +70,7 @@
 ### 条件
 
 - `WHERE`
-  - `resource_id = $resource_id`
+  - `resource_id = @resource_id`
 
 
 ## 003_select_reservations.sql
@@ -104,10 +104,10 @@
 ### 条件
 
 - `WHERE`
-  - `reservations.resource_id = $resource_id`
+  - `reservations.resource_id = @resource_id`
   - `AND reservations.status = 'confirmed'`
-  - `AND reservations.start_at < $end_at`
-  - `AND reservations.end_at > $start_at`
+  - `AND reservations.start_at < @end_at`
+  - `AND reservations.end_at > @start_at`
 
 
 ## 004_delete_idempotency_records.sql
@@ -138,8 +138,8 @@ _なし_
 ### 条件
 
 - `WHERE`
-  - `principal_id = $principal_id`
-  - `AND idempotency_key = $idempotency_key`
+  - `principal_id = @principal_id`
+  - `AND idempotency_key = @idempotency_key`
 
 
 ## 005_insert_users.sql

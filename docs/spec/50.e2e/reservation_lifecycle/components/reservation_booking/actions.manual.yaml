@@ -1,0 +1,20 @@
+schema_version: 1
+
+actions:
+  - id: book_slot
+    title: 予約枠を予約する
+    operation_type: command
+    default_result: booked
+    compatible_states:
+      - booked
+      - replayed
+      - slot_taken
+      - resource_inactive
+      - idempotency_mismatch
+    target:
+      - member
+      - resource
+    requires:
+      component_states:
+        resource_catalog:
+          state: registered

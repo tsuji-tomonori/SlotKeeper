@@ -46,14 +46,14 @@
 ### 条件
 
 - `WHERE`
-  - `reservations.owner_principal_id = $owner_principal_id`
-  - `AND reservations.start_at < $range_end`
-  - `AND reservations.end_at > $range_start`
-  - `AND (CAST($status AS VARCHAR) IS NULL`
-  - `OR reservations.status = $status)`
-  - `AND (NOT CAST($future_only AS BOOLEAN)`
+  - `reservations.owner_principal_id = @owner_principal_id`
+  - `AND reservations.start_at < @range_end`
+  - `AND reservations.end_at > @range_start`
+  - `AND (CAST(@status AS VARCHAR) IS NULL`
+  - `OR reservations.status = @status)`
+  - `AND (NOT CAST(@future_only AS BOOLEAN)`
   - `OR (reservations.status = 'confirmed'`
-  - `AND reservations.start_at > $now))`
-  - `AND (CAST($after_start_at AS TIMESTAMPTZ) IS NULL`
-  - `OR CAST($after_reservation_id AS VARCHAR) IS NULL`
-  - `OR (reservations.start_at, reservations.reservation_id) > (CAST($after_start_at AS TIMESTAMPTZ), CAST($after_reservation_id AS VARCHAR)))`
+  - `AND reservations.start_at > @now))`
+  - `AND (CAST(@after_start_at AS TIMESTAMPTZ) IS NULL`
+  - `OR CAST(@after_reservation_id AS VARCHAR) IS NULL`
+  - `OR (reservations.start_at, reservations.reservation_id) > (CAST(@after_start_at AS TIMESTAMPTZ), CAST(@after_reservation_id AS VARCHAR)))`

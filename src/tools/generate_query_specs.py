@@ -9,7 +9,7 @@ from typing import Any
 import sqlglot
 from sqlglot import exp
 
-from tools.generate_db_table_specs import Column, Table, parse_tables
+from tools.generate_db_table_specs import Column, Table, parse_tables, render_sql
 from tools.generate_queries import (
     FieldSpec,
     QuerySpec,
@@ -320,7 +320,7 @@ def expanded_alias_expression(expression: Any, aliases: dict[str, str]) -> Any:
 def expression_sql(expression: Any, aliases: dict[str, str] | None = None) -> str:
     if aliases:
         expression = expanded_alias_expression(expression, aliases)
-    return " ".join(expression.sql(dialect="postgres").split())
+    return render_sql(expression)
 
 
 def condition_items(expression: Any, aliases: dict[str, str]) -> tuple[str, ...]:

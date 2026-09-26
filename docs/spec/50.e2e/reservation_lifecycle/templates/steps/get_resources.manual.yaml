@@ -1,0 +1,9 @@
+schema_version: 1
+template:
+  id: get_resources
+  operation_id: listResources
+  method: GET
+  path: /resources
+request:
+  headers:
+    Authorization: Bearer ${tokens.member_token}

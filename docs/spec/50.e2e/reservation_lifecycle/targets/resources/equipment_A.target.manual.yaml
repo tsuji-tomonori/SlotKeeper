@@ -1,0 +1,24 @@
+schema_version: 1
+
+target:
+  type: resource
+  id: equipment_A
+  title: Equipment A
+  display_name: equipment_A
+  description: E2Eで予約対象にするequipment資源 Equipment A
+  tags:
+    - active_resource
+    - equipment
+
+md:
+  target_section:
+    resource_type: Resource
+    usage: 予約対象資源
+    show_variables:
+      - resourceId
+      - version
+
+defaults:
+  name: E2E プロジェクターA ${case.id}
+  description: 持ち出し用プロジェクター
+  kind: equipment

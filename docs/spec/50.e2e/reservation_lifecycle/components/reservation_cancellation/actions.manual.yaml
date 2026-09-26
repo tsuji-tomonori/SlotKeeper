@@ -1,0 +1,19 @@
+schema_version: 1
+
+actions:
+  - id: cancel_reservation
+    title: 予約を取消す
+    operation_type: command
+    default_result: cancelled
+    compatible_states:
+      - cancelled
+      - other_member_forbidden
+      - already_cancelled
+      - stale_version
+    target:
+      - member
+      - resource
+    requires:
+      component_states:
+        reservation_booking:
+          state: booked

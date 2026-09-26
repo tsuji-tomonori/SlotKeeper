@@ -1,0 +1,16 @@
+schema_version: 1
+
+step:
+  id: resource_list_resources
+  title: 資源一覧APIを呼び出す
+  phase: evidence
+  operation_id: listResources
+  endpoint: GET /resources
+
+request:
+  headers:
+    Authorization: Bearer ${member_token}
+
+expect:
+  response:
+    status: 200

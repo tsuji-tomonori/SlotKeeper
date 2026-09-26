@@ -7,8 +7,7 @@ from typing import cast
 
 import yaml
 
-from tools.e2e_models import FLOW_ID, TARGET_CASES
-from tools.generate_e2e_scenarios import parse_component_variant
+from tools.e2e_models import FLOW_ID, TARGET_CASES, parse_variant
 
 
 def as_mapping(value: object) -> Mapping[str, object]:
@@ -89,9 +88,11 @@ def check_case_evidences(root: Path = Path("docs/spec/50.e2e")) -> list[str]:
     evidence_id_cache: dict[str, set[str]] = {}
     for target_case in TARGET_CASES:
         for variant_id in target_case.selected_variants:
-            component_id, action_id, _project_id, _api_id, state_id, data_id = (
-                parse_component_variant(variant_id)
-            )
+            variant = parse_variant(variant_id)
+            component_id = variant.component_id
+            action_id = variant.action_id
+            state_id = variant.state_id
+            data_id = variant.data_id
             tags = data_tags(root, component_id, data_id)
             bindings = matching_bindings(
                 root,

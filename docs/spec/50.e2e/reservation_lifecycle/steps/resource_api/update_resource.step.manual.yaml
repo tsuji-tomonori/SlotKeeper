@@ -1,0 +1,18 @@
+schema_version: 1
+
+step:
+  id: resource_update_resource
+  title: 資源編集APIを呼び出す
+  phase: exercise
+  operation_id: updateResource
+  endpoint: PUT /resources/${resourceId}
+
+request:
+  source: components/resource_control/data.manual.yaml#deactivate_default.request
+
+expect:
+  response:
+    status: ${result.expected_status}
+
+capture:
+  version[${resource.id}]: $.version

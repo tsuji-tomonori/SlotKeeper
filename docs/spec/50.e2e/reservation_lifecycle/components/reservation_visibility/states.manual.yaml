@@ -1,0 +1,22 @@
+schema_version: 1
+
+states:
+  - id: owner_visible
+    title: 本人による予約詳細参照成功
+    continue_flow: true
+    target_coverage: canonical_pair
+    compatible_actions:
+      - view_reservation
+
+  - id: other_member_forbidden
+    title: 他の利用者による予約詳細参照拒否
+    continue_flow: false
+    compatible_actions:
+      - view_reservation
+
+  - id: purpose_hidden
+    title: 予約表で予約目的を秘匿
+    continue_flow: true
+    target_coverage: canonical_pair
+    compatible_actions:
+      - view_schedule

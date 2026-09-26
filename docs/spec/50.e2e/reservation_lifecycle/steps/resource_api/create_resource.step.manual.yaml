@@ -1,0 +1,19 @@
+schema_version: 1
+
+step:
+  id: resource_create_resource
+  title: 資源登録APIを呼び出す
+  phase: exercise
+  operation_id: createResource
+  endpoint: POST /resources
+
+request:
+  source: components/resource_catalog/data.manual.yaml#resource_default.request
+
+expect:
+  response:
+    status: ${result.expected_status}
+
+capture:
+  resourceId[${resource.id}]: $.resourceId
+  version[${resource.id}]: $.version

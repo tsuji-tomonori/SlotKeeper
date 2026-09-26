@@ -1,0 +1,42 @@
+schema_version: 1
+
+bindings:
+  - id: deactivate_resource_deactivated
+    when:
+      action: deactivate_resource
+      state: deactivated
+      data_tags:
+        include:
+          - valid_deactivate
+    steps:
+      - ref: steps/resource_api/update_resource.step.manual.yaml
+    evidences:
+      - ref: resource_inactive_listed
+
+  - id: deactivate_resource_future_reservation_exists
+    when:
+      action: deactivate_resource
+      state: future_reservation_exists
+      data_tags:
+        include:
+          - valid_deactivate
+    steps:
+      - ref: steps/resource_api/update_resource.step.manual.yaml
+    failure_trigger: 前の Step で ${resource.title} に未来のconfirmed予約を作成したまま、管理者が active=false で資源を編集し、未来予約ありの409を発生させる。
+    error_settings:
+      error.precondition: ${resource.title} に未来のconfirmed予約が存在する
+    evidences:
+      - ref: future_reservation_response
+
+  - id: deactivate_resource_stale_version
+    when:
+      action: deactivate_resource
+      state: stale_version
+      data_tags:
+        include:
+          - stale_version
+    steps:
+      - ref: steps/resource_api/update_resource.step.manual.yaml
+    failure_trigger: 現在versionと異なる version=99 を指定して資源を編集し、楽観ロック違反の409を発生させる。
+    evidences:
+      - ref: stale_resource_version_response

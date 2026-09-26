@@ -1,0 +1,23 @@
+schema_version: 1
+
+evidences:
+  - id: resource_listed
+    title: 資源一覧に登録した資源が表示される
+    collector:
+      step: steps/resource_api/list_resources.step.manual.yaml
+    ok_condition: ${resource.id} の resourceId が active=true、version=1 で表示される。
+    save_as: ${case.id}_E_resource_listed_${resource.id}.json
+
+  - id: register_forbidden_response
+    title: 管理者以外の資源登録拒否レスポンスを確認する
+    collector:
+      step: steps/resource_api/create_resource.step.manual.yaml
+    ok_condition: HTTP 403、error.details[0].reason=forbidden、error.traceIdがX-Request-IDと一致する。
+    save_as: ${case.id}_E_register_forbidden_${resource.id}.json
+
+  - id: resource_not_listed
+    title: 拒否された資源が一覧に追加されない
+    collector:
+      step: steps/resource_api/list_resources.step.manual.yaml
+    ok_condition: ${resource.defaults.name} の資源が一覧に存在しない。
+    save_as: ${case.id}_E_resource_not_listed_${resource.id}.json
