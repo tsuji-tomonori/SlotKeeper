@@ -12,7 +12,7 @@ GENERATED_COMMENT = (
     "Do not edit manually. -->"
 )
 SQL_TABLE_PATTERN = re.compile(
-    r"\b(?:FROM|JOIN|INTO|UPDATE)\s+([A-Za-z_][A-Za-z0-9_]*)",
+    r"\b(?:FROM|JOIN|INTO|UPDATE)\s+(?:[A-Za-z_][A-Za-z0-9_]*\.)?([A-Za-z_][A-Za-z0-9_]*)",
     re.IGNORECASE,
 )
 HTTP_STATUS_CODE_PATTERN = re.compile(r"HTTP_(?P<code>[0-9]{3})_(?P<reason>[A-Z0-9_]+)")
@@ -29,7 +29,7 @@ SQL_RECORD_ACTIONS = {
     "削除": "レコードを削除する",
 }
 ROUTER_METHODS = {"delete", "get", "patch", "post", "put"}
-COMMON_ERROR_STATUS_CODES = (401, 422, 429, 500)
+COMMON_ERROR_STATUS_CODES = (401, 422, 429, 500, 503)
 HTTP_500_INTERNAL_SERVER_ERROR = 500
 HTTP_STATUS_REASON_PHRASES = {
     200: "OK",
@@ -48,10 +48,22 @@ HTTP_STATUS_REASON_PHRASES = {
 PREDICATES = {"has", "is"}
 ROUTER_ERROR_CONDITION = "Router で捕捉した例外を error response に変換する場合。"
 ROUTER_ERROR_DETAIL = "internal server error"
-MISSING_PRINCIPAL_CONDITION = "X-Principal-Id ヘッダが未指定または空文字の場合。"
-MISSING_PRINCIPAL_DETAIL = "X-Principal-Id header is required."
+MISSING_PRINCIPAL_CONDITION = (
+    "Authorization ヘッダのBearer tokenが未指定、または署名・issuer・client・用途・期限を"
+    "検証できない場合。"
+)
+MISSING_PRINCIPAL_DETAIL = "authentication_required / invalid_token"
 REQUEST_VALIDATION_CONDITION = "Path/Query/Header/Body が型または制約に一致しない場合。"
-REQUEST_VALIDATION_DETAIL = "request validation failed"
+REQUEST_VALIDATION_DETAIL = "invalid_input"
+RETRY_DECORATOR = "retry_transaction"
+RETRY_NOTE = (
+    "DBの直列化競合・一意性競合・OCC競合は、rollback後に新しいsnapshotで"
+    "処理順を最大12回・8秒まで再実行する。"
+)
+RETRY_REPLAY_SAFE_NOTE = "再送安全な処理のため、成否不明の接続断も再実行する。"
+RETRY_EXHAUSTED_CONDITION = "DBの競合や接続障害が再試行上限を超えた場合。"
+RETRY_EXHAUSTED_DETAIL = "storage_temporarily_unavailable"
+HTTP_503_SERVICE_UNAVAILABLE = 503
 
 
 @dataclass(frozen=True)
@@ -118,6 +130,7 @@ class FunctionMetadata:
     integration_resources: tuple[str, ...] = ()
     query_functions: tuple[str, ...] = ()
     errors: tuple[FunctionErrorMetadata, ...] = ()
+    error_response: FunctionErrorMetadata | None = None
 
 
 @dataclass(frozen=True)
@@ -483,15 +496,38 @@ def direct_function_errors(
 def imported_project_common_errors(
     functions_path: Path,
 ) -> dict[str, tuple[FunctionErrorMetadata, ...]]:
-    common_path = functions_path.parents[1] / "common.py"
-    if not common_path.exists() or common_path == functions_path:
-        return {}
-    tree = ast.parse(common_path.read_text(encoding="utf-8"), filename=str(common_path))
-    return {
-        node.name: direct_function_errors(node)
-        for node in tree.body
-        if isinstance(node, ast.AsyncFunctionDef | ast.FunctionDef)
-    }
+    """domain共通とAPI共通の関数が送出する業務エラーを取得する。"""
+    errors: dict[str, tuple[FunctionErrorMetadata, ...]] = {}
+    for common_path in (
+        functions_path.parents[2] / "common.py",
+        functions_path.parents[1] / "common.py",
+    ):
+        if not common_path.exists() or common_path == functions_path:
+            continue
+        tree = ast.parse(common_path.read_text(encoding="utf-8"), filename=str(common_path))
+        errors.update(
+            {
+                node.name: direct_function_errors(node)
+                for node in tree.body
+                if isinstance(node, ast.AsyncFunctionDef | ast.FunctionDef)
+            }
+        )
+    return errors
+
+
+def returned_error_response(
+    function: ast.AsyncFunctionDef | ast.FunctionDef,
+) -> FunctionErrorMetadata | None:
+    """build関数が返す`api_error_response(status, detail)`の状態とdetailを取得する。"""
+    for node in ast.walk(function):
+        call = api_error_response_call(node)
+        if call is None or len(call.args) < 2:
+            continue
+        status_code = http_status_code(call.args[0])
+        detail = literal_string(call.args[1])
+        if status_code is not None and detail is not None:
+            return FunctionErrorMetadata(status_code, detail, docstring_summary(function))
+    return None
 
 
 def function_arguments(function: ast.AsyncFunctionDef | ast.FunctionDef) -> tuple[str, ...]:
@@ -546,6 +582,7 @@ def function_metadata(functions_path: Path) -> dict[str, FunctionMetadata]:
             return_type=annotation_text(node.returns),
             integration_resources=called_integration_resources(node, ports),
             query_functions=called_query_functions(node),
+            error_response=returned_error_response(node),
         )
     external_errors = imported_project_common_errors(functions_path)
     resolved_errors = {
@@ -570,6 +607,7 @@ def function_metadata(functions_path: Path) -> dict[str, FunctionMetadata]:
             value.integration_resources,
             value.query_functions,
             tuple(resolved_errors.get(name, ())),
+            value.error_response,
         )
         for name, value in metadata.items()
     }
@@ -617,6 +655,10 @@ def condition_label_from_description(description: str, *, negated: bool) -> str:
             return f"{condition.removesuffix('できる')}できない場合。"
         if condition.endswith("済み"):
             return f"{condition}でない場合。"
+        if condition.endswith("一致する"):
+            return f"{condition.removesuffix('一致する')}一致しない場合。"
+        if condition.endswith("がある"):
+            return f"{condition.removesuffix('がある')}がない場合。"
         return f"{condition}が成立しない場合。"
     if condition.endswith("可能"):
         return f"{condition}な場合。"
@@ -1334,6 +1376,288 @@ def query_sql_filenames_for_step(step: SequenceStep, sql_steps: list[SqlStep]) -
     return filenames
 
 
+@dataclass(frozen=True)
+class BranchBlock:
+    """router の if 文を Mermaid の alt block として保持する。"""
+
+    condition: str
+    items: tuple[SequenceNode, ...]
+    otherwise: tuple[SequenceNode, ...] = ()
+
+
+@dataclass(frozen=True)
+class NoteStep:
+    """router 全体に適用する制御を Note として保持する。"""
+
+    text: str
+
+
+type SequenceNode = SequenceItem | BranchBlock | NoteStep
+
+
+def endpoint_has_retry_decorator(
+    function: ast.AsyncFunctionDef | ast.FunctionDef,
+) -> tuple[bool, bool]:
+    """endpoint が `retry_transaction` を持つかと、再送安全指定かを返す。"""
+    for decorator in function.decorator_list:
+        if not isinstance(decorator, ast.Call) or call_name(decorator.func) != RETRY_DECORATOR:
+            continue
+        replay_safe = keyword_value(decorator, "replay_safe")
+        return True, isinstance(replay_safe, ast.Constant) and replay_safe.value is True
+    return False, False
+
+
+def awaited_call(node: ast.AST | None) -> ast.Call | None:
+    if isinstance(node, ast.Await) and isinstance(node.value, ast.Call):
+        return node.value
+    return None
+
+
+def endpoint_sequence_tree(
+    function: ast.AsyncFunctionDef | ast.FunctionDef,
+    metadata: dict[str, FunctionMetadata],
+    success_status_code: int,
+) -> tuple[SequenceNode, ...]:
+    """router の実際の文順・分岐・早期return・例外変換を木構造へ投影する。"""
+
+    def step_nodes(function_name: str, condition_label: str | None = None) -> list[SequenceNode]:
+        if function_name not in metadata:
+            raise ValueError(f"{function_name} metadata is not found")
+        function_metadata = metadata[function_name]
+        nodes: list[SequenceNode] = [
+            sequence_step_from_metadata(function_name, function_metadata, condition_label)
+        ]
+        nodes.extend(
+            ErrorReturnStep(error.status_code, error.summary, error.detail)
+            for error in function_metadata.errors
+        )
+        return nodes
+
+    def return_nodes(node: ast.Return) -> list[SequenceNode]:
+        name = awaited_api_function_name(node.value) if node.value is not None else None
+        if name is None:
+            return [SuccessReturnStep(success_status_code)]
+        nodes = step_nodes(name)
+        error_response = metadata[name].error_response
+        if error_response is not None:
+            nodes.append(ErrorReturnStep(error_response.status_code, "", error_response.detail))
+            return nodes
+        nodes.append(SuccessReturnStep(success_status_code))
+        return nodes
+
+    assigned_predicates: dict[str, str] = {}
+
+    def resolved_test(test: ast.expr) -> ast.expr:
+        """bool変数の条件を、代入元の predicate 呼出しへ戻す。"""
+        negated = isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not)
+        operand = test.operand if isinstance(test, ast.UnaryOp) and negated else test
+        if isinstance(operand, ast.Name) and operand.id in assigned_predicates:
+            call = ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id="api_functions", ctx=ast.Load()),
+                        attr=assigned_predicates[operand.id],
+                        ctx=ast.Load(),
+                    ),
+                    args=[],
+                    keywords=[],
+                )
+            )
+            return ast.UnaryOp(op=ast.Not(), operand=call) if negated else call
+        return test
+
+    def statement_nodes(statement: ast.stmt) -> list[SequenceNode]:
+        if (
+            isinstance(statement, ast.Assign)
+            and len(statement.targets) == 1
+            and isinstance(statement.targets[0], ast.Name)
+        ):
+            assigned = awaited_api_function_name(statement.value)
+            if assigned is not None and is_predicate_function(assigned):
+                assigned_predicates[statement.targets[0].id] = assigned
+        if isinstance(statement, ast.Try):
+            nodes = [node for child in statement.body for node in statement_nodes(child)]
+            for handler in statement.handlers:
+                handler_nodes = [node for child in handler.body for node in statement_nodes(child)]
+                if excepts_router_handled_exceptions(handler):
+                    handler_nodes = [
+                        node for node in handler_nodes if not isinstance(node, SuccessReturnStep)
+                    ]
+                    handler_nodes.append(
+                        ErrorReturnStep(HTTP_500_INTERNAL_SERVER_ERROR, "", ROUTER_ERROR_DETAIL)
+                    )
+                    nodes.append(BranchBlock(ROUTER_ERROR_CONDITION, tuple(handler_nodes)))
+                else:
+                    nodes.extend(handler_nodes)
+            return nodes
+        if isinstance(statement, ast.If):
+            nodes: list[SequenceNode] = []
+            predicate = api_function_call_name(
+                statement.test.operand
+                if isinstance(statement.test, ast.UnaryOp)
+                and isinstance(statement.test.op, ast.Not)
+                else statement.test
+            )
+            if predicate is not None and metadata.get(predicate, None) is not None:
+                if metadata[predicate].query_functions or metadata[predicate].errors:
+                    nodes.extend(step_nodes(predicate))
+            condition = condition_label_from_test(
+                resolved_test(statement.test), metadata
+            ) or ast.unparse(statement.test)
+            body = [node for child in statement.body for node in statement_nodes(child)]
+            otherwise = [node for child in statement.orelse for node in statement_nodes(child)]
+            nodes.append(BranchBlock(condition, tuple(body), tuple(otherwise)))
+            return nodes
+        if isinstance(statement, ast.Return):
+            return return_nodes(statement)
+        value = statement.value if isinstance(statement, ast.Assign | ast.Expr) else None
+        if isinstance(value, ast.Await):
+            transaction_step = transaction_step_from_await(value)
+            if transaction_step is not None:
+                return [transaction_step]
+            name = awaited_api_function_name(value)
+            if name is not None:
+                return step_nodes(name)
+        return []
+
+    nodes: list[SequenceNode] = []
+    retry, replay_safe = endpoint_has_retry_decorator(function)
+    if retry:
+        nodes.append(NoteStep(RETRY_NOTE + (RETRY_REPLAY_SAFE_NOTE if replay_safe else "")))
+    for statement in function.body:
+        nodes.extend(statement_nodes(statement))
+    if retry:
+        nodes.append(
+            BranchBlock(
+                RETRY_EXHAUSTED_CONDITION,
+                (ErrorReturnStep(HTTP_503_SERVICE_UNAVAILABLE, "", RETRY_EXHAUSTED_DETAIL),),
+            )
+        )
+    return tuple(nodes)
+
+
+def tree_has_commit(nodes: Sequence[SequenceNode]) -> bool:
+    for node in nodes:
+        if isinstance(node, TransactionStep) and node.action == "commit":
+            return True
+        if isinstance(node, BranchBlock) and (
+            tree_has_commit(node.items) or tree_has_commit(node.otherwise)
+        ):
+            return True
+    return False
+
+
+def render_sequence_tree_markdown(
+    sequence: ApiSequence,
+    nodes: Sequence[SequenceNode],
+    implicit_returns: Sequence[ErrorReturnStep],
+) -> str:
+    """木構造の sequence を lazunex 形式の Mermaid sequenceDiagram へ描画する。"""
+    sql_steps_by_filename = {step.filename: step for step in sequence.sql_steps}
+    has_commit = tree_has_commit(nodes)
+    state = {"opened": False, "committed": False}
+    lines = [
+        GENERATED_COMMENT,
+        "",
+        f"# {sequence.api} sequence",
+        "",
+        "```mermaid",
+        "sequenceDiagram",
+        "  autonumber",
+        "  participant User as User",
+        "  participant API as API",
+    ]
+    if sequence.sql_steps:
+        lines.append("  participant DB as DB")
+    lines.append(f"  User->>API: {sequence.method} {sequence.path}")
+
+    def indent(depth: int) -> str:
+        return "  " + ("  " * depth)
+
+    def open_transaction(depth: int) -> None:
+        if has_commit and not state["opened"]:
+            lines.append(
+                f"{indent(depth)}Note over API,DB: DB transaction範囲開始"
+                " (最初のDB操作からcommit/rollbackまで)"
+            )
+            state["opened"] = True
+
+    def error_lines(item: ErrorReturnStep, depth: int) -> None:
+        if state["opened"] and not state["committed"]:
+            lines.append(f"{indent(depth)}API->>DB: DB transactionをrollbackして変更を破棄する。")
+        lines.append(
+            f"{indent(depth)}API-->>User: {http_status_code_label(item.status_code)}"
+            f"<br/>{item.detail}"
+        )
+
+    def render(items: Sequence[SequenceNode], depth: int) -> None:
+        for item in items:
+            if isinstance(item, NoteStep):
+                lines.append(f"{indent(depth)}Note over API,DB: {item.text}")
+            elif isinstance(item, BranchBlock):
+                lines.append(f"{indent(depth)}alt {item.condition}")
+                render(item.items, depth + 1)
+                if item.otherwise:
+                    lines.append(f"{indent(depth)}else それ以外の場合。")
+                    render(item.otherwise, depth + 1)
+                lines.append(f"{indent(depth)}end")
+            elif isinstance(item, ErrorReturnStep) and item.condition:
+                lines.append(f"{indent(depth)}alt {item.condition}")
+                error_lines(item, depth + 1)
+                lines.append(f"{indent(depth)}end")
+            elif isinstance(item, ErrorReturnStep):
+                error_lines(item, depth)
+            elif isinstance(item, SuccessReturnStep):
+                lines.append(
+                    f"{indent(depth)}API-->>User: {http_status_code_label(item.status_code)}"
+                )
+            elif isinstance(item, TransactionStep):
+                if item.action == "commit":
+                    open_transaction(depth)
+                    state["committed"] = True
+                lines.append(f"{indent(depth)}API->>DB: {item.summary}")
+            else:
+                render_step(item, depth)
+
+    def render_step(step: SequenceStep, depth: int) -> None:
+        filenames = query_sql_filenames_for_step(step, sequence.sql_steps)
+        sql_steps = [sql_steps_by_filename[name] for name in filenames]
+        if not sql_steps:
+            lines.append(f"{indent(depth)}API->>API: {step.description}")
+            return
+        for sql_step in sql_steps:
+            open_transaction(depth)
+            label = step.description if len(sql_steps) == 1 else sql_step.summary
+            tables = ", ".join(sql_step.tables)
+            lines.append(
+                f"{indent(depth)}API->>DB: {label}<br/>SQL {sql_step.filename}<br/>テーブル {tables}"
+            )
+
+    for implicit in implicit_returns:
+        lines.append(f"{indent(0)}alt {implicit.condition}")
+        error_lines(implicit, 1)
+        lines.append(f"{indent(0)}end")
+    render(nodes, 0)
+    lines.extend(["```", ""])
+    return "\n".join(lines)
+
+
+def render_api_sequence(
+    api_dir: Path, api_root: Path, integrations_root: Path
+) -> tuple[ApiSequence, str]:
+    """1 operation の sequence_gen.md を木構造から生成する。"""
+    sequence = api_sequence_from_dir(api_dir, api_root, integrations_root)
+    router_path = api_dir / "router.py"
+    function = endpoint_function(
+        ast.parse(router_path.read_text(encoding="utf-8"), filename=str(router_path))
+    )
+    metadata = operation_function_metadata(api_dir)
+    nodes = endpoint_sequence_tree(function, metadata, endpoint_success_status_code(function))
+    return sequence, render_sequence_tree_markdown(
+        sequence, nodes, implicit_router_error_returns(function)
+    )
+
+
 def output_path(sequence: ApiSequence, docs_root: Path) -> Path:
     return docs_root / sequence.domain / sequence.api / "sequence_gen.md"
 
@@ -1345,8 +1669,8 @@ def generate_sequences(
 ) -> dict[Path, str]:
     rendered: dict[Path, str] = {}
     for directory in api_dirs(api_root):
-        sequence = api_sequence_from_dir(directory, api_root, integrations_root)
-        rendered[output_path(sequence, docs_root)] = render_sequence_markdown(sequence)
+        sequence, markdown = render_api_sequence(directory, api_root, integrations_root)
+        rendered[output_path(sequence, docs_root)] = markdown
     return rendered
 
 

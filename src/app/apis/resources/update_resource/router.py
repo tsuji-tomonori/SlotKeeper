@@ -72,20 +72,14 @@ async def update_resource(
                 request,
                 caller,
             )
-        resource = await api_functions.get_locked_resource(resource_id, session)
+        resource = await api_functions.update_resource_control_version(resource_id, session)
         if not await api_functions.is_current_resource_version(resource, request):
             return await api_functions.build_stale_resource_version_response(
                 resource_id,
                 request,
                 caller,
             )
-        has_future_reservations = await api_functions.has_future_reservations(
-            resource,
-            request,
-            clock,
-            session,
-        )
-        if has_future_reservations:
+        if await api_functions.has_future_reservations(resource, request, clock, session):
             return await api_functions.build_future_reservations_exist_response(
                 resource_id,
                 request,

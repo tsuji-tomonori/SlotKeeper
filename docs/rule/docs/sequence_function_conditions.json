@@ -1,0 +1,53 @@
+{
+  "description": "Mermaid sequence variable generation に利用できる condition 語彙です。",
+  "entries": [
+    {
+      "name": "active_resource",
+      "description": "予約対象の資源が新規予約を受け付ける有効状態であるかを判定します。"
+    },
+    {
+      "name": "confirmed_reservation",
+      "description": "予約が取消前の確定状態であるかを判定します。"
+    },
+    {
+      "name": "current_reservation_version",
+      "description": "取消要求の版が予約の現在の版と一致するかを判定します。"
+    },
+    {
+      "name": "current_resource_version",
+      "description": "編集要求の公開版が資源の現在の公開版と一致するかを判定します。"
+    },
+    {
+      "name": "future_reservations",
+      "description": "資源に開始前の確定予約が残っているかを判定します。"
+    },
+    {
+      "name": "idempotency_result",
+      "description": "有効期限内の成功記録がIdempotency-Keyに紐づいているかを判定します。"
+    },
+    {
+      "name": "overlapping_reservation",
+      "description": "取消済みを除き、半開区間が重なる確定予約があるかを判定します。"
+    },
+    {
+      "name": "reservation_cancel_permission",
+      "description": "呼び出し元が予約を取消できる予約者本人または管理者であるかを判定します。"
+    },
+    {
+      "name": "reservation_view_permission",
+      "description": "呼び出し元が予約詳細を参照できる予約者本人または管理者であるかを判定します。"
+    },
+    {
+      "name": "resource_management_permission",
+      "description": "呼び出し元が資源を管理できる管理者であるかを判定します。"
+    },
+    {
+      "name": "same_idempotent_request",
+      "description": "成功記録の正規化入力と再送された要求が一致するかを判定します。"
+    },
+    {
+      "name": "started_reservation",
+      "description": "予約の開始時刻が現在時刻以前であるかを判定します。"
+    }
+  ]
+}

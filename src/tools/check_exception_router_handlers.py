@@ -92,12 +92,15 @@ def _called_api_function(node: ast.AST) -> str | None:
 
 
 def _is_inside_try(node: ast.AST, parents: dict[ast.AST, ast.AST]) -> bool:
+    """try body内、または例外をerror responseへ変換するexcept handler内の呼出しかを判定する。"""
     child = node
     while child in parents:
         parent = parents[child]
         if isinstance(parent, ast.Try) and any(
             _contains(statement, child) for statement in parent.body
         ):
+            return True
+        if isinstance(parent, ast.ExceptHandler):
             return True
         child = parent
     return False

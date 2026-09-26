@@ -77,7 +77,7 @@ async def has_reservation_cancel_permission(
     )
 
 
-async def get_locked_resource(
+async def update_resource_control_version(
     reservation: CancelReservationResponse,
     session: AsyncSession | None = None,
 ) -> ResourceRef:
@@ -98,7 +98,7 @@ async def get_locked_resource(
             active=row.active,
             row_version=row.row_version,
         )
-    return raise_missing_runtime_dependency("get_locked_resource")
+    return raise_missing_runtime_dependency("update_resource_control_version")
 
 
 async def is_current_reservation_version(

@@ -33,6 +33,8 @@ EXTERNAL_API_ERROR_STATUSES = {
 ROUTER_ERROR_HANDLER_STATUSES = {
     500,
 }
+# error_responses() が全operationへ自動付与する共通status。返却時は宣言済みとして扱う。
+IMPLICIT_COMMON_STATUSES = {401, 422, 429, 500, 503}
 
 
 @dataclass(frozen=True, order=True)
@@ -100,12 +102,47 @@ def _returned_error_response_statuses(
 
 
 def _returns_error_response_for_router_error(node: ast.stmt) -> bool:
+    """except handlerが共通変換、またはRouter例外のbuild関数でerror responseを返すかを判定する。"""
     if not isinstance(node, ast.Return):
         return False
     call = node.value
+    if isinstance(call, ast.Await):
+        call = call.value
     if not isinstance(call, ast.Call):
         return False
-    return isinstance(call.func, ast.Name) and call.func.id == "error_response_for_router_error"
+    if isinstance(call.func, ast.Name):
+        return call.func.id == "error_response_for_router_error"
+    return (
+        isinstance(call.func, ast.Attribute)
+        and isinstance(call.func.value, ast.Name)
+        and call.func.value.id == "api_functions"
+        and call.func.attr == "build_router_error_response"
+    )
+
+
+def _returned_builder_statuses(
+    path: Path, function: ast.AsyncFunctionDef | ast.FunctionDef
+) -> list[tuple[int, int, str]]:
+    """`return await api_functions.build_*_response(...)`が返すerror statusを取得する。"""
+    functions_path = path.with_name("functions.py")
+    if not functions_path.exists():
+        return []
+    metadata = function_metadata(functions_path)
+    statuses: list[tuple[int, int, str]] = []
+    for node in ast.walk(function):
+        if not isinstance(node, ast.Return) or not isinstance(node.value, ast.Await):
+            continue
+        call = node.value.value
+        if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Attribute):
+            continue
+        builder = metadata.get(call.func.attr)
+        if builder is None or builder.error_response is None:
+            continue
+        status_code = builder.error_response.status_code
+        statuses.append(
+            (node.lineno, status_code, HTTP_STATUS_NAMES.get(status_code, f"HTTP_{status_code}"))
+        )
+    return statuses
 
 
 def _excepts_router_handled_exceptions(node: ast.ExceptHandler) -> bool:
@@ -196,13 +233,14 @@ def check_router_error_response_returns(
                 continue
             returned_statuses = [
                 *_returned_error_response_statuses(node),
+                *_returned_builder_statuses(path, node),
                 *_returned_router_error_handler_statuses(node),
                 *_returned_exception_statuses(path, node),
                 *_returned_external_error_statuses(path, node),
             ]
             returned_status_codes = {status_code for _line, status_code, _name in returned_statuses}
             for line, returned_status, returned_name in returned_statuses:
-                if returned_status in declared:
+                if returned_status in declared or returned_status in IMPLICIT_COMMON_STATUSES:
                     continue
                 issues.append(
                     RouterErrorResponseReturnIssue(

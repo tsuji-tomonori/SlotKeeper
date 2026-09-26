@@ -58,6 +58,7 @@ async def get_resources(
     return raise_missing_runtime_dependency("get_resources")
 
 
+# @resource-free
 async def apply_pagination(
     resources: SequencePage[ResourceItemResponse],
     query: ListResourcesQuery,

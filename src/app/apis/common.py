@@ -35,23 +35,23 @@ def encode_page_token(values: list[str]) -> str:
     return base64.urlsafe_b64encode(raw).decode().rstrip("=")
 
 
+def _page_token_values(token: str) -> object:
+    try:
+        padded = token + "=" * (-len(token) % 4)
+        return json.loads(base64.urlsafe_b64decode(padded.encode()))
+    except (binascii.Error, UnicodeDecodeError, ValueError):
+        return None
+
+
 def decode_page_token(token: str | None, size: int) -> list[str] | None:
     """継続tokenを keyset paging の最終行キーへ戻す。"""
     if token is None:
         return None
-    try:
-        padded = token + "=" * (-len(token) % 4)
-        values: object = json.loads(base64.urlsafe_b64decode(padded.encode()))
-    except (binascii.Error, UnicodeDecodeError, ValueError) as error:
-        raise ApiFunctionError(
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            "invalid_page_token",
-            summary="nextToken が前回レスポンスの継続tokenとして解釈できない場合。",
-        ) from error
+    values = _page_token_values(token)
     if not isinstance(values, list) or len(cast(list[object], values)) != size:
         raise ApiFunctionError(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             "invalid_page_token",
-            summary="nextToken の要素数が一覧の並び順キーと一致しない場合。",
+            summary="nextToken が前回レスポンスの継続tokenとして解釈できない場合。",
         )
     return [str(value) for value in cast(list[object], values)]

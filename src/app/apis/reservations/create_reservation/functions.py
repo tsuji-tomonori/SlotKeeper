@@ -90,7 +90,7 @@ async def is_same_idempotent_request(
     record: IdempotencyRecordRef,
     request: CreateReservationRequest,
 ) -> bool:
-    """成功記録の正規化入力と再送された要求が同じかを判定する。"""
+    """成功記録の正規化入力と再送された要求が一致するかを判定する。"""
     return record.request_hash == _request_hash(request)
 
 
@@ -118,7 +118,7 @@ async def validate_booking_request(
     return request
 
 
-async def get_locked_resource(
+async def update_resource_control_version(
     resource_id: ResourceId,
     session: AsyncSession | None = None,
 ) -> ResourceRef:
@@ -139,11 +139,11 @@ async def get_locked_resource(
             active=row.active,
             row_version=row.row_version,
         )
-    return raise_missing_runtime_dependency("get_locked_resource")
+    return raise_missing_runtime_dependency("update_resource_control_version")
 
 
 async def is_active_resource(resource: ResourceRef) -> bool:
-    """予約対象の資源が新規予約を受け付けるかを判定する。"""
+    """予約対象の資源が有効であるかを判定する。"""
     return resource.active
 
 

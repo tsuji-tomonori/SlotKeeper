@@ -148,7 +148,7 @@ def issues_for_operation(api_dir: Path, api_root: Path) -> list[ContractIssue]:
                 f"markdown_slug {contract.markdown_slug!r} does not match {expected_slug!r}",
             )
         )
-    if contract.auth_mode not in {"management-bearer", "public", "none"}:
+    if contract.auth_mode not in {"bearer-jwt", "management-bearer", "public", "none"}:
         issues.append(
             ContractIssue(
                 contract_path,

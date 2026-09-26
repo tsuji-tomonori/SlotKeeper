@@ -43,6 +43,7 @@ class TestFactor:
     title: str
     source: str
     elements: tuple[FactorElement, ...]
+    parent: tuple[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,9 @@ class ApiUnitTestFactors:
 
 
 type TestCase = tuple[FactorElement | None, ...]
+
+SUCCESS_SUMMARY_KEY = "__success__"
+NESTED_BRANCH_EXPECTED = "内側の条件分岐へ進む。"
 
 
 def markdown_escape(value: str) -> str:
@@ -289,7 +293,9 @@ def response_summary_from_return(
     if node.value is not None:
         function_name = api_function_name_from_call(node.value)
         if function_name is not None and function_response_summaries is not None:
-            return function_response_summaries.get(function_name)
+            return function_response_summaries.get(
+                function_name, function_response_summaries.get(SUCCESS_SUMMARY_KEY)
+            )
     return None
 
 
@@ -382,6 +388,8 @@ def if_factor(
     source_lines: list[str],
     function_descriptions: dict[str, str],
     function_response_summaries: dict[str, str],
+    parent: tuple[str, str] | None = None,
+    continuation: list[ast.stmt] | None = None,
 ) -> TestFactor:
     expression = expression_text(node.test)
     description = factor_description(
@@ -401,25 +409,38 @@ def if_factor(
             FactorElement(
                 key="true",
                 name="成立",
-                expected=branch_expected(
-                    node.body,
-                    "条件成立側の処理を実行する。",
-                    function_response_summaries,
+                expected=(
+                    NESTED_BRANCH_EXPECTED
+                    if starts_with_nested_if(node.body)
+                    else branch_expected(
+                        node.body,
+                        "条件成立側の処理を実行する。",
+                        function_response_summaries,
+                    )
                 ),
-                terminal=branch_is_terminal(node.body, function_response_summaries),
+                terminal=not starts_with_nested_if(node.body)
+                and branch_is_terminal(node.body, function_response_summaries),
             ),
             FactorElement(
                 key="false",
                 name="不成立",
                 expected=branch_expected(
-                    node.orelse,
+                    node.orelse or (continuation or []),
                     "条件不成立側または後続処理を継続する。",
                     function_response_summaries,
                 ),
-                terminal=branch_is_terminal(node.orelse, function_response_summaries),
+                terminal=branch_is_terminal(
+                    node.orelse or (continuation or []), function_response_summaries
+                ),
             ),
         ),
+        parent=parent,
     )
+
+
+def starts_with_nested_if(nodes: list[ast.stmt]) -> bool:
+    """分岐本体が別の条件分岐から始まり、結果が内側の分岐で決まるかを判定する。"""
+    return bool(nodes) and isinstance(nodes[0], ast.If)
 
 
 def except_factor(
@@ -484,17 +505,29 @@ def endpoint_factors(
     factors: list[TestFactor] = []
 
     class Visitor(ast.NodeVisitor):
+        def __init__(self) -> None:
+            self.parent: tuple[str, str] | None = None
+            self.continuation: list[ast.stmt] | None = None
+
         def visit_If(self, node: ast.If) -> None:
-            factors.append(
-                if_factor(
-                    node,
-                    len(factors) + 1,
-                    source_lines,
-                    function_descriptions,
-                    function_response_summaries,
-                )
+            factor = if_factor(
+                node,
+                len(factors) + 1,
+                source_lines,
+                function_descriptions,
+                function_response_summaries,
+                self.parent,
+                self.continuation,
             )
-            self.generic_visit(node)
+            factors.append(factor)
+            previous = (self.parent, self.continuation)
+            for index, child in enumerate(node.body):
+                self.parent = (factor.factor_id, "true")
+                self.continuation = node.body[index + 1 :]
+                self.visit(child)
+            self.parent, self.continuation = previous
+            for child in node.orelse:
+                self.visit(child)
 
         def visit_Try(self, node: ast.Try) -> None:
             for child in node.body:
@@ -528,6 +561,9 @@ def api_unit_test_factors_from_dir(api_dir: Path, api_root: Path) -> ApiUnitTest
     functions_path = api_dir / "functions.py"
     descriptions = function_docstrings(functions_path)
     response_summaries = operation_function_response_summaries(api_dir)
+    response_summaries[SUCCESS_SUMMARY_KEY] = (
+        f"HTTP {endpoint_success_status(function)} success response"
+    )
     relative = api_dir.relative_to(api_root)
     domain, api = relative.parts
     return ApiUnitTestFactors(
@@ -570,11 +606,26 @@ def product_cases(factors: tuple[TestFactor, ...]) -> list[TestCase]:
         return []
     cases: list[TestCase] = []
 
+    def parent_selected(factor: TestFactor, selected: list[FactorElement | None]) -> bool:
+        if factor.parent is None:
+            return True
+        parent_id, parent_key = factor.parent
+        parent_index = next(i for i, item in enumerate(factors) if item.factor_id == parent_id)
+        element = selected[parent_index]
+        return element is not None and element.key == parent_key
+
+    def outside_parent(factor: TestFactor, selected: list[FactorElement | None]) -> bool:
+        """親分岐が選ばれていない入れ子の要因と、親分岐の外側の要因を区別する。"""
+        return factor.parent is not None and not parent_selected(factor, selected)
+
     def append_cases(index: int, selected: list[FactorElement | None]) -> None:
         if index >= len(factors):
             cases.append(tuple(selected))
             return
         factor = factors[index]
+        if outside_parent(factor, selected):
+            append_cases(index + 1, [*selected, None])
+            return
         for element in factor.elements:
             next_selected = [*selected, element]
             if element.terminal:

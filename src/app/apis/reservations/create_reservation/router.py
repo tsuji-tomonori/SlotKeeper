@@ -74,7 +74,7 @@ async def create_reservation(
                 )
             return await api_functions.build_replayed_reservation_response(idempotency_record)
         validated_request = await api_functions.validate_booking_request(request, clock)
-        resource = await api_functions.get_locked_resource(validated_request.resource_id, session)
+        resource = await api_functions.update_resource_control_version(validated_request.resource_id, session)
         if not await api_functions.is_active_resource(resource):
             return await api_functions.build_resource_inactive_response(
                 request,

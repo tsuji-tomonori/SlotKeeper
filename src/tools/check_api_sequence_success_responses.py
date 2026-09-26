@@ -7,6 +7,26 @@ from pathlib import Path
 
 SUCCESS_RESPONSE_PATTERN = re.compile(r"API-->>User:\s+HTTP\s+2\d\d\b")
 NORMAL_ACTION_PATTERN = re.compile(r"API->>(?:API|DB|R_[A-Za-z0-9_]+):")
+ERROR_RESPONSE_PATTERN = re.compile(r"API-->>User:\s+HTTP\s+[45]\d\d\b")
+ALT_START_PATTERN = re.compile(r"^\s*alt\b")
+BLOCK_END_PATTERN = re.compile(r"^\s*end\s*$")
+
+
+def error_branch_lines(lines: list[str]) -> set[int]:
+    """エラー応答だけで終わるalt block内の行番号を返す。"""
+    stack: list[int] = []
+    error_lines: set[int] = set()
+    for index, line in enumerate(lines, start=1):
+        if ALT_START_PATTERN.match(line):
+            stack.append(index)
+        elif BLOCK_END_PATTERN.match(line) and stack:
+            start = stack.pop()
+            block = lines[start - 1 : index]
+            if any(ERROR_RESPONSE_PATTERN.search(item) for item in block) and not any(
+                SUCCESS_RESPONSE_PATTERN.search(item) for item in block
+            ):
+                error_lines.update(range(start, index + 1))
+    return error_lines
 
 
 @dataclass(frozen=True, order=True)
@@ -34,8 +54,11 @@ def check_api_sequence_success_responses(
                 )
             )
             continue
+        excluded = error_branch_lines(lines)
         action_lines = [
-            index for index, line in enumerate(lines, start=1) if NORMAL_ACTION_PATTERN.search(line)
+            index
+            for index, line in enumerate(lines, start=1)
+            if NORMAL_ACTION_PATTERN.search(line) and index not in excluded
         ]
         if action_lines and max(success_lines) <= max(action_lines):
             issues.append(

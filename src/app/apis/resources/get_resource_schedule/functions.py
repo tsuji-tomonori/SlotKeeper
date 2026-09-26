@@ -95,6 +95,7 @@ async def get_resource_bookings(
     return raise_missing_runtime_dependency("get_resource_bookings")
 
 
+# @resource-free
 async def apply_pagination(
     bookings: SequencePage[ScheduleReservationResponse],
     query: GetResourceScheduleQuery,

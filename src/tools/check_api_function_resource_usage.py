@@ -9,15 +9,7 @@ from pathlib import Path
 RESOURCE_FREE_MARKER = "@resource-free"
 RESOURCE_FREE_EXACT_NAMES = frozenset({"get_caller_identity"})
 RESOURCE_FREE_PREFIXES = ("is_", "has_", "validate_", "build_", "merge_")
-RESOURCE_PARAMETER_NAMES = frozenset(
-    {
-        "api_gateway",
-        "api_gateway_control",
-        "identity_admin",
-        "secret_values",
-        "secrets_manager",
-    }
-)
+RESOURCE_PARAMETER_NAMES = frozenset({"access_token_verifier"})
 
 
 @dataclass(frozen=True, order=True)

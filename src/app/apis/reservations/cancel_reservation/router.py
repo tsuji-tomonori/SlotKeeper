@@ -75,7 +75,7 @@ async def cancel_reservation(
                 request,
                 caller,
             )
-        await api_functions.get_locked_resource(reservation, session)
+        await api_functions.update_resource_control_version(reservation, session)
         if not await api_functions.is_current_reservation_version(reservation, request):
             return await api_functions.build_stale_reservation_version_response(
                 reservation_id,

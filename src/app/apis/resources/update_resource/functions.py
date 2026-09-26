@@ -34,7 +34,7 @@ async def has_resource_management_permission(caller: CallerIdentity) -> bool:
     return IdentityGroup.ADMIN in caller.groups
 
 
-async def get_locked_resource(
+async def update_resource_control_version(
     resource_id: ResourceId,
     session: AsyncSession | None = None,
 ) -> ResourceRef:
@@ -55,7 +55,7 @@ async def get_locked_resource(
             active=row.active,
             row_version=row.row_version,
         )
-    return raise_missing_runtime_dependency("get_locked_resource")
+    return raise_missing_runtime_dependency("update_resource_control_version")
 
 
 async def is_current_resource_version(

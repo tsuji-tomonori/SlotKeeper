@@ -123,7 +123,7 @@ def _router_error_contract(root: Path, api_root: Path, api_ref: str) -> MessageD
         if current_ref != api_ref:
             continue
         for message in catalog.messages:
-            if message.message_id.endswith(".router_error"):
+            if message.message_id.endswith((".router_error", ".router_api_function_error")):
                 return message
         return None
     return None

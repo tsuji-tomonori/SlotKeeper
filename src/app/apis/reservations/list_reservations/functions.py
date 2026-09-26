@@ -80,6 +80,7 @@ async def get_own_reservations(
     return raise_missing_runtime_dependency("get_own_reservations")
 
 
+# @resource-free
 async def apply_pagination(
     reservations: SequencePage[ReservationItemResponse],
     query: ListReservationsQuery,

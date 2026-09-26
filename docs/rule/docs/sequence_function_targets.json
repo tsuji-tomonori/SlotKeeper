@@ -1,0 +1,65 @@
+{
+  "description": "Mermaid sequence variable generation に利用できる sequence-level function の target 語彙です。",
+  "entries": [
+    {
+      "name": "booking_request",
+      "description": "予約作成リクエストの時刻・長さ・刻み・日付を対象にします。"
+    },
+    {
+      "name": "expired_idempotency_record",
+      "description": "有効期限を過ぎた予約作成要求の成功記録を対象にします。"
+    },
+    {
+      "name": "idempotency_record",
+      "description": "利用者とIdempotency-Keyに紐づく予約作成要求の成功記録を対象にします。"
+    },
+    {
+      "name": "own_reservations",
+      "description": "呼び出し元本人が予約者である予約一覧を対象にします。"
+    },
+    {
+      "name": "pagination",
+      "description": "一覧結果へ上限件数と継続tokenを適用するページングを対象にします。"
+    },
+    {
+      "name": "reservation",
+      "description": "予約の主レコードを対象にします。"
+    },
+    {
+      "name": "reservation_cancelled_event",
+      "description": "予約取消の履歴イベントを対象にします。"
+    },
+    {
+      "name": "reservation_created_event",
+      "description": "予約作成の履歴イベントを対象にします。"
+    },
+    {
+      "name": "reservation_events",
+      "description": "予約の作成・取消の履歴一覧を対象にします。"
+    },
+    {
+      "name": "reservation_owner",
+      "description": "予約者として初めて記録する利用者を対象にします。"
+    },
+    {
+      "name": "reservation_status",
+      "description": "予約の状態と版を対象にします。"
+    },
+    {
+      "name": "resource",
+      "description": "予約対象の資源の主レコードを対象にします。"
+    },
+    {
+      "name": "resource_bookings",
+      "description": "資源の指定日に重なる確定予約一覧を対象にします。"
+    },
+    {
+      "name": "resource_control_version",
+      "description": "同一資源の予約作成・取消・無効化を競合させる資源の内部制御版を対象にします。"
+    },
+    {
+      "name": "resources",
+      "description": "予約対象の資源一覧を対象にします。"
+    }
+  ]
+}
