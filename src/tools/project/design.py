@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import argparse
 import ast
-import importlib
+import importlib.util
 import json
 import os
 import re
@@ -19,6 +19,7 @@ import tempfile
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -437,15 +438,68 @@ def crud_model() -> dict[str, Any]:
     }
 
 
-def crud_renderings(model: dict[str, Any]) -> dict[str, bytes]:
-    """dev-standardの共通検査器と同じ射影でCSV・表・図・根拠を作る。"""
-    sys.path.insert(0, str(SKILL_SCRIPTS))
-    try:
-        module = importlib.import_module("check_design")
-    finally:
-        sys.path.remove(str(SKILL_SCRIPTS))
+def load_design_checker() -> ModuleType:
+    """共通検査器を独立したmoduleとして読み、他の呼出しへの変更の波及を防ぐ。"""
+    spec = importlib.util.spec_from_file_location(
+        "slotkeeper_design_checker", SKILL_SCRIPTS / "check_design.py"
+    )
+    if spec is None or spec.loader is None:
+        raise ValueError("設計の共通検査器を読み込めない")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def common_crud_renderings(model: dict[str, Any]) -> dict[str, bytes]:
+    """共通モデルの検証とCSV・縦持ち表・根拠の射影を維持する。"""
+    module = load_design_checker()
     render: Callable[[dict[str, Any]], dict[str, bytes]] = module.__dict__["crud_renderings"]
     return render(model)
+
+
+def crud_summaries(openapi: dict[str, Any]) -> dict[str, str]:
+    """OpenAPIのoperationIdとsummaryを対応付ける。欠落は描画時に拒否する。"""
+    from tools.generate_openapi_if_specs import iter_operations
+
+    return {
+        operation["operationId"]: operation["summary"]
+        for _path, _method, operation in iter_operations(openapi)
+        if isinstance(operation.get("summary"), str) and operation["summary"].strip()
+    }
+
+
+def crud_diagram(model: dict[str, Any], summaries: Mapping[str, str]) -> str:
+    """API和名×保存先の表を、operationId・保存先名・CRUDの固定順で描画する。"""
+    missing = sorted(set(model["operations"]) - summaries.keys())
+    if missing:
+        raise ValueError("CRUDのAPI和名がOpenAPI summaryにない: " + ", ".join(missing))
+    resources = sorted({row["resource"] for row in model["rows"]})
+    cells = {
+        (row["operation"], row["resource"]): "".join(c for c in "CRUD" if c in row["access"])
+        for row in model["rows"]
+    }
+    return (
+        "# API×保存先 CRUDマトリクス\n\n"
+        "行はOpenAPI summaryのAPI和名（operationId順）、列は保存先の完全名順。\n"
+        "DBテーブルはschema付き名、DB以外のidentity保存先も列に含める。\n"
+        "C: 作成、R: 参照、U: 更新、D: 削除。空欄はアクセスなし。\n\n"
+        + table(
+            ["API和名", *resources],
+            [
+                [summaries[op], *(cells.get((op, resource), "") for resource in resources)]
+                for op in sorted(model["operations"])
+            ],
+        )
+    )
+
+
+def crud_renderings(model: dict[str, Any]) -> dict[str, bytes]:
+    """共通モデルの検証・射影に、実OpenAPI由来の和名マトリクスを接続する。"""
+    from tools.generate_openapi_if_specs import load_fastapi_openapi
+
+    rendered = common_crud_renderings(model)
+    rendered["diagram"] = crud_diagram(model, crud_summaries(load_fastapi_openapi())).encode()
+    return rendered
 
 
 CRUD_FILES = {
@@ -472,7 +526,7 @@ def render_crud() -> dict[str, str]:
         "lazunex形式のAPI×DB CRUD表は`db_crud.gen.csv`、API×identity CRUD表は"
         "`identity_crud.gen.csv`に出力する。\n\n"
         f"- [API×保存先 CRUD（dev-standard射影）]({CRUD_MODEL_DIR}/matrix.md)\n"
-        f"- [CRUD図]({CRUD_MODEL_DIR}/diagram.md)\n"
+        f"- [CRUD図（API和名×保存先マトリクス）]({CRUD_MODEL_DIR}/diagram.md)\n"
     )
     return files
 
@@ -823,6 +877,7 @@ CAPABILITIES = (
         render_crud,
         (
             "src/app/apis",
+            "src/tools/project/design.py",
             "src/db/ddl.sql",
             "src/tools/generate_db_crud.py",
             "src/tools/generate_external_crud.py",

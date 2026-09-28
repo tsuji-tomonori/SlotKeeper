@@ -406,6 +406,13 @@
 | tests/tools/test_project_design.py::test_crud_rows_split_read_and_write_evidence | Given 同じ保存先への読取りと更新 When CRUDを集約 Then 1rowでread/writeの根拠を分ける。 | TECH-DESIGN-AC |
 | tests/tools/test_project_design.py::test_crud_model_matches_common_projection | Given 実装のSQLとrouter依存 When CRUD modelを生成 Then 全operationが根拠つきで射影できる。 | TECH-DESIGN-AC |
 | tests/tools/test_project_design.py::test_sql_target_change_changes_crud_projection | Given 生成済みCRUD When SQLの更新先が変わる Then CRUD model・表・CSVが変化する。 | TECH-DESIGN-AC |
+| tests/tools/test_project_design.py::test_crud_diagram_uses_openapi_summaries_and_storage_columns | Given 実APIと保存先 When CRUD図を生成 Then 和名の行・完全名の列・CRUDセルと空欄を出力する。 | TECH-CRUD-AC |
+| tests/tools/test_project_design.py::test_crud_diagram_tracks_summary_changes | Given OpenAPI summaryの変更 When CRUD図を再生成 Then ハードコードせず変更した和名を反映する。 | TECH-CRUD-AC |
+| tests/tools/test_project_design.py::test_crud_diagram_rejects_missing_summary | Given summaryの欠落または空白 When CRUD図を生成 Then operationIdで代用せずエラーにする。 | TECH-CRUD-AC |
+| tests/tools/test_project_design.py::test_crud_diagram_orders_axes_and_cells_and_preserves_no_access | Given 逆順のモデルと同じ和名のAPI When 表を2回生成 Then byte一致しAPIごとの行とアクセスなしを保つ。 | TECH-CRUD-AC |
+| tests/tools/test_project_design.py::test_crud_capability_is_deterministic | Given 同じSQL・router・OpenAPI When CRUDを2回生成 Then 全生成物のbyte集合が一致する。 | TECH-CRUD-AC |
+| tests/tools/test_project_design.py::test_crud_contract_rejects_rendering_drift | Given CRUDの各帳票の手編集 When repository契約で照合 Then 図の形式変更後も不一致を拒否する。 | TECH-CRUD-AC |
+| tests/tools/test_project_design.py::test_crud_contract_rejects_stale_summary_and_invalid_model | Given 和名のdriftまたは未解決アクセス When 図を契約検査 Then 検査対象のOpenAPIとモデルを照合して拒否する。 | TECH-CRUD-AC |
 | tests/tools/test_project_design.py::test_database_model_marks_logical_references | Given DSQL向けの論理FK When DB探索modelを生成 Then アプリ保証の参照として区別する。 | TECH-DESIGN-AC |
 | tests/tools/test_project_design.py::test_frontend_without_menu_is_unsupported | Given メインメニューのない画面 When 画面設計を生成 Then 未対応として拒否する。 | TECH-DESIGN-AC |
 | tests/tools/test_project_design.py::test_trace_rejects_missing_and_unknown_tests | Given 受入条件に対応するテスト When テスト欠落・未知タグ Then 要件traceの欠落として拒否する。 | TECH-DESIGN-AC |
@@ -429,4 +436,5 @@
 | vitest::Cognitoのログアウト先 [COM-01-AC] | Cognitoのログアウト先 | COM-01-AC |
 | playwright::ログインから予約・履歴・取消・ログアウトまで [COM-01-AC] [SLOT-AC01] [SLOT-02-AC] [SLOT-07-AC] [SLOT-AC04] | ログインから予約・履歴・取消・ログアウトまで | COM-01-AC, SLOT-AC01, SLOT-02-AC, SLOT-07-AC, SLOT-AC04 |
 | playwright::一般利用者に資源管理を表示しない [COM-01-AC] [COM-04-AC] | 一般利用者に資源管理を表示しない | COM-01-AC, COM-04-AC |
+| playwright::CRUD図でAPI和名と保存先のマトリクスを読む [TECH-PORTAL-AC] | CRUD図でAPI和名と保存先のマトリクスを読む | TECH-PORTAL-AC |
 | playwright::階層検索から設計図とDB探索へ移動する [TECH-PORTAL-AC] | 階層検索から設計図とDB探索へ移動する | TECH-PORTAL-AC |

@@ -656,6 +656,7 @@
       ],
       "sources": [
         "src/app/apis",
+        "src/tools/project/design.py",
         "src/db/ddl.sql",
         "src/tools/generate_db_crud.py",
         "src/tools/generate_external_crud.py"

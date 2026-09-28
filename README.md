@@ -60,8 +60,10 @@ uv run python -m tools.rulecheck verify --repo-root . --rules-dir docs/rule/codi
   --checklist docs/rule/coding/12_review_checklist.generated.md --config config/rulecheck_config.example.json
 uv run python -m tools.project.rulecheck_gate   # MUST規約。既知負債はconfig/rulecheck_baseline.json
 uv run python -B src/tools/project/design.py --manifest --check
-python .agents/skills/generate-implementation-design/scripts/check_design.py --root .
+uv run python -m tools.project.design_contract --root .
 ```
+
+`design_contract`はCRUD図のAPI和名×保存先マトリクスを照合し、共通検査器のモデル・根拠・drift・2回クリーン生成の検査を実行します。vendored scriptは変更せず、図の表示形式だけをrepository側で適応しています。
 
 生成物を更新するときは `uv run app-codegen all`、`uv run app-docs generate`、`uv run python -B src/tools/project/design.py --target all --manifest` の順に実行します（Composeでは `verify --generate-design`）。
 

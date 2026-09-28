@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import ast
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from tools.project import design
+from tools.project import design, design_contract
 
 
 def test_data_capability_is_deterministic() -> None:
@@ -131,6 +132,132 @@ def test_sql_target_change_changes_crud_projection(monkeypatch: pytest.MonkeyPat
 
     assert changed["csv"] != baseline["csv"]
     assert changed["table"] != baseline["table"]
+    assert changed["diagram"] != baseline["diagram"]
+
+
+def test_crud_diagram_uses_openapi_summaries_and_storage_columns() -> None:
+    """Given 実APIと保存先 When CRUD図を生成 Then 和名の行・完全名の列・CRUDセルと空欄を出力する。 [TECH-CRUD-AC]"""
+    model = design.crud_model()
+    diagram = design.crud_renderings(model)["diagram"].decode()
+    lines = [line for line in diagram.splitlines() if line.startswith("|")]
+    cells = [[cell.strip() for cell in line.strip("|").split("|")] for line in lines]
+
+    assert cells[0] == [
+        "API和名",
+        "identity.jwks_signing_key",
+        "slotkeeper.idempotency_records",
+        "slotkeeper.reservation_events",
+        "slotkeeper.reservations",
+        "slotkeeper.resources",
+        "slotkeeper.users",
+    ]
+    assert len(cells[2:]) == len(model["operations"]) == 8
+    assert cells[3] == ["予約を作成する", "R", "CRD", "C", "CR", "U", "C"]
+    assert cells[4] == ["資源を登録する", "R", "", "", "", "C", ""]
+    assert "createReservation" not in diagram
+    assert "flowchart" not in diagram
+
+
+def test_crud_diagram_tracks_summary_changes(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Given OpenAPI summaryの変更 When CRUD図を再生成 Then ハードコードせず変更した和名を反映する。 [TECH-CRUD-AC]"""
+    from tools import generate_openapi_if_specs
+
+    schema = generate_openapi_if_specs.load_fastapi_openapi()
+    for _path, _method, operation in generate_openapi_if_specs.iter_operations(schema):
+        if operation["operationId"] == "createReservation":
+            operation["summary"] = "新しい予約名|注記\n次行"
+    monkeypatch.setattr(generate_openapi_if_specs, "load_fastapi_openapi", lambda: schema)
+
+    diagram = design.crud_renderings(design.crud_model())["diagram"].decode()
+
+    assert "| 新しい予約名\\|注記<br>次行 | R | CRD |" in diagram
+    assert "予約を作成する" not in diagram
+
+
+@pytest.mark.parametrize("summary", [None, "", " "])
+def test_crud_diagram_rejects_missing_summary(summary: str | None) -> None:
+    """Given summaryの欠落または空白 When CRUD図を生成 Then operationIdで代用せずエラーにする。 [TECH-CRUD-AC]"""
+    schema = {"paths": {"/items": {"get": {"operationId": "op", "summary": summary}}}}
+    with pytest.raises(ValueError, match="OpenAPI summaryにない: op"):
+        design.crud_diagram({"operations": ["op"], "rows": []}, design.crud_summaries(schema))
+
+
+def test_crud_diagram_orders_axes_and_cells_and_preserves_no_access() -> None:
+    """Given 逆順のモデルと同じ和名のAPI When 表を2回生成 Then byte一致しAPIごとの行とアクセスなしを保つ。 [TECH-CRUD-AC]"""
+    model: dict[str, Any] = {
+        "operations": ["zRead", "aWrite", "bEmpty"],
+        "rows": [
+            {"operation": "zRead", "resource": "z.table", "access": ["R"]},
+            {"operation": "aWrite", "resource": "a.table", "access": ["D", "C", "R"]},
+        ],
+        "no_access": {"bEmpty": "保存先を使用しない"},
+    }
+    summaries = {"zRead": "同じ和名", "aWrite": "同じ和名", "bEmpty": "稼働確認"}
+    first = design.crud_diagram(model, summaries).encode()
+    reordered = deepcopy(model)
+    reordered["operations"].reverse()
+    reordered["rows"].reverse()
+    reordered["rows"][0]["access"].reverse()
+
+    assert design.crud_diagram(reordered, summaries).encode() == first
+    assert first.decode().endswith(
+        "| API和名 | a.table | z.table |\n|---|---|---|\n"
+        "| 同じ和名 | CRD |  |\n| 稼働確認 |  |  |\n| 同じ和名 |  | R |\n"
+    )
+
+
+def test_crud_capability_is_deterministic() -> None:
+    """Given 同じSQL・router・OpenAPI When CRUDを2回生成 Then 全生成物のbyte集合が一致する。 [TECH-CRUD-AC]"""
+    first = design.rendered_files(design.CAPABILITY_BY_NAME["crud"])
+    second = design.rendered_files(design.CAPABILITY_BY_NAME["crud"])
+
+    assert {path: body.encode() for path, body in first.items()} == {
+        path: body.encode() for path, body in second.items()
+    }
+
+
+@pytest.mark.parametrize("kind", ["diagram", "csv", "table", "evidence"])
+def test_crud_contract_rejects_rendering_drift(kind: str) -> None:
+    """Given CRUDの各帳票の手編集 When repository契約で照合 Then 図の形式変更後も不一致を拒否する。 [TECH-CRUD-AC]"""
+    data = json.loads(design.MANIFEST.read_text())
+    output = {
+        path: (design.ROOT / path).read_bytes()
+        for cap in data["capabilities"].values()
+        for path in cap["outputs"]
+    }
+    checker = design.load_design_checker()
+    original = dict(output)
+    projected = design_contract.common_projection(design.ROOT, data, output)
+    checker.validate_outputs(design.ROOT, data, projected)
+    assert output == original
+    assert {path for path in output if output[path] != projected[path]} == {data["crud"]["diagram"]}
+
+    output[data["crud"][kind]] += b"manual edit\n"
+    with pytest.raises(ValueError, match=f"CRUD {kind} differs"):
+        projected = design_contract.common_projection(design.ROOT, data, output)
+        checker.validate_outputs(design.ROOT, data, projected)
+
+
+def test_crud_contract_rejects_stale_summary_and_invalid_model() -> None:
+    """Given 和名のdriftまたは未解決アクセス When 図を契約検査 Then 検査対象のOpenAPIとモデルを照合して拒否する。 [TECH-CRUD-AC]"""
+    from tools.generate_openapi_if_specs import load_fastapi_openapi
+
+    model = design.crud_model()
+    data = {"crud": {"model": "model.json", "diagram": "diagram.md"}, "api": {"root": "api"}}
+    output = {
+        "model.json": design.dump(model).encode(),
+        "diagram.md": design.crud_renderings(model)["diagram"],
+        "api/openapi.json": design.dump(load_fastapi_openapi()).encode(),
+    }
+    output["api/openapi.json"] = output["api/openapi.json"].replace(
+        "予約を作成する".encode(), "予約を新規作成する".encode()
+    )
+    with pytest.raises(ValueError, match="CRUD diagram differs"):
+        design_contract.common_projection(design.ROOT, data, output)
+    model["unresolved"] = ["unknown"]
+    output["model.json"] = design.dump(model).encode()
+    with pytest.raises(ValueError, match="unresolved CRUD"):
+        design_contract.common_projection(design.ROOT, data, output)
 
 
 def test_database_model_marks_logical_references() -> None:

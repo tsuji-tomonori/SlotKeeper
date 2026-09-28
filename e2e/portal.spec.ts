@@ -19,6 +19,53 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ response });
   });
 });
+test("CRUD図でAPI和名と保存先のマトリクスを読む [TECH-PORTAL-AC]", async ({
+  page,
+}, info) => {
+  await page.goto(
+    (remote ?? "/site/").replace(/\/$/, "") + "/design/30.crud/index/",
+  );
+  await stage(page, info, "Given");
+  await page
+    .getByRole("link", {
+      name: "CRUD図（API和名×保存先マトリクス）",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "API×保存先 CRUDマトリクス" }),
+  ).toBeVisible();
+  await stage(page, info, "When");
+  const table = page.locator(".markdown table");
+  await expect(table.getByRole("columnheader")).toHaveText([
+    "API和名",
+    "identity.jwks_signing_key",
+    "slotkeeper.idempotency_records",
+    "slotkeeper.reservation_events",
+    "slotkeeper.reservations",
+    "slotkeeper.resources",
+    "slotkeeper.users",
+  ]);
+  await expect(table.locator("tbody tr")).toHaveCount(8);
+  await expect(
+    table
+      .getByRole("row")
+      .filter({ hasText: "予約を作成する" })
+      .getByRole("cell"),
+  ).toHaveText(["予約を作成する", "R", "CRD", "C", "CR", "U", "C"]);
+  await expect(
+    table
+      .getByRole("row")
+      .filter({ hasText: "資源を登録する" })
+      .getByRole("cell"),
+  ).toHaveText(["資源を登録する", "R", "", "", "", "C", ""]);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await stage(page, info, "Then");
+});
 test("階層検索から設計図とDB探索へ移動する [TECH-PORTAL-AC]", async ({
   page,
 }, info) => {

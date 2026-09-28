@@ -32,7 +32,7 @@
 | <code>"TECH-LAMBDA"</code> | 2 | 有効 | 制約 | SlotKeeperは、依存を含むLinux用Lambda ZIPを作成するを**提供する**（<code>"provide"</code>） | test |
 | <code>"TECH-INFRA"</code> | 2 | 有効 | 制約 | SlotKeeperは、Python CDKで常設サーバーを持たない構成を合成するを**提供する**（<code>"provide"</code>） | test |
 | <code>"TECH-COMPOSE"</code> | 2 | 有効 | 制約 | SlotKeeperは、GitとDocker Composeだけで起動と全検証を行えるを**提供する**（<code>"provide"</code>） | check |
-| <code>"TECH-DESIGN"</code> | 2 | 有効 | 制約 | SlotKeeperは、実装から6帳票、DB、CRUD、画面、infraを決定的に生成するを**提供する**（<code>"provide"</code>） | test |
+| <code>"TECH-DESIGN"</code> | 3 | 有効 | 制約 | SlotKeeperは、実装から6帳票、DB、CRUD、画面、infraを決定的に生成するを**提供する**（<code>"provide"</code>） | test |
 | <code>"TECH-PORTAL"</code> | 2 | 有効 | 制約 | SlotKeeperは、同一revisionとrunの実測結果と設計をPagesへ集約するを**提供する**（<code>"provide"</code>） | test |
 | <code>"TECH-PERF"</code> | 2 | 有効 | 制約 | SlotKeeperは、指定負荷とデータ量でAPI別の性能を測定するを**提供する**（<code>"provide"</code>） | check |
 | <code>"TECH-QUALITY"</code> | 2 | 有効 | 制約 | SlotKeeperは、型、lint、実DB、ブラウザ、負例検査の失敗を隠さないを**提供する**（<code>"provide"</code>） | test |
@@ -786,21 +786,23 @@ SlotKeeperは、実装から6帳票、DB、CRUD、画面、infraを決定的に�
 根拠: 利用者が指定した初回受入の永続義務
 根拠(JSON): <code>"利用者が指定した初回受入の永続義務"</code>
 
-項目版: 2 / 状態: `active` / 種別: `constraint`
-変更識別子: <code>"lazunex-alignment"</code>
+項目版: 3 / 状態: `active` / 種別: `constraint`
+変更識別子: <code>"crud-matrix-api-by-table"</code>
 分類: scope=<code>"project"</code> / category=<code>"nonfunctional"</code>
 
 受入条件:
 - <code>"TECH-DESIGN-AC"</code> 前提: 実装source・SQL・CDKがある。条件: 設計を2回クリーン生成し、既存生成物と比較する。期待結果: byte一致し、欠落・変更・余剰・未対応構文・要件traceの欠落を非0で報告する。
   - criterion(JSON Object): <code>{"given":"実装source・SQL・CDKがある","id":"TECH-DESIGN-AC","then":"byte一致し、欠落・変更・余剰・未対応構文・要件traceの欠落を非0で報告する","when":"設計を2回クリーン生成し、既存生成物と比較する"}</code>
+- <code>"TECH-CRUD-AC"</code> 前提: APIのOpenAPI summaryと保存先アクセスの実装がある。条件: CRUD図を生成する。期待結果: 既存正本から取得したAPI和名を行、保存先を列、CRUD文字列をセルとするマトリクスを決定的に生成し、アクセスなしは空欄にする。
+  - criterion(JSON Object): <code>{"given":"APIのOpenAPI summaryと保存先アクセスの実装がある","id":"TECH-CRUD-AC","then":"既存正本から取得したAPI和名を行、保存先を列、CRUD文字列をセルとするマトリクスを決定的に生成し、アクセスなしは空欄にする","when":"CRUD図を生成する"}</code>
 
 要求源(JSON List): <code>["IMPLEMENTATION_REQUEST.md"]</code>
 検証方法: test
 検証証跡: 品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する
 検証(JSON Object): <code>{"evidence":"品質ポータルのテスト結果。テスト説明の[受入条件ID]と実collector IDを設計生成器が照合する","method":"test"}</code>
 トレース(JSON List、順序保持):
-- 設計: <code>["docs/spec/40.apis/report.json"]</code>
-- 実装: <code>["src/tools/project/design.py",".dev-standard/design.json"]</code>
+- 設計: <code>["docs/spec/40.apis/report.json","docs/spec/30.crud/dev-standard/diagram.md"]</code>
+- 実装: <code>["src/tools/project/design.py","src/tools/project/design_contract.py",".dev-standard/design.json"]</code>
 - テスト: <code>["tests/tools/test_project_design.py","tests/tools/test_project_evidence.py"]</code>
 - 参照資料: <code>["dev-standard@5788b8671a74d08a230ade5d25c4719335cd7f71"]</code>
 廃止理由: <code>""</code>

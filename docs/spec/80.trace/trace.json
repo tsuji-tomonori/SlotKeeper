@@ -426,10 +426,26 @@
   },
   {
     "checks": [],
+    "criterion": "TECH-CRUD-AC",
+    "gwt": "Given APIのOpenAPI summaryと保存先アクセスの実装がある When CRUD図を生成する Then 既存正本から取得したAPI和名を行、保存先を列、CRUD文字列をセルとするマトリクスを決定的に生成し、アクセスなしは空欄にする",
+    "requirement": "TECH-DESIGN",
+    "tests": [
+      "tests/tools/test_project_design.py::test_crud_diagram_uses_openapi_summaries_and_storage_columns",
+      "tests/tools/test_project_design.py::test_crud_diagram_tracks_summary_changes",
+      "tests/tools/test_project_design.py::test_crud_diagram_rejects_missing_summary",
+      "tests/tools/test_project_design.py::test_crud_diagram_orders_axes_and_cells_and_preserves_no_access",
+      "tests/tools/test_project_design.py::test_crud_capability_is_deterministic",
+      "tests/tools/test_project_design.py::test_crud_contract_rejects_rendering_drift",
+      "tests/tools/test_project_design.py::test_crud_contract_rejects_stale_summary_and_invalid_model"
+    ]
+  },
+  {
+    "checks": [],
     "criterion": "TECH-PORTAL-AC",
     "gwt": "Given 同一revision・runの検査結果と生成設計がある When ポータルをbuildしブラウザで検証する Then 階層・検索・図の拡大・DB探索・深いリンク・390px表示が動作する",
     "requirement": "TECH-PORTAL",
     "tests": [
+      "playwright::CRUD図でAPI和名と保存先のマトリクスを読む [TECH-PORTAL-AC]",
       "playwright::階層検索から設計図とDB探索へ移動する [TECH-PORTAL-AC]"
     ]
   },
