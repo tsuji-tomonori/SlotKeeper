@@ -1,0 +1,9 @@
+api,jwks_signing_key
+cancel_reservation,R
+create_reservation,R
+create_resource,R
+get_reservation,R
+get_resource_schedule,R
+list_reservations,R
+list_resources,R
+update_resource,R

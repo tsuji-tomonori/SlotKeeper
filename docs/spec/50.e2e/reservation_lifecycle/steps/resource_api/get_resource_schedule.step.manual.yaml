@@ -1,0 +1,15 @@
+schema_version: 1
+
+step:
+  id: resource_get_resource_schedule
+  title: 予約表取得APIを呼び出す
+  phase: evidence
+  operation_id: getResourceSchedule
+  endpoint: GET /resources/${resourceId}/schedule
+
+request:
+  source: components/reservation_visibility/data.manual.yaml#schedule_view.request
+
+expect:
+  response:
+    status: 200

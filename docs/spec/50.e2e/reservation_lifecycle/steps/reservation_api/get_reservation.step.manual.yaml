@@ -1,0 +1,15 @@
+schema_version: 1
+
+step:
+  id: reservation_get_reservation
+  title: 予約詳細APIを呼び出す
+  phase: evidence
+  operation_id: getReservation
+  endpoint: GET /reservations/${reservationId}
+
+request:
+  source: components/reservation_visibility/data.manual.yaml#owner_view.request
+
+expect:
+  response:
+    status: ${result.expected_status}

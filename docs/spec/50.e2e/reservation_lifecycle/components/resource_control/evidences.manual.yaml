@@ -1,0 +1,23 @@
+schema_version: 1
+
+evidences:
+  - id: resource_inactive_listed
+    title: 資源一覧でactive=falseとして表示される
+    collector:
+      step: steps/resource_api/list_resources.step.manual.yaml
+    ok_condition: ${resource.id} がactive=false、versionが1増えた状態で表示される。
+    save_as: ${case.id}_E_resource_inactive_${resource.id}.json
+
+  - id: future_reservation_response
+    title: 未来予約ありの無効化拒否レスポンスを確認する
+    collector:
+      step: steps/resource_api/update_resource.step.manual.yaml
+    ok_condition: HTTP 409、error.details[0].reason=future_reservations_exist を返し、資源はactive=trueのまま。
+    save_as: ${case.id}_E_future_reservation_${resource.id}.json
+
+  - id: stale_resource_version_response
+    title: 古い版での資源編集拒否レスポンスを確認する
+    collector:
+      step: steps/resource_api/update_resource.step.manual.yaml
+    ok_condition: HTTP 409、error.details[0].reason=stale_version を返し、資源はactive=trueのまま。
+    save_as: ${case.id}_E_stale_resource_version_${resource.id}.json

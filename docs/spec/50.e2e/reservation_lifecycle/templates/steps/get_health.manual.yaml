@@ -1,0 +1,11 @@
+schema_version: 1
+template:
+  id: get_health
+  operation_id: health
+  method: GET
+  path: /health
+request:
+  headers: {}
+assertions:
+  - response.status == 200
+  - response.body.status == "ok"

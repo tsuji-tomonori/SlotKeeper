@@ -32,23 +32,23 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Endpoint
-     * @description 本人の予約だけを日本時間の日付と状態で絞り固定順で返す。
+     * 自分の予約一覧を取得する
+     * @description 呼び出し元本人の予約だけを日本時間の日付・状態で絞り込み、開始日時とIDの順に取得します。
      */
-    get: operations["reservations_list"];
+    get: operations["listReservations"];
     put?: never;
     /**
-     * Endpoint
-     * @description 再送照合を新規時刻検証より先に行い、commit後だけ成功応答を返す。
+     * 予約を作成する
+     * @description 資源・開始・終了・目的を指定して自分名義の予約を作成します。同じIdempotency-Keyの再送には24時間、元の作成応答を返します。
      */
-    post: operations["reservations_create"];
+    post: operations["createReservation"];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  "/reservations/{reservation_id}": {
+  "/reservations/{reservationId}": {
     parameters: {
       query?: never;
       header?: never;
@@ -56,10 +56,10 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Endpoint
-     * @description 権限のある予約に限って操作履歴を含む詳細を返す。
+     * 予約詳細を取得する
+     * @description 予約者本人または管理者に限り、予約の詳細と作成・取消の履歴を取得します。
      */
-    get: operations["reservations_get"];
+    get: operations["getReservation"];
     put?: never;
     post?: never;
     delete?: never;
@@ -68,7 +68,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/reservations/{reservation_id}/cancel": {
+  "/reservations/{reservationId}/cancel": {
     parameters: {
       query?: never;
       header?: never;
@@ -78,10 +78,10 @@ export interface paths {
     get?: never;
     put?: never;
     /**
-     * Endpoint
-     * @description 所有者、公開版、状態と開始時刻を検査して取消と履歴を確定する。
+     * 予約を取消す
+     * @description 予約者本人または管理者が、開始前の確定予約を版つきで取消します。取消と取消履歴は同じtransactionで確定します。
      */
-    post: operations["reservations_cancel"];
+    post: operations["cancelReservation"];
     delete?: never;
     options?: never;
     head?: never;
@@ -96,23 +96,23 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Endpoint
-     * @description 認証済み利用者へ固定順とページ単位で資源を返す。
+     * 資源一覧を取得する
+     * @description 予約できる会議室と備品を、名前とIDの固定順でページ単位に取得します。
      */
-    get: operations["resources_list"];
+    get: operations["listResources"];
     put?: never;
     /**
-     * Endpoint
-     * @description 管理者権限を確認して新しい資源を登録する。
+     * 資源を登録する
+     * @description 管理者が会議室または備品を有効な状態で登録します。
      */
-    post: operations["resources_create"];
+    post: operations["createResource"];
     delete?: never;
     options?: never;
     head?: never;
     patch?: never;
     trace?: never;
   };
-  "/resources/{resource_id}": {
+  "/resources/{resourceId}": {
     parameters: {
       query?: never;
       header?: never;
@@ -121,10 +121,10 @@ export interface paths {
     };
     get?: never;
     /**
-     * Endpoint
-     * @description 内部版で予約と競合し、公開版と将来予約を検査して編集を確定する。
+     * 資源を編集する
+     * @description 管理者が資源の名前・説明・種別・有効状態を公開版つきで更新します。将来予約のある資源は無効化できません。
      */
-    put: operations["resources_update"];
+    put: operations["updateResource"];
     post?: never;
     delete?: never;
     options?: never;
@@ -132,7 +132,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/resources/{resource_id}/schedule": {
+  "/resources/{resourceId}/schedule": {
     parameters: {
       query?: never;
       header?: never;
@@ -140,10 +140,10 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Endpoint
-     * @description 一般利用者には他人の識別情報と目的を返さない。
+     * 予約表を取得する
+     * @description 資源と日本時間の日付を指定して予約済み時間帯を取得します。他人の予約は時間帯と「予約済み」だけを返します。
      */
-    get: operations["schedule"];
+    get: operations["getResourceSchedule"];
     put?: never;
     post?: never;
     delete?: never;
@@ -156,161 +156,627 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    /** BookingInput */
-    BookingInput: {
+    /**
+     * CancelReservationRequest
+     * @description 予約取消のリクエストです。
+     */
+    CancelReservationRequest: {
       /**
-       * End At
-       * Format: date-time
+       * Version
+       * @description 取消前に取得した予約の版です。
        */
-      end_at: string;
-      /** Purpose */
-      purpose: string;
-      /** Resource Id */
-      resource_id: string;
-      /**
-       * Start At
-       * Format: date-time
-       */
-      start_at: string;
+      version: number;
     };
-    /** BusySlot */
-    BusySlot: {
+    /**
+     * CancelReservationResponse
+     * @description 取消後の予約のレスポンスです。
+     */
+    CancelReservationResponse: {
       /**
-       * End At
+       * Endat
        * Format: date-time
+       * @description 予約終了日時です。この時刻を含みません。
        */
-      end_at: string;
+      endAt: string;
+      /**
+       * Ownerprincipalid
+       * @description 予約者を表す認証主体IDです。
+       */
+      ownerPrincipalId: string;
+      /**
+       * Purpose
+       * @description 予約目的です。本人と管理者だけに返します。
+       */
+      purpose: string;
+      /**
+       * Reservationid
+       * @description 予約を一意に識別するIDです。
+       */
+      reservationId: string;
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Startat
+       * Format: date-time
+       * @description 予約開始日時です。
+       */
+      startAt: string;
+      /** @description 予約の状態です。 */
+      status: components["schemas"]["ReservationStatus"];
+      /**
+       * Version
+       * @description 予約取消の楽観ロックに使う版です。
+       */
+      version: number;
+    };
+    /**
+     * CreateReservationRequest
+     * @description 予約作成のリクエストです。
+     */
+    CreateReservationRequest: {
+      /**
+       * Endat
+       * Format: date-time
+       * @description 予約終了日時です。15分刻みで、開始と同じ日本時間の日付内です。
+       */
+      endAt: string;
+      /**
+       * Purpose
+       * @description 予約目的です。1〜200文字です。
+       */
+      purpose: string;
+      /**
+       * Resourceid
+       * @description 予約する資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Startat
+       * Format: date-time
+       * @description 予約開始日時です。15分刻みで、現在より後かつ30日以内です。
+       */
+      startAt: string;
+    };
+    /**
+     * CreateReservationResponse
+     * @description 作成した予約のレスポンスです。
+     */
+    CreateReservationResponse: {
+      /**
+       * Endat
+       * Format: date-time
+       * @description 予約終了日時です。この時刻を含みません。
+       */
+      endAt: string;
+      /**
+       * Ownerprincipalid
+       * @description 予約者を表す認証主体IDです。
+       */
+      ownerPrincipalId: string;
+      /**
+       * Purpose
+       * @description 予約目的です。本人と管理者だけに返します。
+       */
+      purpose: string;
+      /**
+       * Reservationid
+       * @description 予約を一意に識別するIDです。
+       */
+      reservationId: string;
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Startat
+       * Format: date-time
+       * @description 予約開始日時です。
+       */
+      startAt: string;
+      /** @description 予約の状態です。 */
+      status: components["schemas"]["ReservationStatus"];
+      /**
+       * Version
+       * @description 予約取消の楽観ロックに使う版です。
+       */
+      version: number;
+    };
+    /**
+     * CreateResourceRequest
+     * @description 資源登録のリクエストです。
+     */
+    CreateResourceRequest: {
+      /**
+       * Description
+       * @description 資源の設備や用途を説明する文章です。0〜1,000文字です。
+       * @default
+       */
+      description: string;
+      /**
+       * @description 会議室または備品を表す資源種別です。
+       * @default room
+       */
+      kind: components["schemas"]["ResourceKind"];
+      /**
+       * Name
+       * @description 利用者に表示する資源名です。空白除去後1〜100文字です。
+       */
+      name: string;
+    };
+    /**
+     * CreateResourceResponse
+     * @description 登録した資源のレスポンスです。
+     */
+    CreateResourceResponse: {
+      /**
+       * Active
+       * @description 新規予約を受け付けるかどうかです。
+       */
+      active: boolean;
+      /**
+       * Description
+       * @description 資源の設備や用途を説明する文章です。
+       */
+      description: string;
+      /** @description 会議室または備品を表す資源種別です。 */
+      kind: components["schemas"]["ResourceKind"];
+      /**
+       * Name
+       * @description 利用者に表示する資源名です。
+       */
+      name: string;
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Version
+       * @description 資源編集の楽観ロックに使う公開版です。
+       */
+      version: number;
+    };
+    /**
+     * ErrorBody
+     * @description エラーコード、メッセージ、追跡IDを含む共通エラー本文です。
+     */
+    ErrorBody: {
+      /**
+       * Code
+       * @description エラー種別を機械的に判定するためのコードです。
+       */
+      code: string;
+      /**
+       * Details
+       * @description リトライ可否、問い合わせ時に伝える追跡ID、確認対象リソースなどの詳細一覧です。
+       */
+      details?: components["schemas"]["ErrorDetail"][];
+      /**
+       * Message
+       * @description 利用者が次に確認・修正・再試行・問い合わせすべき内容を示すメッセージです。
+       */
+      message: string;
+      /**
+       * Traceid
+       * @description 障害調査でログとレスポンスを対応付ける追跡IDです。
+       */
+      traceId: string;
+    };
+    /**
+     * ErrorDetail
+     * @description リトライや問い合わせに必要なエラー補足情報です。
+     */
+    ErrorDetail: {
+      /**
+       * Field
+       * @description 入力検証エラーが発生したリクエスト項目です。
+       */
+      field?: string | null;
+      /**
+       * Reason
+       * @description 入力検証エラー、再試行判断、または問い合わせ時に確認する具体的な理由です。
+       */
+      reason?: string | null;
+      /**
+       * Reference
+       * @description 問い合わせ時に伝える追跡IDまたは相関IDです。
+       */
+      reference?: string | null;
+      /**
+       * Resource
+       * @description 再送、状態確認、問い合わせ時に確認する対象リソースです。
+       */
+      resource?: {
+        [key: string]: unknown;
+      } | null;
+      /**
+       * Retryable
+       * @description 同じリクエストを再実行して解消する可能性があるかどうかです。
+       */
+      retryable?: boolean | null;
+      /**
+       * Statuscode
+       * @description 返却されたHTTPステータスコードです。
+       */
+      statusCode?: number | null;
+    };
+    /**
+     * ErrorResponse
+     * @description APIエラー時に返却する共通レスポンスです。
+     */
+    ErrorResponse: {
+      /** @description APIエラーの内容をまとめた本文です。 */
+      error: components["schemas"]["ErrorBody"];
+    };
+    /**
+     * GetReservationResponse
+     * @description 予約詳細と操作履歴のレスポンスです。
+     */
+    GetReservationResponse: {
+      /**
+       * Events
+       * @description 作成と取消の履歴を発生順に並べた一覧です。
+       */
+      events: components["schemas"]["ReservationEventResponse"][];
+      /** @description 予約の詳細です。 */
+      reservation: components["schemas"]["ReservationDetailResponse"];
+    };
+    /**
+     * GetResourceScheduleResponse
+     * @description 予約表のレスポンスです。
+     */
+    GetResourceScheduleResponse: {
+      /**
+       * Items
+       * @description 一覧レスポンスに含まれるリソース配列です。
+       */
+      items: components["schemas"]["ScheduleSlotResponse"][];
+      /**
+       * Nexttoken
+       * @description 次ページを取得するために前回レスポンスから受け取る継続tokenです。
+       */
+      nextToken?: string | null;
+    };
+    /**
+     * ListReservationsResponse
+     * @description 自分の予約一覧のレスポンスです。
+     */
+    ListReservationsResponse: {
+      /**
+       * Items
+       * @description 一覧レスポンスに含まれるリソース配列です。
+       */
+      items: components["schemas"]["ReservationItemResponse"][];
+      /**
+       * Nexttoken
+       * @description 次ページを取得するために前回レスポンスから受け取る継続tokenです。
+       */
+      nextToken?: string | null;
+    };
+    /**
+     * ListResourcesResponse
+     * @description 資源一覧のレスポンスです。
+     */
+    ListResourcesResponse: {
+      /**
+       * Items
+       * @description 一覧レスポンスに含まれるリソース配列です。
+       */
+      items: components["schemas"]["ResourceItemResponse"][];
+      /**
+       * Nexttoken
+       * @description 次ページを取得するために前回レスポンスから受け取る継続tokenです。
+       */
+      nextToken?: string | null;
+    };
+    /**
+     * ReservationAction
+     * @description 予約履歴の操作種別を表す列挙値です。
+     * @enum {string}
+     */
+    ReservationAction: "created" | "cancelled";
+    /**
+     * ReservationDetailResponse
+     * @description 予約詳細の予約情報です。
+     */
+    ReservationDetailResponse: {
+      /**
+       * Endat
+       * Format: date-time
+       * @description 予約終了日時です。この時刻を含みません。
+       */
+      endAt: string;
+      /**
+       * Ownerprincipalid
+       * @description 予約者を表す認証主体IDです。
+       */
+      ownerPrincipalId: string;
+      /**
+       * Purpose
+       * @description 予約目的です。本人と管理者だけに返します。
+       */
+      purpose: string;
+      /**
+       * Reservationid
+       * @description 予約を一意に識別するIDです。
+       */
+      reservationId: string;
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Startat
+       * Format: date-time
+       * @description 予約開始日時です。
+       */
+      startAt: string;
+      /** @description 予約の状態です。 */
+      status: components["schemas"]["ReservationStatus"];
+      /**
+       * Version
+       * @description 予約取消の楽観ロックに使う版です。
+       */
+      version: number;
+    };
+    /**
+     * ReservationEventResponse
+     * @description 予約の作成または取消の履歴です。
+     */
+    ReservationEventResponse: {
+      /** @description 予約に対する操作種別です。 */
+      action: components["schemas"]["ReservationAction"];
+      /**
+       * Actorprincipalid
+       * @description 操作した利用者の認証主体IDです。
+       */
+      actorPrincipalId: string;
+      /**
+       * Eventid
+       * @description 履歴を一意に識別するIDです。
+       */
+      eventId: string;
+      /**
+       * Occurredat
+       * Format: date-time
+       * @description 操作日時です。
+       */
+      occurredAt: string;
+      /**
+       * Reservationid
+       * @description 履歴の対象予約IDです。
+       */
+      reservationId: string;
+    };
+    /**
+     * ReservationItemResponse
+     * @description 自分の予約一覧の1件分の予約です。
+     */
+    ReservationItemResponse: {
+      /**
+       * Endat
+       * Format: date-time
+       * @description 予約終了日時です。この時刻を含みません。
+       */
+      endAt: string;
+      /**
+       * Ownerprincipalid
+       * @description 予約者を表す認証主体IDです。
+       */
+      ownerPrincipalId: string;
+      /**
+       * Purpose
+       * @description 予約目的です。本人と管理者だけに返します。
+       */
+      purpose: string;
+      /**
+       * Reservationid
+       * @description 予約を一意に識別するIDです。
+       */
+      reservationId: string;
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Startat
+       * Format: date-time
+       * @description 予約開始日時です。
+       */
+      startAt: string;
+      /** @description 予約の状態です。 */
+      status: components["schemas"]["ReservationStatus"];
+      /**
+       * Version
+       * @description 予約取消の楽観ロックに使う版です。
+       */
+      version: number;
+    };
+    /**
+     * ReservationStatus
+     * @description 予約の状態を表す列挙値です。
+     * @enum {string}
+     */
+    ReservationStatus: "confirmed" | "cancelled";
+    /**
+     * ResourceItemResponse
+     * @description 資源一覧の1件分の資源情報です。
+     */
+    ResourceItemResponse: {
+      /**
+       * Active
+       * @description 新規予約を受け付けるかどうかです。
+       */
+      active: boolean;
+      /**
+       * Description
+       * @description 資源の設備や用途を説明する文章です。
+       */
+      description: string;
+      /** @description 会議室または備品を表す資源種別です。 */
+      kind: components["schemas"]["ResourceKind"];
+      /**
+       * Name
+       * @description 利用者に表示する資源名です。
+       */
+      name: string;
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Version
+       * @description 資源編集の楽観ロックに使う公開版です。
+       */
+      version: number;
+    };
+    /**
+     * ResourceKind
+     * @description 予約対象の資源種別を表す列挙値です。
+     * @enum {string}
+     */
+    ResourceKind: "room" | "equipment";
+    /**
+     * ScheduleReservationResponse
+     * @description 本人または管理者だけに返す予約の詳細です。
+     */
+    ScheduleReservationResponse: {
+      /**
+       * Endat
+       * Format: date-time
+       * @description 予約終了日時です。この時刻を含みません。
+       */
+      endAt: string;
+      /**
+       * Ownerprincipalid
+       * @description 予約者を表す認証主体IDです。
+       */
+      ownerPrincipalId: string;
+      /**
+       * Purpose
+       * @description 予約目的です。本人と管理者だけに返します。
+       */
+      purpose: string;
+      /**
+       * Reservationid
+       * @description 予約を一意に識別するIDです。
+       */
+      reservationId: string;
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Startat
+       * Format: date-time
+       * @description 予約開始日時です。
+       */
+      startAt: string;
+      /** @description 予約の状態です。 */
+      status: components["schemas"]["ReservationStatus"];
+      /**
+       * Version
+       * @description 予約取消の楽観ロックに使う版です。
+       */
+      version: number;
+    };
+    /**
+     * ScheduleSlotResponse
+     * @description 予約表の1件分の予約済み時間帯です。
+     */
+    ScheduleSlotResponse: {
+      /**
+       * Endat
+       * Format: date-time
+       * @description 予約済み時間帯の終了日時です。この時刻を含みません。
+       */
+      endAt: string;
       /**
        * Label
-       * @default 予約済み
+       * @description 共有予約表に表示する固定の表示名です。
        */
       label: string;
-      reservation?: components["schemas"]["Reservation"] | null;
+      /** @description 呼び出し元が予約者本人または管理者の場合だけ返す予約の詳細です。 */
+      reservation?: components["schemas"]["ScheduleReservationResponse"] | null;
       /**
-       * Start At
+       * Startat
        * Format: date-time
+       * @description 予約済み時間帯の開始日時です。
        */
-      start_at: string;
+      startAt: string;
     };
-    /** CancelInput */
-    CancelInput: {
-      /** Version */
-      version: number;
-    };
-    /** Detail */
-    Detail: {
-      /** Events */
-      events: components["schemas"]["Event"][];
-      reservation: components["schemas"]["Reservation"];
-    };
-    /** ErrorBody */
-    ErrorBody: {
-      /** Code */
-      code: string;
-      /** Request Id */
-      request_id: string;
-    };
-    /** Event */
-    Event: {
-      /** Action */
-      action: string;
-      /** Actor */
-      actor: string;
+    /**
+     * UpdateResourceRequest
+     * @description 資源編集のリクエストです。
+     */
+    UpdateResourceRequest: {
       /**
-       * At
-       * Format: date-time
+       * Active
+       * @description 新規予約を受け付けるかどうかです。
        */
-      at: string;
-      /** Id */
-      id: string;
-      /** Reservation Id */
-      reservation_id: string;
-    };
-    /** Reservation */
-    Reservation: {
-      /**
-       * End At
-       * Format: date-time
-       */
-      end_at: string;
-      /** Id */
-      id: string;
-      /** Purpose */
-      purpose: string;
-      /** Resource Id */
-      resource_id: string;
-      /**
-       * Start At
-       * Format: date-time
-       */
-      start_at: string;
-      /**
-       * Status
-       * @enum {string}
-       */
-      status: "confirmed" | "cancelled";
-      /** Subject */
-      subject: string;
-      /** Version */
-      version: number;
-    };
-    /** Resource */
-    Resource: {
-      /** Active */
       active: boolean;
       /**
        * Description
+       * @description 資源の設備や用途を説明する文章です。0〜1,000文字です。
        * @default
        */
       description: string;
-      /** Id */
-      id: string;
       /**
-       * Kind
+       * @description 会議室または備品を表す資源種別です。
        * @default room
-       * @enum {string}
        */
-      kind: "room" | "equipment";
-      /** Name */
+      kind: components["schemas"]["ResourceKind"];
+      /**
+       * Name
+       * @description 利用者に表示する資源名です。空白除去後1〜100文字です。
+       */
       name: string;
-      /** Version */
+      /**
+       * Version
+       * @description 編集前に取得した資源の公開版です。
+       */
       version: number;
     };
-    /** ResourceEdit */
-    ResourceEdit: {
-      /** Active */
+    /**
+     * UpdateResourceResponse
+     * @description 編集後の資源のレスポンスです。
+     */
+    UpdateResourceResponse: {
+      /**
+       * Active
+       * @description 新規予約を受け付けるかどうかです。
+       */
       active: boolean;
       /**
        * Description
-       * @default
+       * @description 資源の設備や用途を説明する文章です。
        */
       description: string;
+      /** @description 会議室または備品を表す資源種別です。 */
+      kind: components["schemas"]["ResourceKind"];
       /**
-       * Kind
-       * @default room
-       * @enum {string}
+       * Name
+       * @description 利用者に表示する資源名です。
        */
-      kind: "room" | "equipment";
-      /** Name */
       name: string;
-      /** Version */
+      /**
+       * Resourceid
+       * @description 予約対象の資源を一意に識別するIDです。
+       */
+      resourceId: string;
+      /**
+       * Version
+       * @description 資源編集の楽観ロックに使う公開版です。
+       */
       version: number;
-    };
-    /** ResourceInput */
-    ResourceInput: {
-      /**
-       * Description
-       * @default
-       */
-      description: string;
-      /**
-       * Kind
-       * @default room
-       * @enum {string}
-       */
-      kind: "room" | "equipment";
-      /** Name */
-      name: string;
     };
   };
   responses: never;
@@ -341,70 +807,21 @@ export interface operations {
           };
         };
       };
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Service Unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
     };
   };
-  reservations_list: {
+  listReservations: {
     parameters: {
       query?: {
-        day?: string | null;
-        state?: ("confirmed" | "cancelled") | null;
-        future?: boolean;
+        /** @description 一覧APIで1回に返却する最大件数です。 */
         limit?: number;
-        offset?: number;
+        /** @description 次ページを取得するために前回レスポンスから受け取る継続tokenです。 */
+        nextToken?: string | null;
+        /** @description 日本時間の日付で予約を絞り込みます。未指定なら全期間です。 */
+        day?: string | null;
+        /** @description 予約の状態で絞り込みます。未指定なら全状態です。 */
+        status?: components["schemas"]["ReservationStatus"] | null;
+        /** @description trueの場合、開始前の確定予約だけを返します。 */
+        future?: boolean;
       };
       header?: never;
       path?: never;
@@ -418,77 +835,189 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Reservation"][];
+          /**
+           * @example {
+           *       "items": [
+           *         {
+           *           "endAt": "2026-09-26T02:00:00Z",
+           *           "ownerPrincipalId": "alice",
+           *           "purpose": "定例会議",
+           *           "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *           "resourceId": "00000000-0000-0000-0000-000000000001",
+           *           "startAt": "2026-09-26T01:00:00Z",
+           *           "status": "confirmed",
+           *           "version": 1
+           *         }
+           *       ]
+           *     }
+           */
+          "application/json": components["schemas"]["ListReservationsResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "status": "confirmed"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "queryがOpenAPIスキーマの型や制約に一致しない、または継続tokenが不正な場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "status": "confirmed"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "status": "confirmed"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "status": "confirmed"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "status": "confirmed"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  reservations_create: {
+  createReservation: {
     parameters: {
       query?: never;
       header: {
-        "idempotency-key": string;
+        "Idempotency-Key": string;
       };
       path?: never;
       cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["BookingInput"];
+        "application/json": components["schemas"]["CreateReservationRequest"];
       };
     };
     responses: {
@@ -498,71 +1027,240 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Reservation"];
+          /**
+           * @example {
+           *       "endAt": "2026-09-26T02:00:00Z",
+           *       "ownerPrincipalId": "alice",
+           *       "purpose": "定例会議",
+           *       "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *       "resourceId": "00000000-0000-0000-0000-000000000001",
+           *       "startAt": "2026-09-26T01:00:00Z",
+           *       "status": "confirmed",
+           *       "version": 1
+           *     }
+           */
+          "application/json": components["schemas"]["CreateReservationResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "idempotencyKey": "reservation-20260926-0001",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
+      /** @description 指定された資源や予約などの対象リソースが存在しない場合に返します。 */
       404: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "NOT_FOUND",
+           *         "details": [
+           *           {
+           *             "reason": "予約対象の資源が存在しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "idempotencyKey": "reservation-20260926-0001",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 404
+           *           }
+           *         ],
+           *         "message": "指定したリソースIDが正しいか確認してから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Conflict */
+      /** @description 予約枠の重複、状態遷移の競合、Idempotency-Keyの再利用、または楽観ロックのversion不一致が発生した場合に返します。 */
       409: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "CONFLICT",
+           *         "details": [
+           *           {
+           *             "reason": "予約枠が重なる、資源が無効、または同じIdempotency-Keyで異なる入力を送った場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "idempotencyKey": "reservation-20260926-0001",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 409
+           *           }
+           *         ],
+           *         "message": "リソースの最新状態またはIdempotency-Keyを確認してから再送してください。理由: 予約枠が重なる、資源が無効、または同じIdempotency-Keyで異なる入力を送った場合。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "bodyまたはheaderが型や制約に一致しない、または予約時刻の規則に反する場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "idempotencyKey": "reservation-20260926-0001",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "idempotencyKey": "reservation-20260926-0001",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "idempotencyKey": "reservation-20260926-0001",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "idempotencyKey": "reservation-20260926-0001",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  reservations_get: {
+  getReservation: {
     parameters: {
       query?: never;
       header?: never;
       path: {
-        reservation_id: string;
+        /** @description 予約を一意に識別するIDです。 */
+        reservationId: string;
       };
       cookie?: never;
     };
@@ -574,77 +1272,250 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Detail"];
+          /**
+           * @example {
+           *       "events": [
+           *         {
+           *           "action": "created",
+           *           "actorPrincipalId": "alice",
+           *           "eventId": "9a0e1b2c-0000-0000-0000-000000000001",
+           *           "occurredAt": "2026-09-25T00:00:00Z",
+           *           "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *         }
+           *       ],
+           *       "reservation": {
+           *         "endAt": "2026-09-26T02:00:00Z",
+           *         "ownerPrincipalId": "alice",
+           *         "purpose": "定例会議",
+           *         "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *         "resourceId": "00000000-0000-0000-0000-000000000001",
+           *         "startAt": "2026-09-26T01:00:00Z",
+           *         "status": "confirmed",
+           *         "version": 1
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["GetReservationResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
+      /** @description 認証済みの主体に対象リソースや操作への権限がない場合に返します。 */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "FORBIDDEN",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し元が予約者本人でも管理者でもない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 403
+           *           }
+           *         ],
+           *         "message": "操作権限を確認し、必要な権限を持つ利用者で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Not Found */
+      /** @description 指定された資源や予約などの対象リソースが存在しない場合に返します。 */
       404: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "NOT_FOUND",
+           *         "details": [
+           *           {
+           *             "reason": "指定された予約が存在しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 404
+           *           }
+           *         ],
+           *         "message": "指定したリソースIDが正しいか確認してから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "pathがOpenAPIスキーマの型や制約に一致しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  reservations_cancel: {
+  cancelReservation: {
     parameters: {
       query?: never;
       header?: never;
       path: {
-        reservation_id: string;
+        /** @description 予約を一意に識別するIDです。 */
+        reservationId: string;
       };
       cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CancelInput"];
+        "application/json": components["schemas"]["CancelReservationRequest"];
       };
     };
     responses: {
@@ -654,70 +1525,270 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Reservation"];
+          /**
+           * @example {
+           *       "endAt": "2026-09-26T02:00:00Z",
+           *       "ownerPrincipalId": "alice",
+           *       "purpose": "定例会議",
+           *       "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *       "resourceId": "00000000-0000-0000-0000-000000000001",
+           *       "startAt": "2026-09-26T01:00:00Z",
+           *       "status": "cancelled",
+           *       "version": 2
+           *     }
+           */
+          "application/json": components["schemas"]["CancelReservationResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
+      /** @description 認証済みの主体に対象リソースや操作への権限がない場合に返します。 */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "FORBIDDEN",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し元が予約者本人でも管理者でもない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 403
+           *           }
+           *         ],
+           *         "message": "操作権限を確認し、必要な権限を持つ利用者で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Not Found */
+      /** @description 指定された資源や予約などの対象リソースが存在しない場合に返します。 */
       404: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "NOT_FOUND",
+           *         "details": [
+           *           {
+           *             "reason": "指定された予約が存在しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 404
+           *           }
+           *         ],
+           *         "message": "指定したリソースIDが正しいか確認してから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Conflict */
+      /** @description 予約枠の重複、状態遷移の競合、Idempotency-Keyの再利用、または楽観ロックのversion不一致が発生した場合に返します。 */
       409: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "CONFLICT",
+           *         "details": [
+           *           {
+           *             "reason": "予約の版が古い、取消済み、または開始済みの場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 409
+           *           }
+           *         ],
+           *         "message": "リソースの最新状態またはIdempotency-Keyを確認してから再送してください。理由: 予約の版が古い、取消済み、または開始済みの場合。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "pathまたはbodyがOpenAPIスキーマの型や制約に一致しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  resources_list: {
+  listResources: {
     parameters: {
       query?: {
+        /** @description 一覧APIで1回に返却する最大件数です。 */
         limit?: number;
-        offset?: number;
+        /** @description 次ページを取得するために前回レスポンスから受け取る継続tokenです。 */
+        nextToken?: string | null;
       };
       header?: never;
       path?: never;
@@ -731,66 +1802,156 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Resource"][];
+          /**
+           * @example {
+           *       "items": [
+           *         {
+           *           "active": true,
+           *           "description": "4名 · モニター · ホワイトボード",
+           *           "kind": "room",
+           *           "name": "会議室 青葉",
+           *           "resourceId": "00000000-0000-0000-0000-000000000001",
+           *           "version": 1
+           *         }
+           *       ]
+           *     }
+           */
+          "application/json": components["schemas"]["ListResourcesResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "queryがOpenAPIスキーマの型や制約に一致しない、または継続tokenが不正な場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  resources_create: {
+  createResource: {
     parameters: {
       query?: never;
       header?: never;
@@ -799,7 +1960,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ResourceInput"];
+        "application/json": components["schemas"]["CreateResourceRequest"];
       };
     };
     responses: {
@@ -809,77 +1970,190 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Resource"];
+          /**
+           * @example {
+           *       "active": true,
+           *       "description": "4名 · モニター · ホワイトボード",
+           *       "kind": "room",
+           *       "name": "会議室 青葉",
+           *       "resourceId": "00000000-0000-0000-0000-000000000001",
+           *       "version": 1
+           *     }
+           */
+          "application/json": components["schemas"]["CreateResourceResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
+      /** @description 認証済みの主体に対象リソースや操作への権限がない場合に返します。 */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "FORBIDDEN",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し元が資源を管理できる管理者でない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": false,
+           *             "statusCode": 403
+           *           }
+           *         ],
+           *         "message": "操作権限を確認し、必要な権限を持つ利用者で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "bodyがOpenAPIスキーマの型や制約に一致しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  resources_update: {
+  updateResource: {
     parameters: {
       query?: never;
       header?: never;
       path: {
-        resource_id: string;
+        /** @description 予約対象の資源を一意に識別するIDです。 */
+        resourceId: string;
       };
       cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ResourceEdit"];
+        "application/json": components["schemas"]["UpdateResourceRequest"];
       };
     };
     responses: {
@@ -889,75 +2163,275 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["Resource"];
+          /**
+           * @example {
+           *       "active": true,
+           *       "description": "6名 · モニター · ホワイトボード",
+           *       "kind": "room",
+           *       "name": "会議室 青葉",
+           *       "resourceId": "00000000-0000-0000-0000-000000000001",
+           *       "version": 2
+           *     }
+           */
+          "application/json": components["schemas"]["UpdateResourceResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
+      /** @description 認証済みの主体に対象リソースや操作への権限がない場合に返します。 */
       403: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "FORBIDDEN",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し元が資源を管理できる管理者でない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 403
+           *           }
+           *         ],
+           *         "message": "操作権限を確認し、必要な権限を持つ利用者で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Not Found */
+      /** @description 指定された資源や予約などの対象リソースが存在しない場合に返します。 */
       404: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "NOT_FOUND",
+           *         "details": [
+           *           {
+           *             "reason": "指定された資源が存在しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 404
+           *           }
+           *         ],
+           *         "message": "指定したリソースIDが正しいか確認してから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Conflict */
+      /** @description 予約枠の重複、状態遷移の競合、Idempotency-Keyの再利用、または楽観ロックのversion不一致が発生した場合に返します。 */
       409: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "CONFLICT",
+           *         "details": [
+           *           {
+           *             "reason": "資源の公開版が古い、または無効化する資源に将来予約がある場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 409
+           *           }
+           *         ],
+           *         "message": "リソースの最新状態またはIdempotency-Keyを確認してから再送してください。理由: 資源の公開版が古い、または無効化する資源に将来予約がある場合。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "pathまたはbodyがOpenAPIスキーマの型や制約に一致しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "resourceId": "00000000-0000-0000-0000-000000000001",
+           *               "version": 1
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };
   };
-  schedule: {
+  getResourceSchedule: {
     parameters: {
       query: {
-        day: string;
+        /** @description 一覧APIで1回に返却する最大件数です。 */
         limit?: number;
-        offset?: number;
+        /** @description 次ページを取得するために前回レスポンスから受け取る継続tokenです。 */
+        nextToken?: string | null;
+        /** @description 日本時間で予約表を表示する日付です。 */
+        day: string;
       };
       header?: never;
       path: {
-        resource_id: string;
+        /** @description 予約対象の資源を一意に識別するIDです。 */
+        resourceId: string;
       };
       cookie?: never;
     };
@@ -969,61 +2443,213 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["BusySlot"][];
+          /**
+           * @example {
+           *       "items": [
+           *         {
+           *           "endAt": "2026-09-26T02:00:00Z",
+           *           "label": "予約済み",
+           *           "reservation": {
+           *             "endAt": "2026-09-26T02:00:00Z",
+           *             "ownerPrincipalId": "alice",
+           *             "purpose": "定例会議",
+           *             "reservationId": "5d2c7f3e-0000-0000-0000-000000000001",
+           *             "resourceId": "00000000-0000-0000-0000-000000000001",
+           *             "startAt": "2026-09-26T01:00:00Z",
+           *             "status": "confirmed",
+           *             "version": 1
+           *           },
+           *           "startAt": "2026-09-26T01:00:00Z"
+           *         },
+           *         {
+           *           "endAt": "2026-09-26T05:00:00Z",
+           *           "label": "予約済み",
+           *           "startAt": "2026-09-26T04:00:00Z"
+           *         }
+           *       ]
+           *     }
+           */
+          "application/json": components["schemas"]["GetResourceScheduleResponse"];
         };
       };
-      /** @description Unauthorized */
+      /** @description 認証情報が未指定、期限切れ、または検証できない場合に返します。 */
       401: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "UNAUTHORIZED",
+           *         "details": [
+           *           {
+           *             "reason": "認証情報が未指定、期限切れ、または検証できない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 401
+           *           }
+           *         ],
+           *         "message": "認証情報を確認し、有効な認証情報で再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Forbidden */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Not Found */
+      /** @description 指定された資源や予約などの対象リソースが存在しない場合に返します。 */
       404: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "NOT_FOUND",
+           *         "details": [
+           *           {
+           *             "reason": "指定された資源が存在しない場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 404
+           *           }
+           *         ],
+           *         "message": "指定したリソースIDが正しいか確認してから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Conflict */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorBody"];
-        };
-      };
-      /** @description Unprocessable Entity */
+      /** @description path、query、header、bodyがOpenAPIスキーマの型や制約に一致しない場合に返します。 */
       422: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "VALIDATION_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "pathまたはqueryが型や制約に一致しない、または継続tokenが不正な場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 422
+           *           }
+           *         ],
+           *         "message": "リクエストの型、必須項目、制約をOpenAPI仕様に合わせて修正してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Service Unavailable */
+      /** @description 呼び出し頻度が許可された上限を超えた場合に返します。 */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "TOO_MANY_REQUESTS",
+           *         "details": [
+           *           {
+           *             "reason": "呼び出し頻度が許可された上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 429
+           *           }
+           *         ],
+           *         "message": "呼び出し頻度を下げ、時間をおいてから再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description SlotKeeper内部で想定外のエラーが発生した場合に返します。 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "INTERNAL_SERVER_ERROR",
+           *         "details": [
+           *           {
+           *             "reason": "SlotKeeper内部で想定外のエラーが発生した場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": false,
+           *             "statusCode": 500
+           *           }
+           *         ],
+           *         "message": "想定外のエラーが発生しました。追跡IDを添えて問い合わせてください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description DBの競合や接続障害が再試行上限を超え、一時的に処理できない場合に返します。 */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["ErrorBody"];
+          /**
+           * @example {
+           *       "error": {
+           *         "code": "SERVICE_UNAVAILABLE",
+           *         "details": [
+           *           {
+           *             "reason": "DBの競合や接続障害が再試行上限を超えた場合。",
+           *             "reference": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S",
+           *             "resource": {
+           *               "day": "2026-09-26",
+           *               "resourceId": "00000000-0000-0000-0000-000000000001"
+           *             },
+           *             "retryable": true,
+           *             "statusCode": 503
+           *           }
+           *         ],
+           *         "message": "一時的に処理できません。時間をおいて同じリクエストを再送してください。",
+           *         "traceId": "trc_01HZY6WJ7X4W9A0V7P9N2Q3R4S"
+           *       }
+           *     }
+           */
+          "application/json": components["schemas"]["ErrorResponse"];
         };
       };
     };

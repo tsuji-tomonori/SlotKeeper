@@ -1,0 +1,23 @@
+schema_version: 1
+
+evidences:
+  - id: owner_reservation_detail
+    title: 本人の予約詳細に予約目的が含まれる
+    collector:
+      step: steps/reservation_api/get_reservation.step.manual.yaml
+    ok_condition: HTTP 200 で、purpose、status=confirmed、ownerPrincipalIdが予約作成時と一致する。
+    save_as: ${case.id}_E_owner_detail_${member.id}_${resource.id}.json
+
+  - id: other_member_forbidden_response
+    title: 他の利用者の予約詳細参照拒否レスポンスを確認する
+    collector:
+      step: steps/reservation_api/get_reservation.step.manual.yaml
+    ok_condition: HTTP 403、error.details[0].reason=forbidden を返し、purposeを含まない。
+    save_as: ${case.id}_E_view_forbidden_${member.id}_${resource.id}.json
+
+  - id: schedule_purpose_hidden
+    title: 予約表で予約目的と予約者が秘匿される
+    collector:
+      step: steps/resource_api/get_resource_schedule.step.manual.yaml
+    ok_condition: 対象枠のlabelが予約済みで、purposeとownerPrincipalIdを含まない。
+    save_as: ${case.id}_E_schedule_hidden_${member.id}_${resource.id}.json

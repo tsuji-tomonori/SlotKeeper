@@ -110,9 +110,9 @@ class SlotKeeperStack(Stack):
         function = lambda_.Function(
             self,
             "Api",
-            runtime=lambda_.Runtime.PYTHON_3_12,
+            runtime=lambda_.Runtime.PYTHON_3_14,
             architecture=lambda_.Architecture.X86_64,
-            handler="slotkeeper.app.handler",
+            handler="app.lambda_handler.handler",
             code=lambda_.Code.from_asset(str(Path(asset_path))),
             memory_size=config.lambda_memory_mb,
             timeout=Duration.seconds(config.lambda_timeout_seconds),
@@ -187,7 +187,9 @@ class SlotKeeperStack(Stack):
                 [
                     {
                         "id": "AwsSolutions-APIG4",
-                        "reason": "healthは秘密もDB情報も返さない公開稼働確認。業務routeはJWTで保護する。",
+                        "reason": (
+                            "healthは秘密もDB情報も返さない公開稼働確認。業務routeはJWTで保護する。"
+                        ),
                     }
                 ],
                 apply_to_children=True,
@@ -208,7 +210,10 @@ class SlotKeeperStack(Stack):
             [
                 {
                     "id": "AwsSolutions-S1",
-                    "reason": "静的公開アセット専用。個人情報を保存せず、アクセスログ用bucketの追加は運用ADRで別判断する。",
+                    "reason": (
+                        "静的公開アセット専用。個人情報を保存せず、アクセスログ用bucketの追加は運用"
+                        "ADRで別判断する。"
+                    ),
                 }
             ],
         )
@@ -229,7 +234,9 @@ class SlotKeeperStack(Stack):
                 },
                 {
                     "id": "AwsSolutions-CFR4",
-                    "reason": "AWS既定ドメインの証明書を使用する指定に従う。独自証明書を作成しない。",
+                    "reason": (
+                        "AWS既定ドメインの証明書を使用する指定に従う。独自証明書を作成しない。"
+                    ),
                 },
             ],
         )
@@ -238,7 +245,10 @@ class SlotKeeperStack(Stack):
             [
                 {
                     "id": "AwsSolutions-COG2",
-                    "reason": "初回は管理者による利用者登録。MFA必須化は利用組織の運用設定として判断する。",
+                    "reason": (
+                        "初回は管理者による利用者登録。MFA必須化は利用組織の運用設定として判断する"
+                        "。"
+                    ),
                 }
             ],
         )
@@ -247,11 +257,16 @@ class SlotKeeperStack(Stack):
             [
                 {
                     "id": "AwsSolutions-IAM4",
-                    "reason": "Lambda基本ログ出力のAWS管理policy。DSQLは対象clusterのDbConnectだけに限定する。",
+                    "reason": (
+                        "Lambda基本ログ出力のAWS管理policy。DSQLは対象clusterのDbConnectだけに限定"
+                        "する。"
+                    ),
                 },
                 {
                     "id": "AwsSolutions-L1",
-                    "reason": "配布ZIPとPython 3.12を一致させる固定runtime。互換性を確認して更新する。",
+                    "reason": (
+                        "配布ZIPとPython 3.14を一致させる固定runtime。互換性を確認して更新する。"
+                    ),
                 },
             ],
             apply_to_children=True,

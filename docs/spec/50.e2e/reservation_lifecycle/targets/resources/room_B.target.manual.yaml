@@ -1,0 +1,24 @@
+schema_version: 1
+
+target:
+  type: resource
+  id: room_B
+  title: Room B
+  display_name: room_B
+  description: E2Eで予約対象にするroom資源 Room B
+  tags:
+    - active_resource
+    - room
+
+md:
+  target_section:
+    resource_type: Resource
+    usage: 予約対象資源
+    show_variables:
+      - resourceId
+      - version
+
+defaults:
+  name: E2E 会議室B ${case.id}
+  description: 4名 · ホワイトボード
+  kind: room

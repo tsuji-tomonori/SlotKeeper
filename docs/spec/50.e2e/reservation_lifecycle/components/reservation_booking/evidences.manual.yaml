@@ -1,0 +1,44 @@
+schema_version: 1
+
+evidences:
+  - id: reservation_listed
+    title: 自分の予約一覧にconfirmedとして表示される
+    collector:
+      step: steps/reservation_api/list_reservations.step.manual.yaml
+    ok_condition: ${member.id} の予約一覧に ${resource.id} の予約がstatus=confirmed、version=1で表示される。
+    save_as: ${case.id}_E_reservation_listed_${member.id}_${resource.id}.json
+
+  - id: schedule_busy
+    title: 予約表で対象枠が予約済みになる
+    collector:
+      step: steps/resource_api/get_resource_schedule.step.manual.yaml
+    ok_condition: ${resource.id} の予約表で10:00-11:00が予約済みとして表示される。
+    save_as: ${case.id}_E_schedule_busy_${resource.id}.json
+
+  - id: replay_same_reservation
+    title: 再送応答が初回と同じ予約を返す
+    collector:
+      step: steps/reservation_api/create_reservation.step.manual.yaml
+    ok_condition: 再送応答のreservationIdとversionが初回応答と一致し、予約一覧の件数が増えない。
+    save_as: ${case.id}_E_replay_${member.id}_${resource.id}.json
+
+  - id: slot_taken_response
+    title: 重複枠の予約拒否レスポンスを確認する
+    collector:
+      step: steps/reservation_api/create_reservation.step.manual.yaml
+    ok_condition: HTTP 409、error.details[0].reason=slot_taken を返し、既存予約は変わらない。
+    save_as: ${case.id}_E_slot_taken_${member.id}_${resource.id}.json
+
+  - id: resource_inactive_response
+    title: 無効資源の予約拒否レスポンスを確認する
+    collector:
+      step: steps/reservation_api/create_reservation.step.manual.yaml
+    ok_condition: HTTP 409、error.details[0].reason=resource_inactive を返す。
+    save_as: ${case.id}_E_resource_inactive_${member.id}_${resource.id}.json
+
+  - id: idempotency_mismatch_response
+    title: Idempotency-Key再利用の入力不一致レスポンスを確認する
+    collector:
+      step: steps/reservation_api/create_reservation.step.manual.yaml
+    ok_condition: HTTP 409、error.details[0].reason=idempotency_input_mismatch を返し、2件目の予約を作成しない。
+    save_as: ${case.id}_E_idempotency_mismatch_${member.id}_${resource.id}.json

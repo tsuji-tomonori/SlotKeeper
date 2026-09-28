@@ -1,0 +1,16 @@
+schema_version: 1
+
+evidences:
+  - id: error_trace_id_matches_header
+    title: エラー応答のtraceIdがX-Request-IDと一致する
+    collector:
+      step: steps/reservation_api/get_reservation.step.manual.yaml
+    ok_condition: HTTP 404、error.details[0].reason=reservation_not_foundで、error.traceIdとX-Request-IDが一致する。
+    save_as: ${case.id}_E_trace_response.json
+
+  - id: request_completed_log
+    title: 運用ログに同じtraceIdの完了記録がある
+    collector:
+      step: manual_log_query
+    ok_condition: messageId=http.request_completed、traceId=X-Request-ID、api.statusCode=404の記録があり、access tokenを含まない。
+    save_as: ${case.id}_E_trace_log.json

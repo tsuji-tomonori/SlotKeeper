@@ -1,0 +1,52 @@
+schema_version: 1
+
+data_profiles:
+  - id: owner_view
+    title: 本人による予約参照
+    label: 本人による予約参照
+    coverage_role: canonical_success
+    compatible_actions:
+      - view_reservation
+    compatible_states:
+      - owner_visible
+    tags:
+      - owner
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+      path:
+        reservationId: reservationId[${member.id},${resource.id}]
+
+  - id: other_member_view
+    title: 他の利用者による予約参照
+    label: 他の利用者による予約参照
+    coverage_role: negative
+    compatible_actions:
+      - view_reservation
+    compatible_states:
+      - other_member_forbidden
+    tags:
+      - other_member
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+      path:
+        reservationId: reservationId[${member.id},${resource.id}]
+
+  - id: schedule_view
+    title: 他の利用者による予約表参照
+    label: 他の利用者による予約表参照
+    coverage_role: canonical_success
+    compatible_actions:
+      - view_schedule
+    compatible_states:
+      - purpose_hidden
+    tags:
+      - other_member
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+      path:
+        resourceId: resourceId[${resource.id}]
+      query:
+        day: ${env.E2E_BOOKING_DATE}

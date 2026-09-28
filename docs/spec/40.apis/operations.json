@@ -1,0 +1,10 @@
+[
+  "cancelReservation",
+  "createReservation",
+  "createResource",
+  "getReservation",
+  "getResourceSchedule",
+  "listReservations",
+  "listResources",
+  "updateResource"
+]

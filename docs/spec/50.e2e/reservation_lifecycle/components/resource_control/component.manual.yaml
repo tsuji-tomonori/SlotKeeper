@@ -1,0 +1,22 @@
+schema_version: 1
+
+component:
+  id: resource_control
+  title: Resource Control
+  purpose: >
+    管理者が資源を無効化して新規予約を止める。
+    未来のconfirmed予約が残る資源は無効化せず、既存予約を守る。
+  aggregate:
+    - Resource
+
+business_invariants:
+  - id: deactivated_resource_rejects_booking
+    text: 無効化した資源は資源一覧でactive=falseになり、新規予約を受け付けない。
+  - id: future_reservation_blocks_deactivation
+    text: 未来のconfirmed予約がある資源は無効化できない。
+  - id: resource_version_guard
+    text: 取得時のversionと現在versionが異なる編集は409で拒否する。
+
+targets:
+  primary:
+    - resource

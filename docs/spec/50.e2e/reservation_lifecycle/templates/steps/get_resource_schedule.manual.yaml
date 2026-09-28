@@ -1,0 +1,9 @@
+schema_version: 1
+template:
+  id: get_resource_schedule
+  operation_id: getResourceSchedule
+  method: GET
+  path: /resources/${resourceId}/schedule
+request:
+  headers:
+    Authorization: Bearer ${tokens.member_token}

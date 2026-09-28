@@ -1,0 +1,26 @@
+schema_version: 1
+
+component:
+  id: reservation_cancellation
+  title: Reservation Cancellation
+  purpose: >
+    予約者本人または管理者が開始前のconfirmed予約を取消し、
+    取消履歴を同じtransactionで記録する。
+  aggregate:
+    - Reservation
+    - Reservation Event
+
+business_invariants:
+  - id: owner_or_admin_cancels
+    text: 予約者本人と管理者以外は予約を取消せない。
+  - id: confirmed_to_cancelled_only
+    text: 予約状態はconfirmedからcancelledへだけ遷移し、取消済み予約は再取消できない。
+  - id: optimistic_version_guard
+    text: 取得時のversionと現在versionが異なる取消は409で拒否する。
+  - id: cancelled_slot_released
+    text: 取消後、同じ枠は予約表で空きに戻る。
+
+targets:
+  primary:
+    - member
+    - resource

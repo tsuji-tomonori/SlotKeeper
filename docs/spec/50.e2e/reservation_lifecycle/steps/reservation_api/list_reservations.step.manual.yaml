@@ -1,0 +1,18 @@
+schema_version: 1
+
+step:
+  id: reservation_list_reservations
+  title: 自分の予約一覧APIを呼び出す
+  phase: evidence
+  operation_id: listReservations
+  endpoint: GET /reservations
+
+request:
+  headers:
+    Authorization: Bearer ${member_token}
+  query:
+    future: true
+
+expect:
+  response:
+    status: 200

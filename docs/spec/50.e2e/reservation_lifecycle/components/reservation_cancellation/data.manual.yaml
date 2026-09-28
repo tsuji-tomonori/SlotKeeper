@@ -1,0 +1,41 @@
+schema_version: 1
+
+data_profiles:
+  - id: cancel_default
+    title: 予約取消
+    label: 予約取消
+    coverage_role: canonical_success
+    compatible_actions:
+      - cancel_reservation
+    compatible_states:
+      - cancelled
+      - other_member_forbidden
+      - already_cancelled
+    tags:
+      - valid_cancel
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+      path:
+        reservationId: reservationId[${member.id},${resource.id}]
+      body:
+        version: reservationVersion[${member.id},${resource.id}]
+
+  - id: stale_version_cancel
+    title: 古い版での予約取消
+    label: 古い版での予約取消
+    coverage_role: negative
+    compatible_actions:
+      - cancel_reservation
+    compatible_states:
+      - stale_version
+    tags:
+      - valid_cancel
+      - stale_version
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+      path:
+        reservationId: reservationId[${member.id},${resource.id}]
+      body:
+        version: 99

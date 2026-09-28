@@ -1,0 +1,30 @@
+schema_version: 1
+
+bindings:
+  - id: register_resource_registered
+    when:
+      action: register_resource
+      state: registered
+      data_tags:
+        include:
+          - admin
+    steps:
+      - ref: steps/resource_api/create_resource.step.manual.yaml
+    evidences:
+      - ref: resource_listed
+
+  - id: register_resource_forbidden
+    when:
+      action: register_resource
+      state: register_forbidden
+      data_tags:
+        include:
+          - non_admin
+    steps:
+      - ref: steps/resource_api/create_resource.step.manual.yaml
+    failure_trigger: 管理者グループに属さない Member A の token で資源登録 API を呼び出し、403 を発生させる。
+    error_settings:
+      error.actor: 管理者グループに属さない Member A
+    evidences:
+      - ref: register_forbidden_response
+      - ref: resource_not_listed

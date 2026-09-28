@@ -1,0 +1,27 @@
+schema_version: 1
+
+actions:
+  - id: view_reservation
+    title: 予約詳細を参照する
+    operation_type: query
+    default_result: owner_visible
+    case_generation:
+      as_goal: true
+    compatible_states:
+      - owner_visible
+      - other_member_forbidden
+    target:
+      - member
+      - resource
+
+  - id: view_schedule
+    title: 予約表を参照する
+    operation_type: query
+    default_result: purpose_hidden
+    case_generation:
+      as_goal: true
+    compatible_states:
+      - purpose_hidden
+    target:
+      - member
+      - resource

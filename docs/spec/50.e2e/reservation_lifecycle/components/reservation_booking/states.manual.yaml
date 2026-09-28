@@ -1,0 +1,39 @@
+schema_version: 1
+
+states:
+  - id: booked
+    title: 予約成功
+    continue_flow: true
+    compatible_actions:
+      - book_slot
+    provides:
+      variables:
+        - reservationId[${member.id},${resource.id}]
+        - reservationVersion[${member.id},${resource.id}]
+
+  - id: replayed
+    title: 同一要求の再送で同じ予約を返す
+    continue_flow: true
+    compatible_actions:
+      - book_slot
+    target_coverage: canonical_pair
+
+  - id: slot_taken
+    title: 重複枠の予約拒否
+    continue_flow: false
+    compatible_actions:
+      - book_slot
+
+  - id: resource_inactive
+    title: 無効資源の予約拒否
+    continue_flow: false
+    compatible_actions:
+      - book_slot
+
+  - id: idempotency_mismatch
+    title: Idempotency-Key再利用の入力不一致拒否
+    continue_flow: false
+    compatible_actions:
+      - book_slot
+    requires_data_tags:
+      - idempotency_conflict

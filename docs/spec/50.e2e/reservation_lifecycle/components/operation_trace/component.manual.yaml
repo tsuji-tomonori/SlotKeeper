@@ -1,0 +1,21 @@
+schema_version: 1
+
+component:
+  id: operation_trace
+  title: Operation Trace
+  purpose: >
+    API応答のX-Request-ID、error.traceId、運用ログのtraceIdを一致させ、
+    利用者の問い合わせから原因を追跡できる状態にする。
+  aggregate:
+    - Operational Log
+
+business_invariants:
+  - id: trace_id_returned
+    text: すべての応答はX-Request-IDを返し、エラー応答のerror.traceIdと一致する。
+  - id: request_completed_logged
+    text: API呼び出しごとにhttp.request_completedの運用ログを同じtraceIdで記録する。
+  - id: no_secret_in_logs
+    text: 運用ログにaccess token、予約目的を記録しない。
+
+targets:
+  primary: []

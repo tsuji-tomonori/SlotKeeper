@@ -1,0 +1,23 @@
+schema_version: 1
+
+states:
+  - id: deactivated
+    title: 資源無効化成功
+    continue_flow: true
+    target_coverage: canonical_pair
+    compatible_actions:
+      - deactivate_resource
+
+  - id: future_reservation_exists
+    title: 未来予約ありの無効化拒否
+    continue_flow: false
+    compatible_actions:
+      - deactivate_resource
+
+  - id: stale_version
+    title: 古い版での資源編集拒否
+    continue_flow: false
+    compatible_actions:
+      - deactivate_resource
+    requires_data_tags:
+      - stale_version

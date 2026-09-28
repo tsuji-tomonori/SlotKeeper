@@ -1,0 +1,6 @@
+{
+  "configuration": "pass",
+  "design_drift": "pass",
+  "execution_tests": "not-run",
+  "unsupported_surfaces": []
+}

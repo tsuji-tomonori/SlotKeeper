@@ -1,0 +1,43 @@
+schema_version: 1
+
+data_profiles:
+  - id: resource_default
+    title: 標準資源
+    display_title: Room A / Room B / Equipment A
+    label_mode: target
+    coverage_role: canonical_success
+    compatible_actions:
+      - register_resource
+    compatible_states:
+      - registered
+    target_coverage: all
+    tags:
+      - valid_resource
+      - admin
+    request:
+      headers:
+        Authorization: Bearer ${admin_token}
+      body:
+        name: ${resource.defaults.name}
+        description: ${resource.defaults.description}
+        kind: ${resource.defaults.kind}
+
+  - id: non_admin_resource
+    title: 一般利用者による資源登録
+    label: 一般利用者による資源登録
+    coverage_role: negative
+    compatible_actions:
+      - register_resource
+    compatible_states:
+      - register_forbidden
+    target_coverage: canonical_pair
+    tags:
+      - valid_resource
+      - non_admin
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+      body:
+        name: ${resource.defaults.name}
+        description: ${resource.defaults.description}
+        kind: ${resource.defaults.kind}

@@ -1,11 +1,15 @@
 ---
 import fs from "node:fs";
 import Layout from "../layouts/Layout.astro";
-const db = JSON.parse(
-  fs.readFileSync("docs/design/generated/database.json", "utf8"),
+const db = JSON.parse(fs.readFileSync("docs/spec/20.db/database.json", "utf8"));
+const operationDocuments: Record<string, string> = JSON.parse(
+  fs.readFileSync(
+    "docs/spec/30.crud/dev-standard/operation-documents.json",
+    "utf8",
+  ),
 );
 const crud = JSON.parse(
-  fs.readFileSync("docs/design/generated/crud/model.json", "utf8"),
+  fs.readFileSync("docs/spec/30.crud/dev-standard/model.json", "utf8"),
 );
 ---
 
@@ -87,10 +91,13 @@ const crud = JSON.parse(
     is:inline
     type="application/json"
     id="db-data"
-    set:html={JSON.stringify({ db, crud }).replace(/</g, "\\u003c")}
+    set:html={JSON.stringify({ db, crud, operationDocuments }).replace(
+      /</g,
+      "\\u003c",
+    )}
   />
   <script>
-    const { db, crud } = JSON.parse(
+    const { db, crud, operationDocuments } = JSON.parse(
       document.querySelector("#db-data")!.textContent!,
     );
     let scale = 1;
@@ -133,13 +140,9 @@ const crud = JSON.parse(
         const link = document.createElement("a");
         link.href =
           base +
-          "/design/api/" +
-          (row.operation.startsWith("resources") || row.operation === "schedule"
-            ? "resources"
-            : "reservations") +
-          "/" +
-          row.operation +
-          "/query/";
+          "/design/40.apis/" +
+          operationDocuments[row.operation] +
+          "/query_gen/";
         link.textContent = row.operation + " · " + row.access.join("/");
         detail.append(link);
         for (const e of row.evidence) {

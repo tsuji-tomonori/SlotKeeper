@@ -1,0 +1,16 @@
+schema_version: 1
+template:
+  id: put_resource
+  operation_id: updateResource
+  method: PUT
+  path: /resources/${resourceId}
+request:
+  headers:
+    Authorization: Bearer ${tokens.admin_token}
+    Content-Type: application/json
+  body:
+    from_sample:
+      module: app.apis.resources.update_resource.samples
+      object: UPDATE_RESOURCE_REQUEST_SAMPLE
+captures:
+  version: $.version

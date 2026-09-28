@@ -1,0 +1,9 @@
+api,idempotency_records,reservation_events,reservations,resources,users
+cancel_reservation,,C,RU,U,
+create_reservation,CRD,C,CR,U,C
+create_resource,,,,C,
+get_reservation,,R,R,,
+get_resource_schedule,,,R,R,
+list_reservations,,,R,,
+list_resources,,,,R,
+update_resource,,,R,U,

@@ -1,0 +1,37 @@
+schema_version: 1
+
+evidences:
+  - id: reservation_cancelled
+    title: 予約がcancelledとして表示される
+    collector:
+      step: steps/reservation_api/get_reservation.step.manual.yaml
+    ok_condition: status=cancelled、versionが1増えている。
+    save_as: ${case.id}_E_reservation_cancelled_${member.id}_${resource.id}.json
+
+  - id: schedule_released
+    title: 取消した枠が予約表で空きに戻る
+    collector:
+      step: steps/resource_api/get_resource_schedule.step.manual.yaml
+    ok_condition: ${resource.id} の予約表で10:00-11:00が予約済みとして表示されない。
+    save_as: ${case.id}_E_schedule_released_${resource.id}.json
+
+  - id: cancel_forbidden_response
+    title: 他の利用者の取消拒否レスポンスを確認する
+    collector:
+      step: steps/reservation_api/cancel_reservation.step.manual.yaml
+    ok_condition: HTTP 403、error.details[0].reason=forbidden を返し、予約はconfirmedのまま。
+    save_as: ${case.id}_E_cancel_forbidden_${member.id}_${resource.id}.json
+
+  - id: already_cancelled_response
+    title: 取消済み予約の再取消拒否レスポンスを確認する
+    collector:
+      step: steps/reservation_api/cancel_reservation.step.manual.yaml
+    ok_condition: HTTP 409、error.details[0].reason=already_cancelled を返す。
+    save_as: ${case.id}_E_already_cancelled_${member.id}_${resource.id}.json
+
+  - id: stale_version_response
+    title: 古い版での取消拒否レスポンスを確認する
+    collector:
+      step: steps/reservation_api/cancel_reservation.step.manual.yaml
+    ok_condition: HTTP 409、error.details[0].reason=stale_version を返し、予約はconfirmedのまま。
+    save_as: ${case.id}_E_stale_version_${member.id}_${resource.id}.json

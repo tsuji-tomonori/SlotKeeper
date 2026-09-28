@@ -1,0 +1,26 @@
+schema_version: 1
+
+component:
+  id: reservation_booking
+  title: Reservation Booking
+  purpose: >
+    利用者が有効な資源の空き枠を[開始,終了)の区間で予約し、
+    Idempotency-Keyで再送を安全に扱う。
+  aggregate:
+    - Reservation
+    - Idempotency Record
+
+business_invariants:
+  - id: no_overlapping_confirmed
+    text: 同じ資源のconfirmed予約は区間が重ならない。
+  - id: inactive_resource_rejects_booking
+    text: 無効化された資源には新規予約できない。
+  - id: idempotent_replay
+    text: 同じ利用者が同じIdempotency-Keyと同じ入力で再送した場合、同じ予約を返し重複作成しない。
+  - id: idempotency_input_guard
+    text: 同じIdempotency-Keyで異なる入力を送った場合は409で拒否する。
+
+targets:
+  primary:
+    - member
+    - resource

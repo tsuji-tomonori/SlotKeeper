@@ -1,0 +1,153 @@
+"""router testの運用ログ検査と標本requestの呼出しを共通化します。"""
+
+from __future__ import annotations
+
+import json
+import logging
+import sys
+from collections.abc import Callable, Generator, Mapping
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, cast
+
+import pytest
+
+from app.apis.base import ApiStatusSample
+from app.apis.exceptions import ApiFunctionError
+from app.core.logging import JsonOperationalLogFormatter
+from tools.generate_api_message_catalog import build_api_catalogs
+
+from .router_db import RouterDbHarness
+
+type LogFinder = Callable[[str], dict[str, Any]]
+
+
+@contextmanager
+def capture_operational_log_events(
+    capsys: pytest.CaptureFixture[str],
+) -> Generator[LogFinder]:
+    """標準出力へ出したJSON運用ログをmessageIdで取り出す。"""
+    capsys.readouterr()
+    with _temporary_operational_stdout_handler():
+
+        def find_log_event(message_id: str) -> dict[str, Any]:
+            return _find_json_log_event(capsys.readouterr().out, message_id)
+
+        yield find_log_event
+
+
+async def assert_sample_request_emits_router_error_log(
+    *,
+    router_db_harness: RouterDbHarness,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    method: str,
+    path_template: str,
+    status_samples: dict[int, ApiStatusSample],
+    success_status: int,
+    patch_target: str,
+    message_id: str,
+    catalog_id: str,
+    headers: Mapping[str, str],
+) -> None:
+    """標本requestでAPIを呼び、Routerで捕捉したエラーの運用ログを標準出力で検査する。"""
+
+    async def raise_router_error(*args: object, **kwargs: object) -> None:
+        _ = args, kwargs
+        raise ApiFunctionError(500, "forced router error", summary="標本requestによる例外注入")
+
+    monkeypatch.setattr(patch_target, raise_router_error)
+    assert success_status in status_samples
+    assert 500 in status_samples
+    sample_request = status_samples[success_status]["request"]
+
+    with _temporary_operational_stdout_handler():
+        response = await router_db_harness.client.request(
+            method,
+            _sample_path(path_template, sample_request),
+            headers={**_sample_mapping(sample_request, "headers"), **headers},
+            params=_sample_mapping(sample_request, "query"),
+            json=sample_request.get("body"),
+        )
+
+    captured = capsys.readouterr()
+    assert response.status_code == 500, response.text
+    event = _find_json_log_event(captured.out, message_id)
+    expected_catalog = _expected_router_error_catalog(message_id=message_id, catalog_id=catalog_id)
+    assert event["level"] == "ERROR"
+    assert event["messageId"] == message_id
+    assert event["messageCatalogId"] == catalog_id
+    assert event["summary"] == expected_catalog["summary"]
+    assert event["api"]["statusCode"] == 500
+    assert event["error"]["exceptionType"] == "ApiFunctionError"
+    assert event["error"]["message"] == "forced router error"
+    actual_catalog = {key: event["messageCatalog"].get(key) for key in expected_catalog}
+    assert actual_catalog == expected_catalog
+    assert event["messageCatalog"] == event["messageCatalog"] | expected_catalog
+
+
+def _sample_path(path_template: str, sample_request: dict[str, Any]) -> str:
+    path = path_template
+    for name, value in _sample_mapping(sample_request, "path").items():
+        path = path.replace(f"{{{name}}}", str(value))
+    return path
+
+
+def _sample_mapping(sample_request: dict[str, Any], key: str) -> dict[str, Any]:
+    value = sample_request.get(key)
+    if value is None:
+        return {}
+    assert isinstance(value, dict)
+    return dict(cast(Mapping[str, Any], value))
+
+
+def _find_json_log_event(stdio: str, message_id: str) -> dict[str, Any]:
+    for line in stdio.splitlines():
+        try:
+            event = cast(object, json.loads(line))
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict):
+            event_dict = cast(dict[str, Any], event)
+            if event_dict.get("messageId") == message_id:
+                return event_dict
+    raise AssertionError(f"stdio JSON log event is not found: {message_id}\n{stdio}")
+
+
+def _expected_router_error_catalog(*, message_id: str, catalog_id: str) -> dict[str, Any]:
+    for catalog in build_api_catalogs(
+        root=Path("."),
+        api_root=Path("src/app/apis"),
+        include_http_defaults=True,
+    ):
+        for message in catalog.messages:
+            if message.message_id == message_id and message.catalog_id == catalog_id:
+                assert message.level == "ERROR"
+                return {
+                    "id": message.catalog_id,
+                    "messageId": message.message_id,
+                    "level": message.level,
+                    "summary": message.summary,
+                    "when": message.when,
+                    "checkProcedure": message.check_procedure,
+                    "remediationProcedure": message.remediation_procedure,
+                    "operatorAction": message.operator_action,
+                    "runbook": message.runbook,
+                }
+    raise AssertionError(f"router error message catalog is not found: {message_id} ({catalog_id})")
+
+
+@contextmanager
+def _temporary_operational_stdout_handler() -> Generator[None]:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(JsonOperationalLogFormatter())
+    root_logger = logging.getLogger()
+    previous_level = root_logger.level
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(handler)
+    try:
+        yield
+    finally:
+        root_logger.removeHandler(handler)
+        root_logger.setLevel(previous_level)

@@ -1,0 +1,12 @@
+schema_version: 1
+
+actions:
+  - id: register_resource
+    title: 資源を登録する
+    operation_type: command
+    default_result: registered
+    compatible_states:
+      - registered
+      - register_forbidden
+    target:
+      - resource

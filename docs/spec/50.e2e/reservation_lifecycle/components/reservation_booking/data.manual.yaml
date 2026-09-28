@@ -1,0 +1,49 @@
+schema_version: 1
+
+data_profiles:
+  - id: booking_default
+    title: 標準予約
+    display_title: Member A / Member B x Room A / Room B / Equipment A の予約
+    label: 予約
+    coverage_role: canonical_success
+    compatible_actions:
+      - book_slot
+    compatible_states:
+      - booked
+      - replayed
+      - slot_taken
+      - resource_inactive
+    target_coverage: all
+    tags:
+      - valid_booking
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+        Idempotency-Key: ${case.id}-${member.id}-${resource.id}
+      body:
+        resourceId: resourceId[${resource.id}]
+        startAt: ${env.E2E_BOOKING_DATE}T10:00:00+09:00
+        endAt: ${env.E2E_BOOKING_DATE}T11:00:00+09:00
+        purpose: E2E ${case.id} ${member.id}
+
+  - id: idempotency_conflict
+    title: 同一Idempotency-Keyの異なる入力
+    label: 同一Idempotency-Keyの異なる入力
+    coverage_role: negative
+    compatible_actions:
+      - book_slot
+    compatible_states:
+      - idempotency_mismatch
+    target_coverage: canonical_pair
+    tags:
+      - valid_booking
+      - idempotency_conflict
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+        Idempotency-Key: ${case.id}-${member.id}-${resource.id}
+      body:
+        resourceId: resourceId[${resource.id}]
+        startAt: ${env.E2E_BOOKING_DATE}T13:00:00+09:00
+        endAt: ${env.E2E_BOOKING_DATE}T14:00:00+09:00
+        purpose: E2E ${case.id} ${member.id} changed

@@ -1,0 +1,18 @@
+schema_version: 1
+
+step:
+  id: reservation_cancel_reservation
+  title: 予約取消APIを呼び出す
+  phase: exercise
+  operation_id: cancelReservation
+  endpoint: POST /reservations/${reservationId}/cancel
+
+request:
+  source: components/reservation_cancellation/data.manual.yaml#cancel_default.request
+
+expect:
+  response:
+    status: ${result.expected_status}
+
+capture:
+  reservationVersion[${member.id},${resource.id}]: $.version

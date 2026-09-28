@@ -1,0 +1,18 @@
+schema_version: 1
+template:
+  id: post_reservations
+  operation_id: createReservation
+  method: POST
+  path: /reservations
+request:
+  headers:
+    Authorization: Bearer ${tokens.member_token}
+    Idempotency-Key: ${case.case_id}-reservation
+    Content-Type: application/json
+  body:
+    from_sample:
+      module: app.apis.reservations.create_reservation.samples
+      object: CREATE_RESERVATION_REQUEST_SAMPLE
+captures:
+  reservationId: $.reservationId
+  version: $.version

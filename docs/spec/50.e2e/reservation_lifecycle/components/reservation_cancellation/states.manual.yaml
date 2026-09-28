@@ -1,0 +1,29 @@
+schema_version: 1
+
+states:
+  - id: cancelled
+    title: 取消成功
+    continue_flow: true
+    target_coverage: canonical_pair
+    compatible_actions:
+      - cancel_reservation
+
+  - id: other_member_forbidden
+    title: 他の利用者による取消拒否
+    continue_flow: false
+    compatible_actions:
+      - cancel_reservation
+
+  - id: already_cancelled
+    title: 取消済み予約の再取消拒否
+    continue_flow: false
+    compatible_actions:
+      - cancel_reservation
+
+  - id: stale_version
+    title: 古い版での取消拒否
+    continue_flow: false
+    compatible_actions:
+      - cancel_reservation
+    requires_data_tags:
+      - stale_version

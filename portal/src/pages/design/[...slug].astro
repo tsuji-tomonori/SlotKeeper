@@ -4,7 +4,7 @@ import path from "node:path";
 import { marked } from "marked";
 import Layout from "../../layouts/Layout.astro";
 export function getStaticPaths() {
-  const root = path.resolve("docs/design/generated");
+  const root = path.resolve("docs/spec");
   const files = fs
     .readdirSync(root, { recursive: true })
     .filter((p) => String(p).endsWith(".md"));

@@ -1,0 +1,23 @@
+case_id,resource_catalog[データ],resource_catalog[操作],resource_catalog[状態],reservation_booking[データ],reservation_booking[操作],reservation_booking[状態],reservation_visibility[データ],reservation_visibility[操作],reservation_visibility[状態],reservation_cancellation[データ],reservation_cancellation[操作],reservation_cancellation[状態],resource_control[データ],resource_control[操作],resource_control[状態],operation_trace[データ],operation_trace[操作],operation_trace[状態]
+TC_TARGET_001,Room A の一般利用者による資源登録,資源を登録する,管理者以外の資源登録拒否,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_002,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_003,Room B,資源を登録する,資源登録成功,Member A x Room B の予約,予約枠を予約する,予約成功,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_004,Equipment A,資源を登録する,資源登録成功,Member A x Equipment A の予約,予約枠を予約する,予約成功,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_005,Room A,資源を登録する,資源登録成功,Member B x Room A の予約,予約枠を予約する,予約成功,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_006,Room B,資源を登録する,資源登録成功,Member B x Room B の予約,予約枠を予約する,予約成功,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_007,Equipment A,資源を登録する,資源登録成功,Member B x Equipment A の予約,予約枠を予約する,予約成功,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_008,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,同一要求の再送で同じ予約を返す,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_009,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,重複枠の予約拒否,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_010,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,無効資源の予約拒否,-,-,-,-,-,-,Room A の資源無効化,資源を無効化する,資源無効化成功,-,-,-
+TC_TARGET_011,Room A,資源を登録する,資源登録成功,Member A x Room A の同一Idempotency-Keyの異なる入力,予約枠を予約する,Idempotency-Key再利用の入力不一致拒否,-,-,-,-,-,-,-,-,-,-,-,-
+TC_TARGET_012,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,Member A x Room A の本人による予約参照,予約詳細を参照する,本人による予約詳細参照成功,-,-,-,-,-,-,-,-,-
+TC_TARGET_013,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,Member A x Room A の他の利用者による予約参照,予約詳細を参照する,他の利用者による予約詳細参照拒否,-,-,-,-,-,-,-,-,-
+TC_TARGET_014,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,Member A x Room A の他の利用者による予約表参照,予約表を参照する,予約表で予約目的を秘匿,-,-,-,-,-,-,-,-,-
+TC_TARGET_015,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,-,-,-,Member A x Room A の予約取消,予約を取消す,取消成功,-,-,-,-,-,-
+TC_TARGET_016,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,-,-,-,Member A x Room A の予約取消,予約を取消す,他の利用者による取消拒否,-,-,-,-,-,-
+TC_TARGET_017,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,-,-,-,Member A x Room A の予約取消,予約を取消す,取消済み予約の再取消拒否,-,-,-,-,-,-
+TC_TARGET_018,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,-,-,-,Member A x Room A の古い版での予約取消,予約を取消す,古い版での取消拒否,-,-,-,-,-,-
+TC_TARGET_019,Room A,資源を登録する,資源登録成功,-,-,-,-,-,-,-,-,-,Room A の資源無効化,資源を無効化する,資源無効化成功,-,-,-
+TC_TARGET_020,Room A,資源を登録する,資源登録成功,Member A x Room A の予約,予約枠を予約する,予約成功,-,-,-,-,-,-,Room A の資源無効化,資源を無効化する,未来予約ありの無効化拒否,-,-,-
+TC_TARGET_021,Room A,資源を登録する,資源登録成功,-,-,-,-,-,-,-,-,-,Room A の古い版での資源無効化,資源を無効化する,古い版での資源編集拒否,-,-,-
+TC_TARGET_022,Room A,資源を登録する,資源登録成功,-,-,-,-,-,-,-,-,-,-,-,-,存在しない予約IDの参照,要求の追跡IDを確認する,追跡ID一致

@@ -1,0 +1,245 @@
+schema_version: 1
+
+flow:
+  id: reservation_lifecycle
+  title: Reservation lifecycle
+  description: 管理者による資源登録、利用者の予約作成、予約参照、取消、資源無効化までのE2Eフロー。
+
+target_dimensions:
+  - id: member
+    title: Member
+    directory: members
+    canonical: member_A
+    targets:
+      - member_A
+      - member_B
+  - id: resource
+    title: Resource
+    directory: resources
+    canonical: room_A
+    targets:
+      - room_A
+      - room_B
+      - equipment_A
+
+steps:
+  - id: S000
+    operation_id: health
+    method: GET
+    path: /health
+    template: get_health
+  - id: S010
+    operation_id: listResources
+    method: GET
+    path: /resources
+    template: get_resources
+  - id: S011
+    operation_id: createResource
+    method: POST
+    path: /resources
+    template: post_resources
+    captures:
+      - resourceId
+  - id: S012
+    operation_id: updateResource
+    method: PUT
+    path: /resources/${resourceId}
+    template: put_resource
+  - id: S013
+    operation_id: getResourceSchedule
+    method: GET
+    path: /resources/${resourceId}/schedule
+    template: get_resource_schedule
+  - id: S020
+    operation_id: createReservation
+    method: POST
+    path: /reservations
+    template: post_reservations
+    captures:
+      - reservationId
+  - id: S021
+    operation_id: listReservations
+    method: GET
+    path: /reservations
+    template: get_reservations
+  - id: S022
+    operation_id: getReservation
+    method: GET
+    path: /reservations/${reservationId}
+    template: get_reservation
+  - id: S023
+    operation_id: cancelReservation
+    method: POST
+    path: /reservations/${reservationId}/cancel
+    template: cancel_reservation
+
+component_sequence:
+  - resource_catalog
+  - reservation_booking
+  - reservation_visibility
+  - reservation_cancellation
+  - resource_control
+  - operation_trace
+
+default_variants:
+  resource_catalog:
+    action: register_resource
+    state: registered
+    data: resource_default
+  reservation_booking:
+    action: book_slot
+    state: booked
+    data: booking_default
+  resource_control:
+    action: deactivate_resource
+    state: deactivated
+    data: deactivate_default
+
+embedded_goals:
+  - component: resource_catalog
+    action: register_resource
+    state: registered
+    data: resource_default
+
+component_dependencies:
+  - id: booking_requires_registered_resource
+    from:
+      component: reservation_booking
+    requires:
+      - component: resource_catalog
+        same:
+          - resource
+        state: registered
+
+  - id: inactive_booking_requires_deactivated_resource
+    from:
+      component: reservation_booking
+      state: resource_inactive
+    requires:
+      - component: resource_control
+        same:
+          - resource
+        state: deactivated
+
+  - id: rebooking_requires_existing_booking
+    from:
+      component: reservation_booking
+      state:
+        - replayed
+        - slot_taken
+        - idempotency_mismatch
+    requires:
+      - component: reservation_booking
+        same:
+          - member
+          - resource
+        state: booked
+
+  - id: visibility_requires_booking
+    from:
+      component: reservation_visibility
+    requires:
+      - component: reservation_booking
+        same:
+          - member
+          - resource
+        state: booked
+
+  - id: cancellation_requires_booking
+    from:
+      component: reservation_cancellation
+    requires:
+      - component: reservation_booking
+        same:
+          - member
+          - resource
+        state: booked
+
+  - id: deactivation_requires_registered_resource
+    from:
+      component: resource_control
+    requires:
+      - component: resource_catalog
+        same:
+          - resource
+        state: registered
+
+  - id: future_reservation_blocks_deactivation
+    from:
+      component: resource_control
+      state: future_reservation_exists
+    requires:
+      - component: reservation_booking
+        same:
+          - resource
+        state: booked
+
+  - id: trace_requires_registered_resource
+    from:
+      component: operation_trace
+    requires:
+      - component: resource_catalog
+        state: registered
+
+matrix:
+  title: Member x Resource matrix
+  rows: member
+  columns: resource
+  components:
+    - reservation_booking
+    - reservation_visibility
+    - reservation_cancellation
+  assertion:
+    component: reservation_booking
+    expected_by_state:
+      booked: confirmed
+      slot_taken: rejected
+      resource_inactive: rejected
+      idempotency_mismatch: rejected
+    labels:
+      confirmed: 予約が確定する
+      rejected: 予約が拒否される
+    heading: 予約確定について、次の期待を確認する。
+    sentence: ${row.title} による ${column.title} の予約は「${expected}」として扱う。
+    none: このケースでは予約確定の期待は設定しない。
+
+case_prerequisites:
+  - Cognito User PoolまたはローカルJWKSで、管理者、Member A、Member Bのaccess tokenを取得できる。
+  - case.id suffixで資源名や予約目的を一意にし、既存データと衝突させない。
+  - access tokenの実値をMarkdown、エビデンス、ログに出さない。
+  - "`${admin_token}` と `${member_token}` はplaceholderとして扱う。"
+
+required_placeholders:
+  - ${admin_token}
+  - ${member_token}
+
+closing_notes:
+  - 実行時のaccess token実値は記録しない。
+
+case_list_rules:
+  - id: P001
+    condition: "`continue_flow=false` の失敗系"
+    result: Member/Resourceを代表targetへ集約
+    reason: データ種別や対象差で期待結果が変わらない失敗系を重複実行しない
+  - id: P002
+    condition: 後続ケースの前提variantとして検証される正常系
+    result: 単独goal caseを生成しない
+    reason: 資源登録成功は予約・無効化等の後続ケースに内包する
+  - id: P003
+    condition: 前提component stateが成立しないgoal variant
+    result: ケース生成対象から除外
+    reason: 到達不能な手順をE2Eケースに含めない
+  - id: P004
+    condition: 同じcomponent stateを証明する同一evidence
+    result: ケース内で重複排除
+    reason: レビュー対象のエビデンス表を簡潔に保つ
+
+case_policy:
+  generation_source: component YAML
+  pruning:
+    stop_when_continue_flow_false: true
+    dedupe_same_component_state_evidences: true
+  tiers:
+    - compose_local
+    - aws_dev
+    - doc_only

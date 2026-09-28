@@ -1,0 +1,42 @@
+schema_version: 1
+
+bindings:
+  - id: view_reservation_owner_visible
+    when:
+      action: view_reservation
+      state: owner_visible
+      data_tags:
+        include:
+          - owner
+    steps:
+      - ref: steps/reservation_api/get_reservation.step.manual.yaml
+    evidences:
+      - ref: owner_reservation_detail
+
+  - id: view_reservation_other_member_forbidden
+    when:
+      action: view_reservation
+      state: other_member_forbidden
+      data_tags:
+        include:
+          - other_member
+    steps:
+      - ref: steps/reservation_api/get_reservation.step.manual.yaml
+    failure_trigger: ${member.title} が作成した予約の詳細を、管理者ではない Member B の token で取得し、403 を発生させる。
+    error_settings:
+      error.actor: 予約者ではない一般利用者 Member B
+    evidences:
+      - ref: other_member_forbidden_response
+
+  - id: view_schedule_purpose_hidden
+    when:
+      action: view_schedule
+      state: purpose_hidden
+      data_tags:
+        include:
+          - other_member
+    steps:
+      - ref: steps/resource_api/get_resource_schedule.step.manual.yaml
+    procedure: ${member.title} の予約がある ${resource.title} の予約表を、Member B の token で取得する。
+    evidences:
+      - ref: schedule_purpose_hidden

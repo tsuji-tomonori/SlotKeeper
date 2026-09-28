@@ -1,0 +1,127 @@
+schema_version: 1
+
+variant_generation:
+  compatibility:
+    require_action_state_compatibility: true
+    require_data_action_compatibility: true
+    require_data_state_compatibility: true
+    require_tag_compatibility: true
+
+  data_policy:
+    success_variations_only_on_success_state: true
+    negative_data_only_on_matching_failure_state: true
+    evidence_data_not_standalone_goal: true
+
+  target_policy:
+    default: canonical_pair
+    canonical_member: member_A
+    canonical_resource: room_A
+    all_targets_for:
+      - component: resource_catalog
+        action: register_resource
+        state: registered
+        data:
+          - resource_default
+      - component: reservation_booking
+        action: book_slot
+        state: booked
+        data:
+          - booking_default
+
+component_variant_generation:
+  dimensions:
+    resource_catalog:
+      resource: all
+      action: all
+      state: all
+      data: compatible
+    reservation_booking:
+      member: all
+      resource: all
+      action: all
+      state: all
+      data: compatible
+    reservation_visibility:
+      member: canonical
+      resource: canonical
+      action: all
+      state: all
+      data: compatible
+    reservation_cancellation:
+      member: canonical
+      resource: canonical
+      action: all
+      state: all
+      data: compatible
+    resource_control:
+      resource: canonical
+      action: all
+      state: all
+      data: compatible
+    operation_trace:
+      action: representative
+      state: all
+      data: representative
+
+component_case_generation:
+  default_strategy: component_variant_coverage
+  strategies:
+    - id: component_variant_coverage
+      enabled: true
+      strategy: additive
+      description: 各component variantを最低1ケースのゴールにする。
+      output_group: component_variant
+      include:
+        components: all
+        member: all
+        resource: all
+        action: all
+        state: all
+        data: compatible
+      one_case_per_variant: true
+
+    - id: interaction_coverage
+      enabled: true
+      strategy: pairwise
+      description: 利用者と資源種別の組み合わせで予約確定を確認する。
+      output_group: interaction
+      groups:
+        - id: member_resource_kind
+          dimensions:
+            - reservation_booking.target.member
+            - reservation_booking.target.resource
+
+pruning:
+  stop_when_continue_flow_false: true
+  remove_unreachable_dependencies: true
+  drop_query_goal_cases: true
+  drop_evidence_only_goal_cases: true
+  dedupe_same_goal_and_same_evidence: true
+  dedupe_same_behavior_signature: true
+
+dedupe:
+  behavior_signature:
+    - component
+    - action
+    - state
+    - data.coverage_role
+    - expected_status
+    - expected_business_state
+    - evidence_ids
+
+coverage_assertions:
+  - id: all_component_variants_are_covered
+    type: every_variant_has_case
+    components: all
+
+  - id: every_member_is_covered
+    type: every_target_has_case
+    target_type: member
+
+  - id: every_resource_is_covered
+    type: every_target_has_case
+    target_type: resource
+
+  - id: every_booking_state_is_covered
+    type: every_state_has_case
+    component: reservation_booking

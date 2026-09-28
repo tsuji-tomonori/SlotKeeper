@@ -1,0 +1,17 @@
+schema_version: 1
+
+data_profiles:
+  - id: trace_not_found
+    title: 存在しない予約IDの参照
+    coverage_role: evidence_probe
+    compatible_actions:
+      - trace_request
+    compatible_states:
+      - traced
+    tags:
+      - trace
+    request:
+      headers:
+        Authorization: Bearer ${member_token}
+      path:
+        reservationId: 00000000-0000-0000-0000-00000000e2e0

@@ -1,0 +1,23 @@
+schema_version: 1
+
+component:
+  id: reservation_visibility
+  title: Reservation Visibility
+  purpose: >
+    予約者本人と管理者だけが予約目的を含む詳細を参照でき、
+    他の利用者には予約表で「予約済み」だけを見せる。
+  aggregate:
+    - Reservation
+
+business_invariants:
+  - id: owner_can_view_detail
+    text: 予約者本人は自分の予約詳細を参照できる。
+  - id: other_member_cannot_view_detail
+    text: 予約者本人と管理者以外は予約詳細を参照できない。
+  - id: schedule_hides_purpose
+    text: 予約表は他人の予約目的と予約者を返さず、予約済みラベルだけを返す。
+
+targets:
+  primary:
+    - member
+    - resource

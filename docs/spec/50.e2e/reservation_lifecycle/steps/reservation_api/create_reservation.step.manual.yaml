@@ -1,0 +1,19 @@
+schema_version: 1
+
+step:
+  id: reservation_create_reservation
+  title: 予約作成APIを呼び出す
+  phase: exercise
+  operation_id: createReservation
+  endpoint: POST /reservations
+
+request:
+  source: components/reservation_booking/data.manual.yaml#booking_default.request
+
+expect:
+  response:
+    status: ${result.expected_status}
+
+capture:
+  reservationId[${member.id},${resource.id}]: $.reservationId
+  reservationVersion[${member.id},${resource.id}]: $.version
