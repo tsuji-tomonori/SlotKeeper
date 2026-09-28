@@ -57,18 +57,25 @@ async def test_list_resources_router_returns_sample_shaped_response_with_db(
     router_seed_resource: Callable[..., Any],
     timer: FixedClock,
 ) -> None:
-    """Given 先頭に並ぶ名前の資源 When 標本queryで一覧取得 Then 標本と同じ形で資源を返す。 [SLOT-01-AC]"""
+    """Given 登録済みの資源 When 標本queryでページを順に取得 Then 対象資源を標本と同じ形で返す。 [SLOT-01-AC]"""
     _ = timer
-    resource = await router_seed_resource(
-        router_db_harness, router_auth_headers("manager", True), name="!先頭資源 " + str(uuid4())
-    )
+    resource = await router_seed_resource(router_db_harness, router_auth_headers("manager", True))
     request = LIST_RESOURCES_STATUS_SAMPLES[200]["request"]
-    response = await router_db_harness.client.get(
-        "/resources", headers=router_auth_headers("alice"), params={**request["query"], "limit": 1}
-    )
-
-    assert response.status_code == 200, response.text
-    body = response.json()
+    query = {**request["query"], "limit": 1}
+    seen_tokens: set[str] = set()
+    while True:
+        response = await router_db_harness.client.get(
+            "/resources", headers=router_auth_headers("alice"), params=query
+        )
+        assert response.status_code == 200, response.text
+        body = response.json()
+        if any(item["resourceId"] == resource["resourceId"] for item in body["items"]):
+            break
+        token = body["nextToken"]
+        assert token is not None, "登録した資源が一覧に存在しない"
+        assert token not in seen_tokens, "継続tokenが循環している"
+        seen_tokens.add(token)
+        query["nextToken"] = token
     expected = sample_value(LIST_RESOURCES_RESPONSE_SAMPLE)
     expected["items"] = [{**expected["items"][0], **resource}]
     expected["nextToken"] = body["nextToken"]

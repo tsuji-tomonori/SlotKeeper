@@ -97,7 +97,7 @@
 | tests/app/apis/resources/list_resources/test_functions.py::test_resources_are_paged_by_name_and_id | Given 同名を含む3件の資源と上限2件 When 一覧を取得 Then 名前とIDの継続tokenで次ページを問い合わせる。 | SLOT-01-AC, RULE-14-AC |
 | tests/app/apis/resources/list_resources/test_functions.py::test_router_error_response | Given 不正な継続token When Router例外を変換 Then 422と理由コードを返す。 | COM-03-AC |
 | tests/app/apis/resources/list_resources/test_router.py::test_resource_paging_order | Given 同名の資源 When ページ単位で取得 Then 名前とIDの固定順で欠落・重複がない。 | SLOT-01-AC, RULE-14-AC |
-| tests/app/apis/resources/list_resources/test_router.py::test_list_resources_router_returns_sample_shaped_response_with_db | Given 先頭に並ぶ名前の資源 When 標本queryで一覧取得 Then 標本と同じ形で資源を返す。 | SLOT-01-AC |
+| tests/app/apis/resources/list_resources/test_router.py::test_list_resources_router_returns_sample_shaped_response_with_db | Given 登録済みの資源 When 標本queryでページを順に取得 Then 対象資源を標本と同じ形で返す。 | SLOT-01-AC |
 | tests/app/apis/resources/list_resources/test_router.py::test_list_resources_sample_request_emits_router_error_log_to_stdio | Given 標本requestと処理中の業務例外 When 資源一覧取得 Then Router例外の運用ログをcatalogどおり出す。 | COM-07-AC |
 | tests/app/apis/resources/list_resources/test_router.py::test_tc001_list_resources_router_matches_unit_test_gen | Given 登録済みの資源 When 一覧取得 Then 200で資源を返す。 | SLOT-01-AC |
 | tests/app/apis/resources/list_resources/test_router.py::test_tc002_list_resources_router_matches_unit_test_gen | Given 資源一覧の取得で業務例外 When API呼出し Then Routerで500へ変換し運用ログを出す。 | — |
@@ -424,6 +424,7 @@
 | tests/tools/test_rulecheck_cli.py::test_metric_exclude_globs_skip_generated_python | — | — |
 | tests/tools/test_rulecheck_cli.py::test_endpoint_business_argument_count_excludes_fastapi_depends | — | — |
 | tests/tools/test_rulecheck_cli.py::test_additional_metric_checkers_report_failures | — | — |
+| tests/tools/test_tools_package.py::test_tools_package_imports_both_roots | Given 2箇所のtools配置 When 順序を変えて探索 Then Quintとverifyの依存を読み込める。 | — |
 | vitest::日本時間の入力と次の操作案内 [COM-08-AC] [RULE-04-AC] | 日本時間の入力と次の操作案内 | COM-08-AC, RULE-04-AC |
 | vitest::Cognitoのログアウト先 [COM-01-AC] | Cognitoのログアウト先 | COM-01-AC |
 | playwright::ログインから予約・履歴・取消・ログアウトまで [COM-01-AC] [SLOT-AC01] [SLOT-02-AC] [SLOT-07-AC] [SLOT-AC04] | ログインから予約・履歴・取消・ログアウトまで | COM-01-AC, SLOT-AC01, SLOT-02-AC, SLOT-07-AC, SLOT-AC04 |
