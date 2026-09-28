@@ -1,26 +1,16 @@
-flowchart LR
-  a0["cancelReservation"] -->|R| r0["identity.jwks_signing_key"]
-  a1["cancelReservation"] -->|C| r1["slotkeeper.reservation_events"]
-  a2["cancelReservation"] -->|RU| r2["slotkeeper.reservations"]
-  a3["cancelReservation"] -->|U| r3["slotkeeper.resources"]
-  a4["createReservation"] -->|R| r4["identity.jwks_signing_key"]
-  a5["createReservation"] -->|CRD| r5["slotkeeper.idempotency_records"]
-  a6["createReservation"] -->|C| r6["slotkeeper.reservation_events"]
-  a7["createReservation"] -->|CR| r7["slotkeeper.reservations"]
-  a8["createReservation"] -->|U| r8["slotkeeper.resources"]
-  a9["createReservation"] -->|C| r9["slotkeeper.users"]
-  a10["createResource"] -->|R| r10["identity.jwks_signing_key"]
-  a11["createResource"] -->|C| r11["slotkeeper.resources"]
-  a12["getReservation"] -->|R| r12["identity.jwks_signing_key"]
-  a13["getReservation"] -->|R| r13["slotkeeper.reservation_events"]
-  a14["getReservation"] -->|R| r14["slotkeeper.reservations"]
-  a15["getResourceSchedule"] -->|R| r15["identity.jwks_signing_key"]
-  a16["getResourceSchedule"] -->|R| r16["slotkeeper.reservations"]
-  a17["getResourceSchedule"] -->|R| r17["slotkeeper.resources"]
-  a18["listReservations"] -->|R| r18["identity.jwks_signing_key"]
-  a19["listReservations"] -->|R| r19["slotkeeper.reservations"]
-  a20["listResources"] -->|R| r20["identity.jwks_signing_key"]
-  a21["listResources"] -->|R| r21["slotkeeper.resources"]
-  a22["updateResource"] -->|R| r22["identity.jwks_signing_key"]
-  a23["updateResource"] -->|R| r23["slotkeeper.reservations"]
-  a24["updateResource"] -->|U| r24["slotkeeper.resources"]
+# API×保存先 CRUDマトリクス
+
+行はOpenAPI summaryのAPI和名（operationId順）、列は保存先の完全名順。
+DBテーブルはschema付き名、DB以外のidentity保存先も列に含める。
+C: 作成、R: 参照、U: 更新、D: 削除。空欄はアクセスなし。
+
+| API和名 | identity.jwks_signing_key | slotkeeper.idempotency_records | slotkeeper.reservation_events | slotkeeper.reservations | slotkeeper.resources | slotkeeper.users |
+|---|---|---|---|---|---|---|
+| 予約を取消す | R |  | C | RU | U |  |
+| 予約を作成する | R | CRD | C | CR | U | C |
+| 資源を登録する | R |  |  |  | C |  |
+| 予約詳細を取得する | R |  | R | R |  |  |
+| 予約表を取得する | R |  |  | R | R |  |
+| 自分の予約一覧を取得する | R |  |  | R |  |  |
+| 資源一覧を取得する | R |  |  |  | R |  |
+| 資源を編集する | R |  |  | R | U |  |

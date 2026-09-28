@@ -18,7 +18,6 @@ from tools.project import evidence
 ROOT = Path(__file__).resolve().parents[3]
 ART = ROOT / "artifacts"
 PY = sys.executable
-CHECK_DESIGN = ".agents/skills/generate-implementation-design/scripts/check_design.py"
 RULECHECK_ARGS = [
     "--repo-root",
     ".",
@@ -87,7 +86,7 @@ SUITES: dict[str, tuple[Step, ...]] = {
         Step("rulecheck-checklist", (PY, "-m", "tools.rulecheck", "verify", *RULECHECK_ARGS)),
         Step("rulecheck", (PY, "-m", "tools.project.rulecheck_gate")),
         Step("design", (PY, "-B", "src/tools/project/design.py", "--manifest", "--check")),
-        Step("design-contract", (PY, CHECK_DESIGN, "--root", ".")),
+        Step("design-contract", (PY, "-m", "tools.project.design_contract", "--root", ".")),
         pytest_step("adapter", ["tests/tools"], "src/tools"),
     ),
     "backend": (
